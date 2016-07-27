@@ -1,4 +1,6 @@
 % Script to scrape Zserver and add all subjects to db
+%
+% Should interface this with the google spreadsheet somehow in order to provide further information
 
 %% establish db connection
 uname = 'kenneth';

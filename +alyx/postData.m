@@ -7,9 +7,9 @@ function [data, statusCode] = postData(baseURL, endpoint, token, data)
 % Example:
 % subjects = postData('http://alyx.cortexlab.net', 'subjects', token, myStructData)
 
-    jsonData = savejson(data)
+    jsonData = savejson(data);
 
-    [statusCode, responseBody] = http.jsonPost([baseURL, '/', endpoint], jsonData, 'Authorization', ['Token ' token])
+    [statusCode, responseBody] = http.jsonPost([baseURL, '/', endpoint], jsonData, 'Authorization', ['Token ' token]);
     if statusCode >= 200 && statusCode <=300 % anything in the 200s is a Success code
         data = loadjson(responseBody);
     else

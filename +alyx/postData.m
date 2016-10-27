@@ -7,6 +7,11 @@ function [data, statusCode] = postData(baseURL, endpoint, token, data)
 % Example:
 % subjects = postData('http://alyx.cortexlab.net', 'subjects', token, myStructData)
 
+    if isempty(baseURL)
+        baseURL = 'http://alyx.cortexlab.net';
+    end
+    
+
     jsonData = savejson(data);
 
     [statusCode, responseBody] = http.jsonPost([baseURL, '/', endpoint], jsonData, 'Authorization', ['Token ' token]);
@@ -17,3 +22,4 @@ function [data, statusCode] = postData(baseURL, endpoint, token, data)
     end
 
 end
+    

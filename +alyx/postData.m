@@ -11,8 +11,7 @@ function [data, statusCode] = postData(baseURL, endpoint, token, data)
         baseURL = 'http://alyx.cortexlab.net';
     end
     
-
-    jsonData = savejson(data);
+    jsonData = savejson('', data);
 
     [statusCode, responseBody] = http.jsonPost([baseURL, '/', endpoint], jsonData, 'Authorization', ['Token ' token]);
     if statusCode >= 200 && statusCode <=300 % anything in the 200s is a Success code

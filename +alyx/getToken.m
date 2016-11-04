@@ -7,17 +7,16 @@ function [token, statusCode] = getToken(baseURL, username, password)
 % Example:
 % token = getToken('http://alyx.cortexlab.net', 'max', '123')
 
-if isempty(baseURL)
-    baseURL = 'http://alyx.cortexlab.net';
-end
+    if isempty(baseURL)
+        baseURL = 'http://alyx.cortexlab.net';
+    end
 
-
-[statusCode, responseBody] = http.jsonPost([baseURL, '/auth-token/'], ['{"username":"', username, '","password":"', password, '"}']);
-if statusCode == 200
-    resp = loadjson(responseBody);
-    token = resp.token;
-else
-    error(responseBody)
-end
+    [statusCode, responseBody] = http.jsonPost([baseURL, '/auth-token/'], ['{"username":"', username, '","password":"', password, '"}']);
+    if statusCode == 200
+        resp = loadjson(responseBody);
+        token = resp.token;
+    else
+        error(responseBody)
+    end
 end
 

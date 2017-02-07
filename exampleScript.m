@@ -18,7 +18,7 @@ myAlyx = alyx.getToken([], 'nick', '123');
 %% create some data to post for a weighing
 
 clear d
-d.subject = 'Whipple'; % note lower-case, it is case sensitive
+d.subject = 'Whipple'; % note lower-case "subject", it is case sensitive
 d.weight = 22.1; 
 d.user = 'nick';
 % other fields are "date_time" (defaults to now) and "weighing_scale" (not
@@ -32,7 +32,7 @@ newWeighing = alyx.postData(myAlyx, 'weighings/', d) % note trailing / on "weigh
 %% create some data to post for a water administration
 
 clear d
-d.subject = 'Whipple'; % note lower-case, it is case sensitive
+d.subject = 'Whipple'; % note lower-case "subject", it is case sensitive
 d.water_administered = 0.97; %units of mL 
 d.user = 'nick';
 % other field is "date_time" (defaults to now)

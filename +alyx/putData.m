@@ -3,13 +3,18 @@ function [data, statusCode] = putData(alyxInstance, endpoint, data)
 %   
 % Description: Makes a request to an Alyx endpoint with new data as a MATLAB struct;
 % returns the JSON response data as a MATLAB struct.
+%
+% This function will overwrite data of an existing record. If you would
+% like to create a new record, see postData instead. 
 % 
 % Example:
 % subjects = postData(alyxInstance, 'subjects/AR060/', myStructData)
     
     jsonData = savejson('', data);
 
-    [statusCode, responseBody] = http.jsonPut([alyxInstance.baseURL, '/', endpoint], jsonData, 'Authorization', ['Token ' alyxInstance.token]);
+    fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
+    
+    [statusCode, responseBody] = http.jsonPut(fullEndpoint, jsonData, 'Authorization', ['Token ' alyxInstance.token]);
     if statusCode >= 200 && statusCode <=300 % anything in the 200s is a Success code
         data = loadjson(responseBody);
     else

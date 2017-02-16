@@ -12,3 +12,8 @@ if strcmp(endpoint(1:4), 'http')
 else
     fullEndpoint = [alyxInstance.baseURL, '/', endpoint];
 end
+
+% drop trailing slashes
+if strcmp(fullEndpoint(end), '/')
+    fullEndpoint = fullEndpoint(1:end-1);
+end

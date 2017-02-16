@@ -6,6 +6,8 @@
 
 % download https://github.com/psexton/missing-http/releases/tag/missing-http-1.0.0
 % clone https://github.com/cortex-lab/alyx-matlab/
+% install https://uk.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files
+%  -- (download tooolbox and run it)
 
 addpath(genpath('C:\Users\Nick\Documents\MATLAB\missing-http-1.0.0'));
 onLoad; % initializes missing-http

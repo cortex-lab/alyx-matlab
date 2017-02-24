@@ -7,7 +7,9 @@ function [data, statusCode] = getData(alyxInstance, endpoint)
 % Example:
 % subjects = getData(alyxInstance, 'subjects')
 
-    [statusCode, responseBody] = http.jsonGet([alyxInstance.baseURL, '/', endpoint], 'Authorization', ['Token ' alyxInstance.token]);
+    fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);        
+        
+    [statusCode, responseBody] = http.jsonGet(fullEndpoint, 'Authorization', ['Token ' alyxInstance.token]);
     if statusCode == 200
         data = loadjson(responseBody);
     else

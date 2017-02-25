@@ -2,7 +2,7 @@
 % - automatically check for new experiments frequently
 % - implement tag and ignore switches
 % - timeline plot
-% - 
+% - show water remaining
 
 function varargout = alyxExpFig(varargin)
 % ALYXEXPFIG MATLAB code for alyxExpFig.fig
@@ -73,19 +73,20 @@ else % otherwise,
     % start the new experiment!!
     clear d
     d.subject = handles.mouseName;
-    d.date_time = alyx.datestr(now);
+    d.start_time = alyx.datestr(now);
     handles.newExp = alyx.postData(handles.alyxInstance, 'experiments', d);
     handles.expMets = {};
 
     fprintf(1, 'new experiment url: %s\n', handles.newExp.url);
 end
 
+handles.startTime = alyx.datenum(handles.newExp.start_time);
+
 set(handles.txtNameDate, 'String', sprintf('%s, %s', handles.mouseName, datestr(handles.thisDate, 'yyyy-mm-dd')));
 
-% tmr = timer('Period', 1, 'ExecutionMode', 'fixedSpacing',...
-%     'TimerFcn', @(~,~)refreshExpList(hObject));
-% start(tmr);
-% handles.RefreshTimer = tmr;
+tmr = timer('Period', 1, 'ExecutionMode', 'fixedSpacing',...
+    'TimerFcn', @(~,~)refreshAll(hObject));
+handles.RefreshTimer = tmr;
 % 
 % set(hObject, 'CloseRequestFcn', @(~,~,~)stop(tmr));
 
@@ -94,7 +95,9 @@ guidata(hObject, handles);
 
 % updateSelectedDisp(hObject);
 
-refreshExpList(hObject);
+% refreshAll(hObject);
+start(tmr);
+
 
 % UIWAIT makes alyxExpFig wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -142,6 +145,8 @@ function pshEnd_Callback(hObject, eventdata, handles)
 
 % Now we'll end the experiment by adding any changed data to it and PUT-ing
 % it back 
+
+stop(handles.RefreshTimer);
 
 newExp = handles.newExp; % the existing record that we started when this window opened
 e = alyx.getData(handles.alyxInstance, newExp.url);
@@ -216,13 +221,14 @@ end
 
 function refreshAll(hObject)
 
+% update the expList
+% refreshExpList(hObject)
+
 % update the timelinePlot
 
 % update the stopwatch
+updateTimer(hObject)
 
-% update the expList
-
-% 
 
 function refreshExpList(hObject)
 % check for new exp-metadata's, add them to the list
@@ -256,8 +262,10 @@ end
 
 set(handles.txtSelectedObj, 'String', dispStr);
 
+function updateTimer(hObject)
+handles = guidata(hObject);
+set(handles.txtTimer, 'String', datestr(now-handles.startTime, 'HH:MM:SS'));
+
     
-
-
 function s = selString(expMets)
 s = cat(2, {'[root]'}, cellfun(@(x)x.classname, expMets, 'uni', false));

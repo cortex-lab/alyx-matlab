@@ -1,11 +1,12 @@
 
-function alyxInstance = loginWindow()
+function [alyxInstance, username] = loginWindow()
 % function alyxInstance = loginWindow()
 % Open a login window to get an alyx token
 % Returns empty if you click cancel.
 
 loginSuccessful = false;
 alyxInstance = [];
+username = [];
 
 while ~loginSuccessful
 
@@ -20,10 +21,11 @@ while ~loginSuccessful
         return;
     end
     
+    username = answer{1};
     pwd = passwordUI();
     
     try
-        alyxInstance = alyx.getToken([], answer{1}, pwd);
+        alyxInstance = alyx.getToken([], username, pwd);
     catch
     end
 

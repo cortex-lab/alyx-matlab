@@ -69,7 +69,7 @@ toc
 %   - server name = rod.cortexlab.net
 %   - port number = 5432
 %   - username = alyx_ro
-%   - password = x**!***
+%   - password = [see wiki: http://wiki.cortexlab.net/index.php/Alyx_database#Data_queries_from_matlab]
 %   - database = alyx
 % Then you can use the Database Browser to see all the tables and data. 
 % This may only work after you have used the command-line version of

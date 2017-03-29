@@ -32,7 +32,8 @@ driver ='org.postgresql.Driver';
 databaseurl = 'jdbc:postgresql://rod.cortexlab.net:5432/';
 
 username = 'alyx_ro'; % special read-only account
-% pass = ''; % declare this variable yourself, it is x**!***
+% pass = ''; % declare this variable yourself, see wiki for password
+% (http://wiki.cortexlab.net/index.php/Alyx_database#Data_queries_from_matlab)
 
 conn = database(datasourcename,username,pass,driver,databaseurl);
 

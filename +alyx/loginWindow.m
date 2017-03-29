@@ -26,6 +26,7 @@ while ~loginSuccessful
     
     try
         alyxInstance = alyx.getToken([], username, pwd);
+%         alyxInstance = alyx.getToken('http://127.0.0.1:8000', username, pwd);
     catch
     end
 

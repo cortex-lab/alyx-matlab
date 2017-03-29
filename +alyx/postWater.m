@@ -13,7 +13,11 @@ end
 clear d
 d.subject = mouseName;
 d.water_administered = amount; %units of mL
-d.date_time = alyx.datestr(thisDate);
+if ~ischar(thisDate)
+    d.date_time = alyx.datestr(thisDate);
+else
+    d.date_time = thisDate;
+end
 d.is_hydrogel = isHydrogel;
 try
     wa = alyx.postData(alyxInstance, 'water-administrations/', d);

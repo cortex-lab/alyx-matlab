@@ -34,7 +34,7 @@ function password = passwordUI(varargin)
 % Jiro Doke
 % Copyright 2010 The MathWorks, Inc.
 
-error(nargchk(0, 3, nargin, 'struct'));
+narginchk(0, 3);
 
 % Defaults
 uiMode = 'Query';

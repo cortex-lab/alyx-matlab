@@ -1,6 +1,6 @@
 
 
-% Example script for alyx-matlab usage
+% Example script for alyx-matlab REST API usage
 
 %% installation/set paths
 
@@ -20,7 +20,7 @@ myAlyx = alyx.getToken([], 'nick', '123');
 %% create some data to post for a weighing
 
 clear d
-d.subject = 'Whipple'; % note lower-case "subject", it is case sensitive
+d.subject = 'Moniz'; % note lower-case "subject", it is case sensitive
 d.weight = 22.1; 
 d.user = 'nick';
 % other fields are "date_time" (defaults to now) and "weighing_scale" (not
@@ -28,18 +28,30 @@ d.user = 'nick';
 
 %% post it 
 
-newWeighing = alyx.postData(myAlyx, 'weighings/', d) % note trailing / on "weighings" and lower-case, both critical
+newWeighing = alyx.postData(myAlyx, 'weighings', d) 
 % it has returned the full new entry that you created
 
 %% create some data to post for a water administration
 
 clear d
-d.subject = 'Whipple'; % note lower-case "subject", it is case sensitive
+d.subject = 'Moniz'; % note lower-case "subject", it is case sensitive
 d.water_administered = 0.97; %units of mL 
+d.hydrogel = true;
 d.user = 'nick';
 % other field is "date_time" (defaults to now)
 
 %% post it 
 
-newWater = alyx.postData(myAlyx, 'water-administrations/', d)
+newWater = alyx.postData(myAlyx, 'water-administrations', d)
 % it has returned the full new entry that you created
+
+%% get some data: all data about a subject
+
+subject = 'Moniz';
+subjData = alyx.getData(myAlyx, ['subjects' subject])
+
+
+%% get some other data: info about water restricted subjects
+
+waterData = alyx.getData(myAlyx,'water-restricted-subjects');
+waterData{1}

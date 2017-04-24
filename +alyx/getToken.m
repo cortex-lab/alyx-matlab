@@ -17,6 +17,7 @@ function [alyxInstance] = getToken(baseURL, username, password)
     if statusCode == 200
         resp = loadjson(responseBody);
         alyxInstance.token = resp.token;
+        alyxInstance.username = username;
     else
         error(responseBody)
     end

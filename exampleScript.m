@@ -11,7 +11,11 @@
 
 addpath(genpath('C:\Users\Nick\Documents\MATLAB\missing-http-1.0.0'));
 onLoad; % initializes missing-http
+% consider adding the above two lines to your startup.m so you don't have
+% to do them every time.
+
 addpath(genpath('C:\Users\Nick\Documents\GitHub\alyx-matlab'));
+
 
 %% open an instance
 

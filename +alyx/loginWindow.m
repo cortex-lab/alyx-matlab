@@ -1,12 +1,14 @@
 
-function [alyxInstance, username] = loginWindow()
+function [alyxInstance, username] = loginWindow(username)
 % function alyxInstance = loginWindow()
 % Open a login window to get an alyx token
 % Returns empty if you click cancel.
 
 loginSuccessful = false;
 alyxInstance = [];
-username = [];
+if nargin < 1
+    username = [];
+end 
 
 while ~loginSuccessful
 

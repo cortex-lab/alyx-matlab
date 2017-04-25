@@ -25,7 +25,7 @@ while ~loginSuccessful
     username = answer{1};
     pwd = passwordUI();
     
-    if nargin > 1
+    if nargin > 0
         username = presetUsername;
     end 
     

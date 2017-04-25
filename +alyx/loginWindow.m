@@ -1,14 +1,13 @@
 
-function [alyxInstance, username] = loginWindow(username)
+function [alyxInstance, username] = loginWindow(presetUsername)
 % function alyxInstance = loginWindow()
 % Open a login window to get an alyx token
 % Returns empty if you click cancel.
 
 loginSuccessful = false;
 alyxInstance = [];
-if nargin < 1
-    username = [];
-end 
+username = [];
+
 
 while ~loginSuccessful
 
@@ -25,6 +24,10 @@ while ~loginSuccessful
     
     username = answer{1};
     pwd = passwordUI();
+    
+    if nargin > 1
+        username = presetUsername;
+    end 
     
     try
         alyxInstance = alyx.getToken([], username, pwd);

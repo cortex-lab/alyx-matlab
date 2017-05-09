@@ -27,9 +27,9 @@ setdbprefs('DataReturnFormat','cellarray')
 
 %% open a connection
 
-datasourcename = 'alyx';
+datasourcename = 'alyx_dev';
 driver ='org.postgresql.Driver';
-databaseurl = 'jdbc:postgresql://rod.cortexlab.net:5432/';
+databaseurl = 'jdbc:postgresql://cone.cortexlab.net:5432/';
 
 username = 'alyx_ro'; % special read-only account
 % pass = ''; % declare this variable yourself, see wiki for password

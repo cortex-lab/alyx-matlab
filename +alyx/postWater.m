@@ -18,7 +18,11 @@ if ~ischar(thisDate)
 else
     d.date_time = thisDate;
 end
-d.is_hydrogel = isHydrogel;
+d.hydrogel = isHydrogel;
+if isfield(alyxInstance, 'username')
+    d.user = alyxInstance.username;
+end
+
 try
     wa = alyx.postData(alyxInstance, 'water-administrations/', d);
 catch

@@ -8,18 +8,24 @@ function [data, statusCode] = putData(alyxInstance, endpoint, data)
 % like to create a new record, see postData instead. 
 % 
 % Example:
-% subjects = postData(alyxInstance, 'subjects/AR060/', myStructData)
-    
-    jsonData = savejson('', data);
+% subjects = putData(alyxInstance, 'subjects/AR060/', myStructData)
 
+    % Create the endpoint and json command for the current put    
     fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
-    
-    [statusCode, responseBody] = http.jsonPut(fullEndpoint, jsonData, 'Authorization', ['Token ' alyxInstance.token]);
-    if statusCode >= 200 && statusCode <=300 % anything in the 200s is a Success code
-        data = loadjson(responseBody);
-    else
-        error(['Status: ' int2str(statusCode) ' with response: ' responseBody])
-    end
+    jsonData = savejson('', data);
+   
+    % Make a filename for the current put
+    queueDir = alyx.queueConfig;
+    queueFilename = [datestr(now,'dd-mm-yyyy-HH-MM-SS-FFF') '.put'];
+    queueFullfile = fullfile(queueDir,queueFilename);
+
+    % Save the endpoint and json locally
+    fid = fopen(queueFullfile,'w');
+    fprintf(fid,'%s\n%s',fullEndpoint,jsonData);
+    fclose(fid);
+        
+    % Flush the queue
+    [data, statusCode] = alyx.flushQueue(alyxInstance);
 
 end
     

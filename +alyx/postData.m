@@ -10,16 +10,22 @@ function [data, statusCode] = postData(alyxInstance, endpoint, data)
 % Example:
 % subjects = postData(alyxInstance, 'subjects/', myStructData)
 
-    jsonData = savejson('', data);
-
+    % Create the endpoint and json command for the current post    
     fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
-    
-    [statusCode, responseBody] = http.jsonPost(fullEndpoint, jsonData, 'Authorization', ['Token ' alyxInstance.token]);
-    if statusCode >= 200 && statusCode <=300 % anything in the 200s is a Success code
-        data = loadjson(responseBody);
-    else
-        error(['Status: ' int2str(statusCode) ' with response: ' responseBody])
-    end
+    jsonData = savejson('', data);
+   
+    % Make a filename for the current post
+    queueDir = alyx.queueConfig;
+    queueFilename = [datestr(now,'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
+    queueFullfile = fullfile(queueDir,queueFilename);
 
+    % Save the endpoint and json locally
+    fid = fopen(queueFullfile,'w');
+    fprintf(fid,'%s\n%s',fullEndpoint,jsonData);
+    fclose(fid);
+        
+    % Flush the queue
+    [data, statusCode] = alyx.flushQueue(alyxInstance);
+    
 end
     

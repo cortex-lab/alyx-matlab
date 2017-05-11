@@ -24,7 +24,7 @@ if isfield(alyxInstance, 'username')
 end
 
 try
-    wa = alyx.postData(alyxInstance, 'water-administrations/', d);
+    wa = alyx.postData(alyxInstance, 'water-administrations', d);
 catch
     %fprintf(1, 'posting failed\n');
 end

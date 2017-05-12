@@ -1,7 +1,7 @@
 function [data,statusCode] = flushQueue(alyxInstance)
 % [statusCode, responseBody] = flushQueue(alyxInstance) 
 %   
-% Description: checks for and puts/posts queued data to Alyx
+% Description: checks for and uploads queued data to Alyx
 
     % Get all currently queued posts/puts
     queueDir = alyx.queueConfig;
@@ -20,12 +20,14 @@ function [data,statusCode] = flushQueue(alyxInstance)
                 
         fid = fopen(alyxQueueFiles{curr_file});
         % First line is the endpoint
-        fullEndpoint = fgetl(fid);
+        endpoint = fgetl(fid);
+        fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
         % Rest of the text is the JSON data
         jsonData = fscanf(fid,'%c');
-        fclose(fid);      
+        fclose(fid);
 
         try
+            
             switch uploadType
                 case '.post'
                     [statusCode(curr_file), responseBody] = ...
@@ -34,17 +36,25 @@ function [data,statusCode] = flushQueue(alyxInstance)
                     [statusCode(curr_file), responseBody] = ...
                         http.jsonPut(fullEndpoint, jsonData, 'Authorization', ['Token ' alyxInstance.token]);
             end
+            
+            if statusCode(curr_file) >= 200 && statusCode(curr_file) <=300
+                % If the upload was a success (code in the 200's)
+                data(curr_file) = loadjson(responseBody);
+                % delete the local queue entry
+                delete(alyxQueueFiles{curr_file});
+            else
+                % If the upload failed (e.g. Alyx is down)
+                error(['Status: ' int2str(statusCode(curr_file)) ' with response: ' responseBody])
+            end
+            
         catch me
-            error(['JSON command failed'])
+            
+            % If the JSON command failed (e.g. internet is down)
+            warning(['JSON command failed - saved in queue']);
+            data = [];
+            statusCode = [];
+            
         end
-        
-        if statusCode(curr_file) >= 200 && statusCode(curr_file) <=300 % anything in the 200s is a Success code
-            data(curr_file) = loadjson(responseBody);
-            % delete the local queue entry
-            delete(alyxQueueFiles{curr_file});
-        else
-            error(['Status: ' int2str(statusCode(curr_file)) ' with response: ' responseBody])
-        end  
         
     end
 

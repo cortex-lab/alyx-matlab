@@ -10,22 +10,23 @@ function [data, statusCode] = postData(alyxInstance, endpoint, data)
 % Example:
 % subjects = postData(alyxInstance, 'subjects/', myStructData)
 
-    % Create the endpoint and json command for the current post    
-    fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
+    % Create the JSON command
     jsonData = savejson('', data);
    
-    % Make a filename for the current post
+    % Make a filename for the current command
     queueDir = alyx.queueConfig;
     queueFilename = [datestr(now,'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
     queueFullfile = fullfile(queueDir,queueFilename);
 
     % Save the endpoint and json locally
     fid = fopen(queueFullfile,'w');
-    fprintf(fid,'%s\n%s',fullEndpoint,jsonData);
+    fprintf(fid,'%s\n%s',endpoint,jsonData);
     fclose(fid);
-        
+    
     % Flush the queue
-    [data, statusCode] = alyx.flushQueue(alyxInstance);
+    if ~isempty(alyxInstance)
+        [data, statusCode] = alyx.flushQueue(alyxInstance);
+    end
     
 end
     

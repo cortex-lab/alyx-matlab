@@ -10,22 +10,23 @@ function [data, statusCode] = putData(alyxInstance, endpoint, data)
 % Example:
 % subjects = putData(alyxInstance, 'subjects/AR060/', myStructData)
 
-    % Create the endpoint and json command for the current put    
-    fullEndpoint = alyx.makeEndpoint(alyxInstance, endpoint);
+    % Create the JSON command
     jsonData = savejson('', data);
    
-    % Make a filename for the current put
+    % Make a filename for the current command
     queueDir = alyx.queueConfig;
     queueFilename = [datestr(now,'dd-mm-yyyy-HH-MM-SS-FFF') '.put'];
     queueFullfile = fullfile(queueDir,queueFilename);
 
     % Save the endpoint and json locally
     fid = fopen(queueFullfile,'w');
-    fprintf(fid,'%s\n%s',fullEndpoint,jsonData);
+    fprintf(fid,'%s\n%s',endpoint,jsonData);
     fclose(fid);
         
     % Flush the queue
-    [data, statusCode] = alyx.flushQueue(alyxInstance);
+    if ~isempty(alyxInstance)
+        [data, statusCode] = alyx.flushQueue(alyxInstance);
+    end
 
 end
     

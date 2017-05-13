@@ -42,6 +42,7 @@ function [data,statusCode] = flushQueue(alyxInstance)
                 data(curr_file) = loadjson(responseBody);
                 % delete the local queue entry
                 delete(alyxQueueFiles{curr_file});
+                disp(['Success uploading to Alyx: ' responseBody])
             else
                 % If the upload failed (e.g. Alyx is down)
                 error(['Status: ' int2str(statusCode(curr_file)) ' with response: ' responseBody])

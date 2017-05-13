@@ -26,6 +26,8 @@ function [data, statusCode] = postData(alyxInstance, endpoint, data)
     % Flush the queue
     if ~isempty(alyxInstance)
         [data, statusCode] = alyx.flushQueue(alyxInstance);
+    else
+        warning(['Not connected to Alyx - saved in queue']);
     end
     
 end

@@ -22,10 +22,12 @@ function [data, statusCode] = putData(alyxInstance, endpoint, data)
     fid = fopen(queueFullfile,'w');
     fprintf(fid,'%s\n%s',endpoint,jsonData);
     fclose(fid);
-        
+    
     % Flush the queue
     if ~isempty(alyxInstance)
         [data, statusCode] = alyx.flushQueue(alyxInstance);
+    else
+        warning(['Not connected to Alyx - saved in queue']);
     end
 
 end

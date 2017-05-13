@@ -15,9 +15,14 @@ function [alyxInstance] = getToken(baseURL, username, password)
 
     [statusCode, responseBody] = http.jsonPost([baseURL, '/auth-token/'], ['{"username":"', username, '","password":"', password, '"}']);
     if statusCode == 200
+        
         resp = loadjson(responseBody);
         alyxInstance.token = resp.token;
         alyxInstance.username = username;
+        
+        % Flush the local queue on successful login
+        alyx.flushQueue(alyxInstance);
+        
     else
         error(responseBody)
     end

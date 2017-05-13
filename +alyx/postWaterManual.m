@@ -15,7 +15,7 @@ d.subject = mouseName;
 d.water_administered = amount; %units of mL
 d.date_time = alyx.datestr(thisDate);
 try
-    wa = alyx.postData(alyxInstance, 'water-administrations/', d);
+    wa = alyx.postData(alyxInstance, 'water-administrations', d);
 catch
     fprintf(1, 'posting failed\n');
 end

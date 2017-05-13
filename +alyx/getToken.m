@@ -5,12 +5,12 @@ function [alyxInstance] = getToken(baseURL, username, password)
 % instance; returns the token and status code.
 %
 % Example:
-% token = getToken('http://alyx.cortexlab.net', 'max', '123')
+% token = getToken('https://alyx.cortexlab.net', 'max', '123')
 
     if isempty(baseURL)
-        baseURL = 'http://alyx.cortexlab.net';
+        baseURL = 'https://alyx.cortexlab.net';
     end
-    
+
     alyxInstance = struct('baseURL', baseURL, 'token', '');
 
     [statusCode, responseBody] = http.jsonPost([baseURL, '/auth-token/'], ['{"username":"', username, '","password":"', password, '"}']);

@@ -1,12 +1,12 @@
 function [data, statusCode] = putData(alyxInstance, endpoint, data)
 %postData PUT updated data to an Alyx/REST endpoint
-%   
+%
 % Description: Makes a request to an Alyx endpoint with new data as a MATLAB struct;
 % returns the JSON response data as a MATLAB struct.
 %
 % This function will overwrite data of an existing record. If you would
-% like to create a new record, see postData instead. 
-% 
+% like to create a new record, see postData instead.
+%
 % Example:
 % subjects = putData(alyxInstance, 'subjects/AR060/', myStructData)
 
@@ -31,4 +31,3 @@ function [data, statusCode] = putData(alyxInstance, endpoint, data)
     end
 
 end
-    

@@ -35,17 +35,17 @@ else
                     rewardTotals(b) = sum(rew(:,1));
                 end
                 fprintf(1, '%d: %.2f for %s\n', b, rewardTotals(b), expRefs{b});
-                
+
                 clear d
                 d.subject = mouseName;
-                d.water_administered = rewardTotals(b)/1000; %units of mL 
+                d.water_administered = rewardTotals(b)/1000; %units of mL
                 d.user = 'Experiment';
                 %d.date_time = datestr(block.endDateTime, 30);
                 d.date_time = datestr(block.endDateTime, 'yyyy-mm-ddTHH:MM:SS');
-                newWater = alyx.postData(ai, 'water-administrations/', d)
-                
+                newWater = alyx.postData(ai, 'water-administrations', d)
+
             end
         end
     end
-    
+
 end

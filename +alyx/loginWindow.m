@@ -10,6 +10,8 @@ username = [];
 
 
 while ~loginSuccessful
+    
+
 
     if nargin < 1
         prompt = {'Alyx username:'};
@@ -38,5 +40,8 @@ while ~loginSuccessful
 
     if ~isempty(alyxInstance)
         loginSuccessful = true;
+    elseif isempty(strfind(lower(path),lower('missing-http')))
+        error('missing-http toolbox not found. is it installed and on the path?')
     end
+    
 end

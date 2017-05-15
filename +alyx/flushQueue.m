@@ -52,8 +52,6 @@ function [data,statusCode] = flushQueue(alyxInstance)
             
             % If the JSON command failed (e.g. internet is down)
             warning(['JSON command failed - saved in queue']);
-            data = [];
-            statusCode = [];
             
         end
         

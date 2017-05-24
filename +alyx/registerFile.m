@@ -28,6 +28,18 @@ d.sessionUUID = uuid;
 d.tag = tag;
 d.filepath = filepath;
 
+info = dir(filepath);
+d.date = info.date;
+
+d.md5 = [];
+try
+    if ~isdir(filepath)
+        d.md5 = mMD5(filepath);
+    end
+catch
+    warning('Failed to compute file md5, please download mMD5.c and compile');
+end
+
 try
     wa = alyx.postData(alyxInstance, 'files-url', d);
 catch

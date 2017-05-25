@@ -37,21 +37,32 @@ function [data,statusCode] = flushQueue(alyxInstance)
                         http.jsonPut(fullEndpoint, jsonData, 'Authorization', ['Token ' alyxInstance.token]);
             end
             
-            if statusCode(curr_file) >= 200 && statusCode(curr_file) <=300
-                % If the upload was a success (code in the 200's)
-                data(curr_file) = loadjson(responseBody);
-                % delete the local queue entry
-                delete(alyxQueueFiles{curr_file});
-                disp(['Success uploading to Alyx: ' responseBody])
-            else
-                % If the upload failed (e.g. Alyx is down)
-                error(['Status: ' int2str(statusCode(curr_file)) ' with response: ' responseBody])
-            end
+            switch floor(statusCode(curr_file)/100)
+                case 2
+                    % Upload success - delete from queue
+                    data(curr_file) = loadjson(responseBody);
+                    delete(alyxQueueFiles{curr_file});
+                    disp([int2str(statusCode(curr_file)) ' Success, uploaded to Alyx: ' responseBody])
+                case 3
+                    % Redirect - delete from queue
+                    data(curr_file) = loadjson(responseBody);
+                    delete(alyxQueueFiles{curr_file});
+                    disp([int2str(statusCode(curr_file)) ' Redirect, uploaded to Alyx: ' responseBody])
+                case 4 
+                    % User error - delete from queue
+                    data(curr_file) = loadjson(responseBody);
+                    delete(alyxQueueFiles{curr_file});
+                    warning([int2str(statusCode(curr_file)) ' Bad upload command: ' responseBody])
+                case 5     
+                    % Server error - save in queue
+                    data(curr_file) = loadjson(responseBody);
+                    warning([int2str(statusCode(curr_file)) ' Alyx server error, saved in queue: ' responseBody])
+            end 
             
         catch me
             
             % If the JSON command failed (e.g. internet is down)
-            warning(['JSON command failed - saved in queue']);
+            warning(['Alyx upload failed - saved in queue']);
             
         end
         

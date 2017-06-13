@@ -1,10 +1,10 @@
-function registerFile(sessionUUID,tag,filepath,alyxInstance)
+function registerFile(sessionUUID,DatasetType,fullPath,repository,alyxInstance)
 %{
     Registers data files/folders (associated with a session) on Alyx
     Paths must use backslashes
 %}
 
-if contains(filepath,'/')
+if contains(fullPath,'/')
     error('Use backslashes in path');
 end
 
@@ -16,34 +16,59 @@ if isempty(alyxInstance)
     end
 end
 
-%Check if session exists
-ss = alyx.getData(alyxInstance, ['sessions?id=' sessionUUID]);  
-if isempty(ss)
-    error(['Session ' sessionUUID ' does not exist']);
+%Get root directory mask of the repository
+ss = alyx.getData(alyxInstance, ['data-repository?name=' repository]);
+if startsWith(fullPath,ss{1}.path)
+    relPath = strrep(fullPath,ss{1}.path,'');
+else
+    error('Unclear which paths to use, please check');
 end
 
-%Submit file record to Alyx, getting confirmation of submission
-d = struct;
-d.sessionUUID = uuid;
-d.tag = tag;
-d.filepath = filepath;
+%Check if session exists
+if ~contains(sessionUUID,'NULL')
+    warning('Session cannot be NULL, please specify');
+    keyboard;
+    ss = alyx.getData(alyxInstance, ['sessions?id=' sessionUUID]);
+    if isempty(ss)
+        error(['Session ' sessionUUID ' does not exist']);
+    end
+end
 
-info = dir(filepath);
-d.date = info.date;
+%Create dataset on Alyx, get the UUID for that dataset
+d=struct;
+d.created_by = alyxInstance.username;
+d.dataset_type = DatasetType;
+d.session = ss{1}.url;
+
+info = dir(fullPath);
+d.created_date = datestr(datenum(info.date),31);
 
 d.md5 = [];
 try
-    if ~isdir(filepath)
-        d.md5 = mMD5(filepath);
+    if ~isdir(fullPath)
+        d.md5 = mMD5(fullPath);
     end
 catch
     warning('Failed to compute file md5, please download mMD5.c and compile');
 end
 
 try
-    wa = alyx.postData(alyxInstance, 'files-url', d);
+    wa = alyx.postData(alyxInstance, 'datasets', d);
 catch
-    fprintf(1, 'posting failed\n');
+    error('posting dataset failed');
+end
+
+
+%Create filerecord, using the dataset just created
+d = struct;
+d.dataset = wa.url;
+d.data_repository = repository;
+d.relative_path = relPath;
+
+try
+    wa = alyx.postData(alyxInstance, 'files', d);
+catch
+    error('posting filerecord failed');
 end
 
 end

@@ -38,7 +38,7 @@ elseif min(size(timestamps))==1 % is a row or column
     if max(dt-mndt)<1e-6 % the differences are consistent to within a microsecond 
         nSamp = numel(timestamps); 
         Fs = 1/mndt;
-        times = [0 0; nSamp-1 (nSamp-1)/Fs];
+        times = [0 timestamps(1); nSamp-1 timestamps(1)+(nSamp-1)/Fs];
     else
         % have to represent the whole thing
         nSamp = numel(timestamps);

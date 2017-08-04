@@ -8,6 +8,12 @@ function evRastersALF(mouseName, thisDate, ephysTag, pars)
 %   just cluster number
 %   - depthBinSize - in µm
 
+if isempty(pars)
+    mode = 'clu';
+else
+    mode = pars.mode;
+end
+
 rootE = dat.expPath(mouseName, thisDate, 1, 'main', 'master');
 root = fileparts(rootE);
 alfDir = fullfile(root, 'alf');
@@ -52,7 +58,7 @@ borders = readtable(fullfile(alfDir, ephysTag, ['borders_' ephysTag '.tsv']) ,'D
 anatData.coords = coords;
 anatData.borders = borders;
 
-switch pars.mode
+switch mode
     case 'mua'
         depthBin = pars.depthBinSize; % µm
         

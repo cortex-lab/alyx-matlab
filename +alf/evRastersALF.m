@@ -13,7 +13,7 @@ if isempty(pars)
 else
     mode = pars.mode;
 end
-
+ 
 rootE = dat.expPath(mouseName, thisDate, 1, 'main', 'master');
 root = fileparts(rootE);
 alfDir = fullfile(root, 'alf');

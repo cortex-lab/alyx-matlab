@@ -13,7 +13,7 @@ s.st = readNPY(fullfile(alfDir, ephysTag, 'spikes.times.npy'));
 
 s.clu = readNPY(fullfile(alfDir, ephysTag, 'spikes.clusters.npy'));
 s.cids = readNPY(fullfile(alfDir, ephysTag, 'clusters.ids.npy'));
-cgs = readNPY(fullfile(alfDir, ephysTag, 'clusters.groups.npy'));
+s.cgs = readNPY(fullfile(alfDir, ephysTag, 'clusters.groups.npy'));
 cluDepths = readNPY(fullfile(alfDir, ephysTag, 'clusters.depths.npy'));
 
 s.yAxOrderings(1).name = 'depth value'; 
@@ -39,7 +39,7 @@ end
 s.colorings(1).colors = rcm;
 s.colorings(2).name = 'by group'; 
 s.colorings(2).colors = zeros(numel(s.cids), 4);
-s.colorings(2).colors(cgs>1,:) = 1;
+s.colorings(2).colors(s.cgs>1,:) = 1;
 s.colorings(3).name = 'depth'; 
 cm = hsv(100); dcm = zeros(numel(s.cids),3);
 for c = 1:3

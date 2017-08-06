@@ -95,6 +95,7 @@ switch mode
         [~,ii] = sort(maxChan);           
         anatData.clusterIDs = inclCID(ii);
         anatData.wfLoc = wfLoc(ii,:);
+        anatData.waveforms = permute(wfs(ii,20:end,:), [1 3 2]);
 end
 
 evRastersGUI(st, clu, cweA, cwtA, moveData, lickTimes, anatData)

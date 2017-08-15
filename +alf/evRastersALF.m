@@ -53,7 +53,14 @@ lickTimes = readNPY(fullfile(alfDir, 'licks.times.npy'));
 %   - wfLoc - [nClu nCh] size of the neuron on each channel
 %   - borders - table containing upperBorder, lowerBorder, acronym
 coords = readNPY(fullfile(root, ['ephys_' ephysTag], 'sorting', 'channel_positions.npy'));
-borders = readtable(fullfile(alfDir, ephysTag, ['borders_' ephysTag '.tsv']) ,'Delimiter','\t', 'FileType', 'text');
+
+bordersFile = fullfile(alfDir, ephysTag, ['borders_' ephysTag '.tsv']);
+if exist(bordersFile, 'file')
+    borders = readtable(bordersFile ,'Delimiter','\t', 'FileType', 'text');
+else
+    upperBorder = 3840; lowerBorder = 0; acronym = {'??'};
+    borders = table(upperBorder, lowerBorder, acronym);
+end
 
 anatData.coords = coords;
 anatData.borders = borders;

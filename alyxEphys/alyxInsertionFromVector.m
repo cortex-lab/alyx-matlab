@@ -54,14 +54,19 @@ entryAP = -(m(1)-ccfBregma(1));
 % Zero means anterior. Positive means counterclockwise (i.e. left).
 %
 % So this is solely determined by the AP and RL parts of the vector
-apV = p(1); 
-rlV = -p(3);
-horizAngle = 180-atand(rlV/apV);
+% apV = p(1); 
+% rlV = -p(3);
+% horizAngle = 180-atand(rlV/apV);
+horizVec = [p(1) p(3)]; horizVec = horizVec./norm(horizVec);
+horizAngle = acosd(-horizVec(1)); % angle between [-1 0] and horizVec (both are length=1) 
+if p(3)>0
+    horizAngle = 360-horizAngle;
+end
 
 % docstring:
 % - vertical angle of probe (degrees). Zero means horizontal. Positive means pointing down.
 dvV = p(2);
-lateralV = sqrt(apV.^2+rlV.^2);
+lateralV = sqrt(p(1).^2+p(3).^2);
 vertAngle = atand(dvV/lateralV);
 
 

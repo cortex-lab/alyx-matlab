@@ -48,13 +48,40 @@ end
 s.colorings(3).colors = dcm;
 % add: by spike amplitude, by anatomical region
 
-
+visColorsL = copper(4); visColorsL = visColorsL(2:4, [3 1 2]);
+visColorsR = copper(4); visColorsR = visColorsR(2:4, [1 3 2]);
 stimOn = readNPY(fullfile(alfDir, 'cwStimOn.times.npy'));
-events(1).times = stimOn; events(1).name = 'stim onset'; events(1).color = [1 0 0];
+cL = readNPY(fullfile(alfDir, 'cwStimOn.contrastLeft.npy'));
+uL = unique(cL);
+cR = readNPY(fullfile(alfDir, 'cwStimOn.contrastRight.npy'));
+uR = unique(cR);
+n = 1;
+events(n).times = stimOn(cR==uR(2)); events(n).name = 'stim right low'; 
+events(n).spec = {'Color', visColorsR(1,:), 'LineWidth',0.5};
+n = n+1;
+events(n).times = stimOn(cR==uR(3)); events(n).name = 'stim right med'; 
+events(n).spec = {'Color', visColorsR(2,:), 'LineWidth',1.0};
+n = n+1;
+events(n).times = stimOn(cR==uR(4)); events(n).name = 'stim right high'; 
+events(n).spec = {'Color', visColorsR(3,:), 'LineWidth',2.0};
+n = n+1;
+events(n).times = stimOn(cL==uL(2)); events(n).name = 'stim left low'; 
+events(n).spec = {'Color', visColorsL(1,:), 'LineWidth',0.5, 'LineStyle', '--'};
+n = n+1;
+events(n).times = stimOn(cL==uL(3)); events(n).name = 'stim left med'; 
+events(n).spec = {'Color', visColorsL(2,:), 'LineWidth',1.0, 'LineStyle', '--'};
+n = n+1;
+events(n).times = stimOn(cL==uL(4)); events(n).name = 'stim left high'; 
+events(n).spec = {'Color', visColorsL(3,:), 'LineWidth',2.0, 'LineStyle', '--'};
+
+
 beeps = readNPY(fullfile(alfDir, 'cwGoCue.times.npy'));
-events(2).times = beeps; events(2).name = 'go cue'; events(2).color = [0 1 0];
+n = n+1;
+events(n).times = beeps; events(n).name = 'go cue'; events(n).spec = {'Color', [0 1 0]};
+
 feedbackTime = readNPY(fullfile(alfDir, 'cwFeedback.times.npy'));
-events(3).times = feedbackTime; events(3).name = 'feedback'; events(3).color = [0 0 1];
+n = n+1;
+events(n).times = feedbackTime; events(n).name = 'feedback'; events(n).spec = {'Color',[0 0 1]};
 
 wheelVel = readNPY(fullfile(alfDir, 'wheel.velocity.npy'));
 wheelT = readNPY(fullfile(alfDir, 'wheel.timestamps.npy'));

@@ -66,6 +66,7 @@ ccfCoords = tip+siteCoords*[probeXCCF; probeYCCF];
 
 % labels for all these sites
 vx = round(ccfCoords/voxelSize);
+vx(vx<1) = 1; % will "stick" on the edge of the volume, returning presumably root, if you go out
 avInds = arrayfun(@(x)av(vx(x,1), vx(x,2), vx(x,3)),1:size(ccfCoords,1));
 ccfOntology = st.acronym(avInds);
 

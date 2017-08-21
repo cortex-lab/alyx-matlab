@@ -31,19 +31,21 @@ s.yAxOrderings(4).yPos = frOrder(:);
 % add: by firing rate, by feature(s)
 
 s.colorings(1).name = 'random'; 
-cm = hsv(100); rcm = zeros(numel(s.cids),3);
+cm = colorcet('C6'); % cm = hsv(100); 
+rcm = zeros(numel(s.cids),3);
 thisR = rand(1,numel(s.cids));
 for c = 1:3    
-    rcm(:,c) = interp1(linspace(0, 1, 100), cm(:,c), thisR);
+    rcm(:,c) = interp1(linspace(0, 1, size(cm,1)), cm(:,c), thisR);
 end
 s.colorings(1).colors = rcm;
 s.colorings(2).name = 'by group'; 
 s.colorings(2).colors = zeros(numel(s.cids), 4);
 s.colorings(2).colors(s.cgs>1,:) = 1;
 s.colorings(3).name = 'depth'; 
-cm = hsv(100); dcm = zeros(numel(s.cids),3);
+cm = colorcet('C6'); %cm = hsv(100); 
+dcm = zeros(numel(s.cids),3);
 for c = 1:3
-    dcm(:,c) = interp1(linspace(min(cluDepths), max(cluDepths),100), cm(:,c), cluDepths);
+    dcm(:,c) = interp1(linspace(min(cluDepths), max(cluDepths),size(cm,1)), cm(:,c), cluDepths);
 end
 s.colorings(3).colors = dcm;
 % add: by spike amplitude, by anatomical region

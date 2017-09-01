@@ -53,10 +53,14 @@ end
 
 %Get root directory mask of the repository
 datarepository = alyx.getData(alyxInstance, ['data-repository?name=' repository]);
+if isempty(datarepository)
+    error(['Data repository ' repository ' not found']);
+end
+
 if startsWith(fullPath,datarepository{1}.path)
     relPath = strrep(fullPath,datarepository{1}.path,'');
 else
-    error('Filepath does not contain the repository parent folder');
+    error(['File path does not contain the repository path signature: ' datarepository{1}.path]);
 end
 
 %Create dataset on Alyx, get the UUID for that dataset

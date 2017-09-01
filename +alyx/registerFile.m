@@ -1,14 +1,15 @@
-function [dataset,filerecord] = registerFile(subject,sessionURL,datasetType,fullPath,repository,alyxInstance)
-%[dataset,filerecord] = registerFile(subject,sessionURL,datasetType,fullPath,repository,alyxInstance)
+function [dataset,filerecord] = registerFile(subject,subsessionURL,datasetType,fullPath,repository,alyxInstance)
+%[dataset,filerecord] = registerFile(subject,subsessionURL,datasetType,fullPath,repository,alyxInstance)
 % Registers a file to Alyx. This works first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
 % then a filerecord (a record of the relative path of one instance of the
-% file in the repository). The dataset is associated with a session, which
-% can be provided or inferred from the creation date.
+% file in the repository). The dataset is associated with a subsession, which
+% can be provided or inferred from the creation date. If the subsession URL
+% is not provided, the code searches for sessions which have the TYPE field
+% as 'Experiment', therefore if you don't provide a URL, your subsessions must include this TYPE field entry. 
 % Inputs:
 % -subject: 'Nyx', 'PC001', etc
-% -sessionURL: Alyx URL for the session. If empty then we search for one
-%   corresponding to the creation date of the supplied file. If that doesn't
-%   exist, then one is created
+% -subsessionURL: Alyx URL for the subsession. If empty then we search the
+% latest one for the current date, errors if not found.
 % -datasetType: Block, Timeline, Parameters
 % -fullPath: the full path of the file on the server
 %   (e.g. '\\zserver.cortexlab.net\Data\...\blabla_Timeline.mat')
@@ -34,25 +35,20 @@ if isempty(alyxInstance)
     end
 end
 
-if isempty(sessionURL)
-    %Find session for that subject & date
-    sessions = alyx.getData(alyxInstance, ['sessions?subject=' subject]);
-    if isempty(sessions) || ~strcmp(created_time(1:10) , sessions{end}.start_time(1:10))
-        warning(['Session not found for ' subject ' on ' created_time(1:10) '. Creating one now...']);
-        
-        d = struct;
-        d.subject = subject;
-        d.procedures = {'Behavior training/tasks'};
-        d.narrative = 'auto-generated session';
-        d.start_time = created_time;
-        session = alyx.postData(alyxInstance, 'sessions', d);
-        
-        %     error('Session not found');
-    else
-        session = sessions{end};
-        disp(['Session automatically found for ' subject ' on ' session.start_time(1:10) '.']);
+if isempty(subsessionURL)
+    %If no subsession provided, then search for the latest one for the same
+    %file creation date 
+    subsessions = alyx.getData(alyxInstance, ['sessions?type=Experiment&subject=' subject]);
+    if isempty(subsessions)
+        error(['No subsessions found for subject' subject]);
     end
-    sessionURL = session.url;
+    
+    latest_subsession = subsessions{end};
+    if ~strcmp(latest_subsession.start_time(1:10), created_time(1:10))
+        error('Latest subsession found in Alyx has a different creation date to the file being registered');
+    end
+    
+    subsessionURL = latest_subsession.url;
 end
 
 %Get root directory mask of the repository
@@ -63,18 +59,21 @@ else
     error('Filepath does not contain the repository parent folder');
 end
 
-
-
 %Create dataset on Alyx, get the UUID for that dataset
 d=struct;
 d.created_by = alyxInstance.username;
 d.dataset_type = datasetType;
-d.session = sessionURL;
+d.session = subsessionURL;
 d.created_date = created_time;
 
 try
     if ~isdir(fullPath)
         d.md5 = mMD5(fullPath);
+        
+        [~,name,extension] = fileparts(fullPath);
+        d.name = [name extension];
+    else
+        d.name = 'DIR';
     end
 catch
     warning('Failed to compute file md5, please download mMD5.c and compile');

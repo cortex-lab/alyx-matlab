@@ -25,7 +25,7 @@ if contains(fullPath,'/')
 end
 
 info = dir(fullPath);
-created_time = datestr(info.datenum,31);
+created_time = alyx.datestr(info.datenum);
 
 %Create alyx login instance if not already supplied
 if isempty(alyxInstance)
@@ -40,7 +40,7 @@ if isempty(subsessionURL)
     %file creation date 
     subsessions = alyx.getData(alyxInstance, ['sessions?type=Experiment&subject=' subject]);
     if isempty(subsessions)
-        error(['No subsessions found for subject' subject]);
+        error(['No subsessions found for subject ' subject]);
     end
     
     latest_subsession = subsessions{end};
@@ -72,10 +72,10 @@ d.created_date = created_time;
 
 try
     if ~isdir(fullPath)
-        d.md5 = mMD5(fullPath);
-        
         [~,name,extension] = fileparts(fullPath);
         d.name = [name extension];
+        
+        d.md5 = mMD5(fullPath);
     else
         d.name = 'DIR';
     end

@@ -19,7 +19,7 @@ version -java
 
 %% settings
 
-pathToDriver = 'C:\Users\Nick\Documents\MATLAB\postgresql-42.0.0.jre7.jar';
+pathToDriver = 'C:\Users\Nick\Documents\MATLAB\postgresql-42.1.4.jre7.jar';
 
 javaaddpath(pathToDriver)
 setdbprefs('DataReturnFormat','cellarray')
@@ -27,7 +27,7 @@ setdbprefs('DataReturnFormat','cellarray')
 
 %% open a connection
 
-datasourcename = 'alyx_dev';
+datasourcename = 'alyx';
 driver ='org.postgresql.Driver';
 databaseurl = 'jdbc:postgresql://cone.cortexlab.net:5432/';
 

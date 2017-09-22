@@ -25,7 +25,13 @@ else
     % open a window to type it? 
 end    
 
-conn = database(datasourcename,username,pass,driver,databaseurl);
+try
+    conn = database(datasourcename,username,pass,driver,databaseurl);
+catch me
+    fprintf(1, 'Could not open connection with alyx!\n')
+    fprintf(1, 'May need to follow installation steps - see exampleSQLquery.m\n');
+    rethrow(me)
+end
 
 % if the user typed it or it came from zserver, and the password was 
 % successful, save it to the hidden directory so it's there next time. 

@@ -5,10 +5,10 @@ function [dataset, filerecord] = registerFile2(filePath, dataFormatName, session
 % must be provided. Also must provide a datasetType. Can optionally provide
 % a parentDataSet URL and alyxInstance
 % Inputs:
-% -path: full path of the file/directory being registered
-% -dataFormatName: data format, e.g. 'npy', 'mj2', or 'directory'
+% -filePath: full path of the file being registered
+% -dataFormatName: data format, e.g. 'npy', 'mj2', or 'notData'
 % -sessionURL: Alyx URL for the session.
-% -datasetTypeName: Block, Timeline, Parameters, etc
+% -datasetTypeName: Block, Timeline, Parameters, eye.movie, etc
 % -parentDatasetURL: optional URL for a parent dataset
 % -AlyxInstance: Optional alyx instance object, created from alyx.loginWindow().
 

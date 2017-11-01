@@ -1,6 +1,15 @@
 function registerALFtoAlyx(alfDir,sessionURL,alyxInstance)
-%This function will parse through an ALF directory, and register the
-%containing data hierarchy to alyx
+%registerALFtoAlyx(alfDir,sessionURL,alyxInstance)
+%This function registers files contained within the alfDir to Alyx. Files are only registered
+%if their filenames match a datasetType's alf_filename field. Must also
+%provide an alyx session URL. Optionally can provide alyxInstance as well.
+%INPUTS:
+%-alfDir: Directory containing ALF files, this will be searched recursively
+%   for all ALF files which match a datasetType
+%-sessionURL: Alyx URL of the session to register this data to
+%-alyxInstance: Optional alyx instance object, created from alyx.loginWindow().
+
+
 warning('Only handles files which have been defined in the database');
 warning('Dependency: dirPlus.m');
 

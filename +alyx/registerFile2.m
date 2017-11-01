@@ -1,4 +1,4 @@
-function [dataset, filerecord] = registerPath(path, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
+function [dataset, filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
 %[dataset,filerecord] = registerPath(path, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
 % Registers a ZSERVER path to Alyx. This works first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
 % then a filerecord (a record of the relative path within the repository). The dataset is associated with a session, which
@@ -14,15 +14,17 @@ function [dataset, filerecord] = registerPath(path, dataFormatName, sessionURL, 
 
 %%INPUT VALIDATION
 %Validate input path
-assert( ~contains(path,'/'), 'Do not use forward slashes in the path');
-assert( exist(path,'file') || exist(path,'dir'), 'Path %s does not exist', path);
+assert( ~contains(filePath,'/'), 'Do not use forward slashes in the path');
+assert( exist(filePath,'file') == 2 , 'Path %s does not exist', filePath);
+assert( ~isdir(filePath), 'filePath supplied must not be a folder');
 
 %Validate alyxInstance, creating one if not supplied
 if isempty(alyxInstance); alyxInstance = alyx.loginWindow(); end
 assert(isfield(alyxInstance,'token'), 'Supplied alyxInstance is improper');
 
 %Validate dataFormat supplied
-dataFormats = alyx.getData(alyxInstance,['data-formats?name=' dataFormatName]); dataFormats = [dataFormats{:}];
+dataFormats = alyx.getData(alyxInstance,['data-formats']);
+dataFormats = [dataFormats{:}];
 datasetTypeIdx = find( contains({dataFormats.name}, dataFormatName) );
 assert( numel(datasetTypeIdx)==1, 'dataFormats error: no matching for %s', dataFormatName);
 
@@ -37,9 +39,10 @@ if ~isempty(parentDatasetURL)
 end
 
 %Validate datasetType supplied
-datasetTypes = alyx.getData(alyxInstance,'dataset-types'); datasetTypes = [datasetTypes{:}];
-datasetTypeIdx = find( contains({datasetTypes.name}, datasetTypeName) );
-assert( numel(datasetTypeIdx)>=1, 'DatasetType error: not found');
+datasetTypes = alyx.getData(alyxInstance,'dataset-types'); 
+datasetTypes = [datasetTypes{:}];
+datasetTypeIdx = find( strcmp({datasetTypes.name},datasetTypeName) );
+assert( numel(datasetTypeIdx)>=1, 'DatasetType %s not found', datasetTypeName);
 assert( numel(datasetTypeIdx)==1, 'DatasetType error: too many matches for that type');
 
 %% Now some preparations
@@ -48,22 +51,24 @@ repository = alyx.getData(alyxInstance, ['data-repository?name=zserver']);
 assert(~isempty(repository),'ZServer repository object not found');
 
 %Check that input path is within the repository's path
-if startsWith(path,repository{1}.path)
-    relativePath = strrep(path,repository{1}.path,'');
+if startsWith(filePath,repository{1}.path)
+    relativePath = strrep(filePath,repository{1}.path,'');
 else
-    error('Input path\n%s\ndoes not contain the repository path\n%s',path,repository{1}.path);
+    error('Input filePath\n%s\ndoes not contain the repository path\n%s',filePath,repository{1}.path);
 end
 
 %% Now submit Dataset and Filerecord to Alyx
-pathInfo = dir(path); %Get path creation date/etc
+pathInfo = dir(filePath); %Get path creation date/etc
 d = struct('created_by',alyxInstance.username,...
     'dataset_type',datasetTypeName,...
     'data_format',dataFormatName,...
     'parent_dataset',parentDatasetURL,...
     'session',sessionURL,...
     'created_date',alyx.datestr(pathInfo.datenum));
-if ~isdir(path)
-    try d.md5 = mMD5(path); catch; warning('Failed to compute MD5, using NULL'); end
+try
+    d.md5 = mMD5(filePath);
+catch
+    warning('Failed to compute MD5, using NULL');
 end
 
 [datasetReturnData, statusCode] = alyx.postData(alyxInstance, 'datasets', d);

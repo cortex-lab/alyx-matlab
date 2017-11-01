@@ -25,8 +25,8 @@ assert(isfield(alyxInstance,'token'), 'Supplied alyxInstance is improper');
 %Validate dataFormat supplied
 dataFormats = alyx.getData(alyxInstance,['data-formats']);
 dataFormats = [dataFormats{:}];
-datasetTypeIdx = find( contains({dataFormats.name}, dataFormatName) );
-assert( numel(datasetTypeIdx)==1, 'dataFormats error: no matching for %s', dataFormatName);
+dataFormatIdx = find( strcmp({dataFormats.name}, dataFormatName) );
+assert( ~isempty(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 %Validate sessionURL supplied
 [status,body] = http.jsonGet(sessionURL, 'Authorization', ['Token ' alyxInstance.token]);
@@ -42,8 +42,7 @@ end
 datasetTypes = alyx.getData(alyxInstance,'dataset-types'); 
 datasetTypes = [datasetTypes{:}];
 datasetTypeIdx = find( strcmp({datasetTypes.name},datasetTypeName) );
-assert( numel(datasetTypeIdx)>=1, 'DatasetType %s not found', datasetTypeName);
-assert( numel(datasetTypeIdx)==1, 'DatasetType error: too many matches for that type');
+assert( ~isempty(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
 
 %% Now some preparations
 %Get datarepository ZSERVER

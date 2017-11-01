@@ -1,10 +1,6 @@
-function registerALFtoAlyx(alyxInstance)
+function registerALFtoAlyx(alfDir,sessionURL,alyxInstance)
 %This function will parse through an ALF directory, and register the
 %containing data hierarchy to alyx
-
-alfDir = '\\zserver.cortexlab.net\Data\Subjects\Cori\2016-12-18\alf';
-sessionURL = 'https://alyx-dev.cortexlab.net/sessions/5e15d67b-106e-4314-bd07-a7870a96cf0b';
-
 warning('Only handles files which have been defined in the database');
 warning('Dependency: dirPlus.m');
 

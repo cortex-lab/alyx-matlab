@@ -1,6 +1,6 @@
 function [dataset, filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
-%[dataset,filerecord] = registerPath(path, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
-% Registers a ZSERVER path to Alyx. This works first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
+%[dataset,filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
+% Registers a ZSERVER filepath to Alyx. This works first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
 % then a filerecord (a record of the relative path within the repository). The dataset is associated with a session, which
 % must be provided. Also must provide a datasetType. Can optionally provide
 % a parentDataSet URL and alyxInstance

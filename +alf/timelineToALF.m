@@ -1,5 +1,3 @@
-
-
 function timelineToALF(Timeline, b, destDir)
 % function timelineToALF(timeline, b, destDir)
 %
@@ -10,12 +8,11 @@ function timelineToALF(Timeline, b, destDir)
 % - b, a 2-element conversion vector to universal timebase, optional
 % - destDir, a place to put the results
 
-if ~exist('writeNPY')
-    error('writeNPY not found; cannot proceed saving Timeline to ALF');
-end
+assert(exist('writeNPY', 'file') > 0,...
+    'writeNPY not found; cannot proceed saving Timeline to ALF')
 
 % Save hw json
-if exist('savejson')
+if exist('savejson', 'file')
     savejson('hw', Timeline.hw, fullfile(destDir, 'TimelineHW.json'));
 else
     warning('Jsonlab not found - hardware information not saved to ALF')
@@ -25,6 +22,7 @@ end
 % Save each recorded vector into the correct format in Timeline timebase
 % and optionally into universal timebase if conversion is provided
 inputs = {Timeline.hw.inputs.name};
+inputs = inputs([Timeline.hw.inputs.arrayColumn] > -1); % ignore inputs that were unused
 nSamps = Timeline.rawDAQSampleCount;
 tlTimes = [0 Timeline.rawDAQTimestamps(1); nSamps-1 Timeline.rawDAQTimestamps(end)];
 for ii = 1:length(inputs)

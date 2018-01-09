@@ -80,7 +80,9 @@ try
         d.name = 'DIR';
     end
 catch
-    warning('Failed to compute file md5, please download mMD5.c and compile -> <a href="http://uk.mathworks.com/matlabcentral/fileexchange/7919-md5-in-matlab">http://uk.mathworks.com/matlabcentral/fileexchange/7919-md5-in-matlab</a>' );
+    warning(['Failed to compute file md5, the function mMD5 is included in this '...
+        'repository but you may need to compile it. Navigate to /alyx-matlab/'...
+        'helpers/ and use ''mex mMD5.mexw64''']);
 end
 
 try

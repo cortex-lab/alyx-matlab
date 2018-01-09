@@ -1,13 +1,16 @@
 
 
-function filePath = expFilePath(subject, queryDate, sessNum, dsetType)
-% function filePath = expFilePath(subject, queryDate, sessNum, dsetType)
+function filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
+% function filePath = expFilePath(subject, queryDate, sessNum, dsetType [, conn])
 % 
 % returns the file path where you can find a specified file. You specify:
 % - subject - a string with the subject name
 % - queryDate - a string in 'yyyy-mm-dd' format or a datenum
 % - sessNum - an integer number of the experiment you want
-% - dsetType - a string specifying which file you want, like 'Block'
+% - dsetType - a string specifying which file you want, like 'Block']
+% - conn - optional argument supplying the SQL connection object obtained
+% from openAlyxSQL(). If not supplied, then one is created and then closed
+% at the end of the query, which slows down the code!
 %
 % if more than one matching paths are found, output argument filePath will 
 % be a cell array of strings, otherwise just a string
@@ -18,7 +21,12 @@ function filePath = expFilePath(subject, queryDate, sessNum, dsetType)
 % - enable a range of queryDates
 % - enable multiple subjects
 
-conn = openAlyxSQL();
+if nargin == 5 && ~isempty(conn)
+    suppliedConn = true;
+else
+    suppliedConn = false;
+    conn = openAlyxSQL(); 
+end
 
 if isempty(dsetType) % get all datasets for this experiment
     
@@ -78,6 +86,11 @@ if ~isempty(q.Data) && ~strcmp(q.Data{1}, 'No Data')
 else
     fprintf(1, 'no results returned\n');
     filePath = '';
+end
+
+if suppliedConn == false
+    %Close connection
+    conn.close;
 end
 
 

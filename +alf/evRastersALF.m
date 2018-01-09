@@ -49,7 +49,7 @@ switch mode
         inclCID = cids(cgs>1);
         st = st(ismember(clu, inclCID));
         clu = clu(ismember(clu, inclCID));
-        wfs = wfs(cgs>1,:,:);                
+        wfs = wfs(cgs>1,:,:)*10;                
         
         wfLoc = squeeze(max(abs(wfs), [], 2));
         

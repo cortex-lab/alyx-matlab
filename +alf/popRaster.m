@@ -50,40 +50,46 @@ end
 s.colorings(3).colors = dcm;
 % add: by spike amplitude, by anatomical region
 
-visColorsL = copper(4); visColorsL = visColorsL(2:4, [3 1 2]);
-visColorsR = copper(4); visColorsR = visColorsR(2:4, [1 3 2]);
-stimOn = readNPY(fullfile(alfDir, 'cwStimOn.times.npy'));
-cL = readNPY(fullfile(alfDir, 'cwStimOn.contrastLeft.npy'));
-uL = unique(cL);
-cR = readNPY(fullfile(alfDir, 'cwStimOn.contrastRight.npy'));
-uR = unique(cR);
-n = 1;
-events(n).times = stimOn(cR==uR(2)); events(n).name = 'stim right low'; 
-events(n).spec = {'Color', visColorsR(1,:), 'LineWidth',0.5};
-n = n+1;
-events(n).times = stimOn(cR==uR(3)); events(n).name = 'stim right med'; 
-events(n).spec = {'Color', visColorsR(2,:), 'LineWidth',1.0};
-n = n+1;
-events(n).times = stimOn(cR==uR(4)); events(n).name = 'stim right high'; 
-events(n).spec = {'Color', visColorsR(3,:), 'LineWidth',2.0};
-n = n+1;
-events(n).times = stimOn(cL==uL(2)); events(n).name = 'stim left low'; 
-events(n).spec = {'Color', visColorsL(1,:), 'LineWidth',0.5, 'LineStyle', '--'};
-n = n+1;
-events(n).times = stimOn(cL==uL(3)); events(n).name = 'stim left med'; 
-events(n).spec = {'Color', visColorsL(2,:), 'LineWidth',1.0, 'LineStyle', '--'};
-n = n+1;
-events(n).times = stimOn(cL==uL(4)); events(n).name = 'stim left high'; 
-events(n).spec = {'Color', visColorsL(3,:), 'LineWidth',2.0, 'LineStyle', '--'};
-
-
-beeps = readNPY(fullfile(alfDir, 'cwGoCue.times.npy'));
-n = n+1;
-events(n).times = beeps; events(n).name = 'go cue'; events(n).spec = {'Color', [0 1 0]};
-
-feedbackTime = readNPY(fullfile(alfDir, 'cwFeedback.times.npy'));
-n = n+1;
-events(n).times = feedbackTime; events(n).name = 'feedback'; events(n).spec = {'Color',[0 0 1]};
+if exist(fullfile(alfDir, 'cwStimOn.times.npy'), 'file')
+    visColorsL = copper(4); visColorsL = visColorsL(2:4, [3 1 2]);
+    visColorsR = copper(4); visColorsR = visColorsR(2:4, [1 3 2]);
+    stimOn = readNPY(fullfile(alfDir, 'cwStimOn.times.npy'));
+    cL = readNPY(fullfile(alfDir, 'cwStimOn.contrastLeft.npy'));
+    uL = unique(cL);
+    cR = readNPY(fullfile(alfDir, 'cwStimOn.contrastRight.npy'));
+    uR = unique(cR);
+    n = 1;
+    events(n).times = stimOn(cR==uR(2)); events(n).name = 'stim right low';
+    events(n).spec = {'Color', visColorsR(1,:), 'LineWidth',0.5};
+    n = n+1;
+    events(n).times = stimOn(cR==uR(3)); events(n).name = 'stim right med';
+    events(n).spec = {'Color', visColorsR(2,:), 'LineWidth',1.0};
+    n = n+1;
+    events(n).times = stimOn(cR==uR(4)); events(n).name = 'stim right high';
+    events(n).spec = {'Color', visColorsR(3,:), 'LineWidth',2.0};
+    n = n+1;
+    events(n).times = stimOn(cL==uL(2)); events(n).name = 'stim left low';
+    events(n).spec = {'Color', visColorsL(1,:), 'LineWidth',0.5, 'LineStyle', '--'};
+    n = n+1;
+    events(n).times = stimOn(cL==uL(3)); events(n).name = 'stim left med';
+    events(n).spec = {'Color', visColorsL(2,:), 'LineWidth',1.0, 'LineStyle', '--'};
+    n = n+1;
+    events(n).times = stimOn(cL==uL(4)); events(n).name = 'stim left high';
+    events(n).spec = {'Color', visColorsL(3,:), 'LineWidth',2.0, 'LineStyle', '--'};
+    
+    
+    beeps = readNPY(fullfile(alfDir, 'cwGoCue.times.npy'));
+    n = n+1;
+    events(n).times = beeps; events(n).name = 'go cue'; events(n).spec = {'Color', [0 1 0]};
+    
+    feedbackTime = readNPY(fullfile(alfDir, 'cwFeedback.times.npy'));
+    n = n+1;
+    events(n).times = feedbackTime; events(n).name = 'feedback'; events(n).spec = {'Color',[0 0 1]};
+    
+else 
+    stimOn = 1;
+    events = [];
+end
 
 wheelVel = readNPY(fullfile(alfDir, 'wheel.velocity.npy'));
 wheelT = readNPY(fullfile(alfDir, 'wheel.timestamps.npy'));
@@ -91,11 +97,13 @@ wheelT = interp1(wheelT(:,1), wheelT(:,2), (0:numel(wheelVel)-1));
 traces(1).t = wheelT; traces(1).v = wheelVel; traces(1).name = 'wheel velocity';
 traces(1).color = [1 1 1];
 
-lickSig = readNPY(fullfile(alfDir, 'lickSignal.trace.npy'));
-lickT = readNPY(fullfile(alfDir, 'lickSignal.timestamps.npy'));
-lickT = interp1(lickT(:,1), lickT(:,2), (0:numel(lickSig)-1));
-traces(2).t = lickT; traces(2).v = lickSig; traces(2).name = 'lick signal';
-traces(2).color = [0 1 0];
+if exist(fullfile(alfDir, 'cwStimOn.times.npy'), 'file')
+    lickSig = readNPY(fullfile(alfDir, 'lickSignal.trace.npy'));
+    lickT = readNPY(fullfile(alfDir, 'lickSignal.timestamps.npy'));
+    lickT = interp1(lickT(:,1), lickT(:,2), (0:numel(lickSig)-1));
+    traces(2).t = lickT; traces(2).v = lickSig; traces(2).name = 'lick signal';
+    traces(2).color = [0 1 0];
+end
 
 % how to get expNum here: see which timeline is registered to ephys master
 % (a bit hacky, but ok, whatever)

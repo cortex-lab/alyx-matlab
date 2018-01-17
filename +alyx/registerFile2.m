@@ -61,13 +61,16 @@ pathInfo = dir(filePath); %Get path creation date/etc
 d = struct('created_by',alyxInstance.username,...
     'dataset_type',datasetTypeName,...
     'data_format',dataFormatName,...
-    'parent_dataset',parentDatasetURL,...
     'session',sessionURL,...
     'created_date',alyx.datestr(pathInfo.datenum));
 try
     d.md5 = mMD5(filePath);
 catch
     warning('Failed to compute MD5, using NULL');
+end
+
+if ~isempty(parentDatasetURL)
+   d.parent_dataset = parentDatasetURL;
 end
 
 [datasetReturnData, statusCode] = alyx.postData(alyxInstance, 'datasets', d);

@@ -28,6 +28,13 @@ assert( length(s)==1, 'Should only be returning one object');
 assert( all(isfield(s{1},{'nickname','id','url','birth_date'})) , 'Does not contain proper fields');
 assert( strcmp(s{1}.nickname,'test'), 'Subject nickname is not test name');
 
+%% Test: Posting water for the subject test
+try
+    alyx.postWater(alyxInstance, 'test', 1, datetime, 1);
+catch
+    error('Failed to post water');
+end
+
 %% Test: Create a BASE and EXPERIMENT session, and then get it back
 %First create a base session
 d = struct('subject','test','procedure',{'Behavior training/tasks'},'narrative','auto-generated session',...
@@ -95,8 +102,6 @@ try
 catch
     error('Problem creating file record');
 end
-
-%Get these back from the database
 
 
 %% Test: alyx.registerFile

@@ -1,7 +1,8 @@
 %Runs a bunch of tests on alyx-dev
+URL = 'https://alyx-dev.cortexlab.net';
 
 %Setup 1:  Test basic HTTP communication to the server
-[statusCode, responseBody] = http.jsonGet('https://alyx-dev.cortexlab.net', 'Authorization', '');
+[statusCode, responseBody] = http.jsonGet(URL, 'Authorization', '');
 assert(statusCode==200,'Could not communicate');
 assert(~isempty(responseBody), 'Could not get list of endpoints');
 
@@ -11,7 +12,7 @@ try
     
     % Pre-Test: Check that alyxInstance object is correct
     assert( isfield(alyxInstance, 'token') , 'Token not found in alyxInstance object');
-    assert( strcmp(alyxInstance.baseURL , 'https://alyx-dev.cortexlab.net'), 'URL is not alyx-dev');
+    assert( strcmp(alyxInstance.baseURL , URL), 'URL is not alyx-dev');
 catch
     error('Problem logging in');
 end
@@ -41,7 +42,7 @@ d = struct('subject','test','procedure',{'Behavior training/tasks'},'narrative',
     'start_time',datetime, 'type', 'Base');
 try
     base_submit = alyx.postData(alyxInstance, 'sessions', d);
-    assert( startsWith(base_submit.url, 'https://alyx-dev.cortexlab.net'), 'BASE Session object does not contain the right URL');
+    assert( startsWith(base_submit.url, URL), 'BASE Session object does not contain the right URL');
 catch
     error('Creating a BASE session did not work');
 end
@@ -51,7 +52,7 @@ d = struct('subject','test','procedure',{'Behavior training/tasks'},'narrative',
     'start_time',datetime, 'type', 'Experiment','parent_session',base_submit.url, 'number', 1);
 try
     expt_submit = alyx.postData(alyxInstance, 'sessions', d);
-    assert( startsWith(expt_submit.url, 'https://alyx-dev.cortexlab.net'), 'EXPT Session object does not contain the right URL');
+    assert( startsWith(expt_submit.url, URL), 'EXPT Session object does not contain the right URL');
 catch
     error('Creating an EXPT session did not work');
 end
@@ -111,6 +112,8 @@ fid = fopen(zserverFile, 'wt' ); fclose(fid);
 %Register
 [dataset,filerecord] = alyx.registerFile('test',[],'Block',zserverFile,'zserver',alyxInstance);
 
+%Delete file
+delete(zserverFile);
 
 %% Test: alyx.registerFile2
 sessions = alyx.getData(alyxInstance,['sessions?subject=test&type=Experiment&start_time=' datetime]);
@@ -118,3 +121,6 @@ assert( length(sessions)==1, 'Unexpected number of returned sessions');
 fid = fopen(zserverFile, 'wt' ); fclose(fid);
 
 [dataset,filerecord] = alyx.registerFile2(zserverFile,'mat',sessions{1}.url,'Block',[],alyxInstance);
+
+%Delete file
+delete(zserverFile);

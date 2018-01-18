@@ -1,6 +1,9 @@
 function [dataset, filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
 %[dataset,filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
-% Registers a ZSERVER filepath to Alyx. This works first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
+% Registers a filepath to Alyx. The file being registered should already be on the target server.
+% The repository being registered to will be automatically determined from
+% the filePath.
+% Registration work first by creating a dataset (a record of the dataset type, creation date, md5 hash), and
 % then a filerecord (a record of the relative path within the repository). The dataset is associated with a session, which
 % must be provided. Also must provide a datasetType. Can optionally provide
 % a parentDataSet URL and alyxInstance
@@ -45,16 +48,16 @@ datasetTypeIdx = find( strcmp({datasetTypes.name},datasetTypeName) );
 assert( ~isempty(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
 
 %% Now some preparations
-%Get datarepository ZSERVER
-repository = alyx.getData(alyxInstance, ['data-repository?name=zserver']);
-assert(~isempty(repository),'ZServer repository object not found');
+%Get datarepositories and their base paths
+repositories = alyx.getData(alyxInstance, ['data-repository']);
+repo_paths = cellfun( @(r) r.path, repositories, 'uni', 0);
 
-%Check that input path is within the repository's path
-if startsWith(filePath,repository{1}.path)
-    relativePath = strrep(filePath,repository{1}.path,'');
-else
-    error('Input filePath\n%s\ndoes not contain the repository path\n%s',filePath,repository{1}.path);
-end
+%Identify which repository the filePath is in
+which_repo = cellfun( @(rp) startsWith(filePath, rp), repo_paths);
+assert(sum(which_repo)==1, 'Input filePath\n%s\ndoes not contain the a repository path\n',filePath);
+
+%Define the relative path of the file within the repo
+relativePath = strrep(filePath,repo_paths{which_repo},'');
 
 %% Now submit Dataset and Filerecord to Alyx
 pathInfo = dir(filePath); %Get path creation date/etc

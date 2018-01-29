@@ -41,7 +41,7 @@ while ~loginSuccessful
     if ~isempty(alyxInstance)
         loginSuccessful = true;
     elseif isempty(strfind(lower(path),lower('missing-http')))
-        error('missing-http toolbox not found. is it installed and on the path?')
+        error('missing-http toolbox not found. is it installed and on the path? see exampleScript.m')
     end
     
 end

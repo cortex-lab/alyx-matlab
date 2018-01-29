@@ -19,7 +19,7 @@ try
     
     % Pre-Test: Check that alyxInstance object is correct
     assert( isfield(alyxInstance, 'token') , 'Token not found in alyxInstance object');
-    assert( strcmp(alyxInstance.baseURL , URL), 'URL is not alyx-dev');
+    assert( strcmp(alyxInstance.baseURL , URL), 'Token URL does not match the chosen URL');
 catch
     error('Problem logging in');
 end
@@ -28,7 +28,7 @@ datetime = alyx.datestr(now); %Use today's date for various tests later
 
 %Define a temp file on zserver which will be used later for file record
 %registration
-zserverFile = '\\zubjects.cortexlab.net\Lab\Share\PeterZH\testAlyxFile.mat';
+serverFile = '\\zubjects.cortexlab.net\Lab\Share\PeterZH\testAlyxFile.mat';
 
 %% Test: Get the 'test' subject from the database
 s = alyx.getData(alyxInstance, ['subjects?nickname=test']);
@@ -75,7 +75,7 @@ sessions = alyx.getData(alyxInstance,['sessions?subject=test&start_date=' dateti
 dates = floor( cellfun(@(s) alyx.datenum(s.start_time), sessions, 'uni', 1) );
 assert( all(dates == floor(alyx.datenum(datetime))), 'At least one returned session was not from todays date');
 
-%% Test: Create datasets & filerecord, then get them back
+%% Test: Create datasets & filerecord
 %Get the experiment session created earlier
 sessions = alyx.getData(alyxInstance,['sessions?subject=test&type=Experiment&start_time=' datetime]);
 assert( length(sessions)==1, 'Unexpected number of returned sessions');
@@ -103,7 +103,7 @@ end
 
 %Create a filerecord
 d = struct('dataset',child_dataset.url,...
-    'data_repository','zserver',...
+    'data_repository','zubjects',...
     'relative_path','bla\bla\bla');
 try
     filerecord = alyx.postData(alyxInstance, 'files', d);
@@ -114,9 +114,13 @@ end
 %% Test: alyx.registerFile
 sessions = alyx.getData(alyxInstance,['sessions?subject=test&type=Experiment&start_time=' datetime]);
 assert( length(sessions)==1, 'Unexpected number of returned sessions');
-fid = fopen(zserverFile, 'wt' ); fclose(fid);
+fid = fopen(serverFile, 'wt' ); fclose(fid);
 
-[dataset,filerecord] = alyx.registerFile(zserverFile,'mat',sessions{1}.url,'Block',[],alyxInstance);
+[dataset,filerecord] = alyx.registerFile(serverFile,'mat',sessions{1}.url,'Block',[],alyxInstance);
 
 %Delete file
-delete(zserverFile);
+delete(serverFile);
+
+%% Test: Get the dataset(s) associated with a particular date
+filePath = alyx.expFilePath('test', datetime(1:10), 1, []);
+

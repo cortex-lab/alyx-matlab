@@ -1,5 +1,5 @@
 %Runs a bunch of tests on alyx-dev
-URL = 'https://alyx-dev.cortexlab.net';
+mode = 'normal'; %'dev' (for alyx-dev) or 'normal' (for alyx)
 
 %Setup 1:  Test basic HTTP communication to the server
 [statusCode, responseBody] = http.jsonGet(URL, 'Authorization', '');
@@ -8,7 +8,14 @@ assert(~isempty(responseBody), 'Could not get list of endpoints');
 
 %Setup 2: login to alyx-dev to create an alyxInstance
 try
-    alyxInstance = alyx.loginWindowDev();
+    switch(mode)
+        case 'dev'
+            URL = 'https://alyx-dev.cortexlab.net';
+            alyxInstance = alyx.loginWindowDev();
+        case 'normal'
+            URL = 'https://alyx.cortexlab.net';
+            alyxInstance = alyx.loginWindow();
+    end
     
     % Pre-Test: Check that alyxInstance object is correct
     assert( isfield(alyxInstance, 'token') , 'Token not found in alyxInstance object');
@@ -21,7 +28,7 @@ datetime = alyx.datestr(now); %Use today's date for various tests later
 
 %Define a temp file on zserver which will be used later for file record
 %registration
-zserverFile = '\\zserver.cortexlab.net\Lab\Share\PeterZH\testAlyxFile.mat';
+zserverFile = '\\zubjects.cortexlab.net\Lab\Share\PeterZH\testAlyxFile.mat';
 
 %% Test: Get the 'test' subject from the database
 s = alyx.getData(alyxInstance, ['subjects?nickname=test']);
@@ -104,23 +111,12 @@ catch
     error('Problem creating file record');
 end
 
-
 %% Test: alyx.registerFile
-%Create file 
-fid = fopen(zserverFile, 'wt' ); fclose(fid);
-
-%Register
-[dataset,filerecord] = alyx.registerFile('test',[],'Block',zserverFile,'zserver',alyxInstance);
-
-%Delete file
-delete(zserverFile);
-
-%% Test: alyx.registerFile2
 sessions = alyx.getData(alyxInstance,['sessions?subject=test&type=Experiment&start_time=' datetime]);
 assert( length(sessions)==1, 'Unexpected number of returned sessions');
 fid = fopen(zserverFile, 'wt' ); fclose(fid);
 
-[dataset,filerecord] = alyx.registerFile2(zserverFile,'mat',sessions{1}.url,'Block',[],alyxInstance);
+[dataset,filerecord] = alyx.registerFile(zserverFile,'mat',sessions{1}.url,'Block',[],alyxInstance);
 
 %Delete file
 delete(zserverFile);

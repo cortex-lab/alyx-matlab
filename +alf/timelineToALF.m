@@ -11,14 +11,6 @@ function timelineToALF(Timeline, b, destDir)
 assert(exist('writeNPY', 'file') > 0,...
     'writeNPY not found; cannot proceed saving Timeline to ALF')
 
-% Save hw json
-if exist('savejson', 'file')
-    savejson('hw', Timeline.hw, fullfile(destDir, 'TimelineHW.json'));
-else
-    warning('Jsonlab not found - hardware information not saved to ALF')
-end
-
-
 % Save each recorded vector into the correct format in Timeline timebase
 % and optionally into universal timebase if conversion is provided
 inputs = {Timeline.hw.inputs.name};
@@ -29,7 +21,7 @@ for ii = 1:length(inputs)
     
     dat = Timeline.rawDAQData(:,ii);
     
-    writeNPY(dat, fullfile(destDir, [inputs{ii} '.npy']));
+    writeNPY(dat, fullfile(destDir, [inputs{ii} '.raw.npy']));
     
     writeNPY(tlTimes, fullfile(destDir, [inputs{ii} '.timestamps_Timeline.npy']));
     

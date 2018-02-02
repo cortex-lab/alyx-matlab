@@ -272,7 +272,7 @@ classdef AlyxPanel < handle
       thisDate = now;
       amount = str2double(get(obj.WaterEntry, 'String'));
       isHydrogel = logical(get(obj.IsHydrogel, 'Value'));
-      if ~isempty(ai)&&amount~=0&&~isnan(amount)
+      if obj.AlyxInstance.IsLoggedIn && amount~=0 && ~isnan(amount)
         wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, isHydrogel);
         if ~isempty(wa) % returned us a created water administration object successfully
           wstr = iff(isHydrogel, 'Hydrogel', 'Water');
@@ -373,18 +373,18 @@ classdef AlyxPanel < handle
       weight = ensureCell(weight); % ensure it's a cell
       % convert to double if weight is a string
       weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
-      d.subject = subject;
-      d.weight = weight;
       try
-        w = postWeight(ai, weight, subject);
+        w = postWeight(ai, weight, subject); %FIXME: If multiple things flushed, length(w)>1
         obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
-      catch ex
+      catch
         if ~ai.IsLoggedIn % if not logged in, save the weight for later
           obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
         else
           obj.log('Warning: Alyx weight posting failed!');
         end
       end
+      % Update weight and refresh login timer
+      obj.dispWaterReq
     end
     
     function launchSessionURL(obj)

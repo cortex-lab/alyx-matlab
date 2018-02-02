@@ -35,9 +35,9 @@ classdef Alyx < handle
       
     end
     
-    function delete(obj)
-      %DELETE Class destructor
-    end
+%     function delete(obj)
+%       %DELETE Class destructor
+%     end
     
     function logout(obj)
       %LOGOUT Delete token and user data from object
@@ -74,7 +74,7 @@ classdef Alyx < handle
     % Post a water value to a given subject in Alyx
     wa = postWater(obj, mouseName, amount, thisDate, isHydrogel)
     % Post a subject's weight to Alyx
-    postWeight(obj, weight, subject)
+    w = postWeight(obj, weight, subject)
   end
   
   methods (Access = private)

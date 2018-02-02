@@ -8,7 +8,7 @@ function w = postWeight(obj, weight, subject)
 %
 % See also ALYX, EUI.ALYXPANEL, POSTDATA
 
+if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = subject;
 d.weight = weight;
-u = postData(obj, 'weighings/', d);
-w  = 1;
+w = postData(obj, 'weighings/', d);

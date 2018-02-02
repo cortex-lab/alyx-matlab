@@ -25,7 +25,7 @@ alyxQueueFiles = sort(cellfun(@(x) fullfile(obj.QueueDir, x), {alyxQueue.name}, 
 if isempty(alyxQueueFiles); return; end
 
 % Loop through all files, attempt to put/post
-statusCode = cell(1,length(alyxQueueFiles));
+statusCode = ones(1,length(alyxQueueFiles))*401; % Initialize with user error code
 data = cell(1,length(alyxQueueFiles));
 for curr_file = 1:length(alyxQueueFiles)
   [~, ~, uploadType] = fileparts(alyxQueueFiles{curr_file});
@@ -50,25 +50,25 @@ for curr_file = 1:length(alyxQueueFiles)
     switch floor(statusCode(curr_file)/100)
       case 2
         % Upload success - delete from queue
-        data(curr_file) = loadjson(responseBody);
+        data{curr_file} = loadjson(responseBody);
         delete(alyxQueueFiles{curr_file});
         disp([int2str(statusCode(curr_file)) ' Success, uploaded to Alyx: ' responseBody])
       case 3
         % Redirect - delete from queue
-        data(curr_file) = loadjson(responseBody);
+        data{curr_file} = loadjson(responseBody);
         delete(alyxQueueFiles{curr_file});
         disp([int2str(statusCode(curr_file)) ' Redirect, uploaded to Alyx: ' responseBody])
       case 4
         % User error - delete from queue
-        data(curr_file) = loadjson(responseBody);
+        data{curr_file} = loadjson(responseBody);
         delete(alyxQueueFiles{curr_file});
         warning([int2str(statusCode(curr_file)) ' Bad upload command: ' responseBody])
       case 5
         % Server error - save in queue
-        data(curr_file) = loadjson(responseBody);
+        data{curr_file} = loadjson(responseBody);
         warning([int2str(statusCode(curr_file)) ' Alyx server error, saved in queue: ' responseBody])
     end
-    
+    data = catStructs(data); % Convert cell array into struct
   catch
     % If the JSON command failed (e.g. internet is down)
     warning('Alyx upload failed - saved in queue');

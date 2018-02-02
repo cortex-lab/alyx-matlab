@@ -3,7 +3,7 @@
 function conn = openAlyxSQL()
 % function conn = openAlyxSQL()
 % 
-% Opens a read-only connection with alyx to do SQL queries. Some
+% Opens a read-only connection with Alyx to do SQL queries. Some
 % installation steps are necessary first - see exampleSQLquery.m
 
 datasourcename = 'alyx';

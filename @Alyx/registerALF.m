@@ -1,24 +1,30 @@
-function registerALFtoAlyx(alfDir,sessionURL,alyxInstance)
-%registerALFtoAlyx(alfDir,sessionURL,alyxInstance)
-%This function registers files contained within the alfDir to Alyx. Files are only registered
-%if their filenames match a datasetType's alf_filename field. Must also
-%provide an alyx session URL. Optionally can provide alyxInstance as well.
-%INPUTS:
-%-alfDir: Directory containing ALF files, this will be searched recursively
-%   for all ALF files which match a datasetType
-%-sessionURL: Alyx URL of the session to register this data to
-%-alyxInstance: Optional alyx instance object, created from alyx.loginWindow().
+function registerALF(obj, alfDir, sessionURL)
+%REGISTERALFTOALYX Register files contained within alfDir to Alyx
+%   This function registers files contained within the alfDir to Alyx.
+%   Files are only registered if their filenames match a datasetType's
+%   alf_filename field. Must also provide an alyx session URL. Optionally
+%   can provide alyxInstance as well.
+%
+%   INPUTS:
+%     -alfDir: Directory containing ALF files, this will be searched
+%     recursively for all ALF files which match a datasetType
+%     -sessionURL: Alyx URL of the session to register this data to
+%
+% See also ALYX, REGISTERFILES, POSTDATA, HTTP.JSONGET
+% TODO: Fix up; Put in +alf??
+% Part of Alyx
 
+% 2017 -- created
 
 warning('Only handles files which have been defined in the database');
 warning('Dependency: dirPlus.m');
 
-%% INPUT VALIDATION
-%Validate alfDir path
+%%INPUT VALIDATION
+% Validate alfDir path
 assert( ~contains(alfDir,'/'), 'Do not use forward slashes in the path');
 assert( exist(alfDir,'dir') == 7 , 'alfDir %s does not exist', alfDir);
 
-%Validate alyxInstance, creating one if not supplied
+% Validate alyxInstance, creating one if not supplied
 if isempty(alyxInstance); alyxInstance = alyx.loginWindow(); end
 assert(isfield(alyxInstance,'token'), 'Supplied alyxInstance is improper');
 

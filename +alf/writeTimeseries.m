@@ -1,24 +1,25 @@
 function writeTimeseries(destDir, datasetName, timestamps, b, timebaseName)
-% function writeTimeseries(destDir, datasetName, data, timestamps, b, timebaseName)
-% Writes an "timeseries" dataset in the ALF format, providing conversion to universal
-% timebase if desired. Does not write the data - just the timestamps part.
+%WRITETIMESERIES Writes a "timeseries" dataset in the ALF format.
+%   Provides an optional conversion to universal timebase if desired. Does
+%   not write the data - just the timestamps part.
 %
-% - destDir - where the files go, a path
-% - datasetName - a string, a label for this dataset. will get
-% datasetName.times.npy
-% - timestamps - specifying the timestamps of the elements of the
-% associated data. Several specifications are possible: 
+%   writeTimeseries(destDir, datasetName, data, timestamps, b, timebaseName)
+%   - destDir: where the files go, a path
+%   - datasetName: a string, a label for this dataset. will get
+%   datasetName.times.npy
+%   - timestamps: specifying the timestamps of the elements of the
+%   associated data. Several specifications are possible:
 %   - a vector. In this case, interpreted as the literal timestamps of
-%   every element. 
+%   every element.
 %   - an nx2 matrix. In this case, the first column is sample numbers
 %   (0-indexed) and the second is the time in seconds of those samples
 %   - a 2-element vector. In this case, the first element is interpreted as
 %   the number of elements in the data, and the second as a sampling rate.
-% - b, optional - a 2-element conversion (slope, intercept) to universal
-% timebase
-% - timebaseName, optional - a string giving the name for the original
-% timebase. If not provided, assumes it is universal. If empty (but b is
-% provided) then the original timebase just won't be written.
+%   - b, optional: a 2-element conversion (slope, intercept) to universal
+%   timebase
+%   - timebaseName, optional: a string giving the name for the original
+%   timebase. If not provided, assumes it is universal. If empty (but b is
+%   provided) then the original timebase just won't be written.
 
 if ~exist(destDir, 'dir')
     mkdir(destDir);

@@ -36,12 +36,12 @@ dataFormatIdx = strcmp({dataFormats.name}, datasetTypeName);
 assert(~any(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 %Validate sessionURL supplied
-[status,~] = http.jsonGet(sessionURL, 'Authorization', ['Token ' alyxInstance.token]);
+[status,~] = http.jsonGet(sessionURL, 'Authorization', ['Token ' obj.Token]);
 assert(status==200,'SessionURL Invalid');
 
 %Validate optional parentDatasetURL
 if ~isempty(parentDatasetURL)
-  [status,~] = http.jsonGet(parentDatasetURL, 'Authorization', ['Token ' alyxInstance.token]);
+  [status,~] = http.jsonGet(parentDatasetURL, 'Authorization', ['Token ' obj.Token]);
   assert(status==200,'parentDatasetURL Invalid');
 end
 
@@ -49,7 +49,7 @@ end
 datasetTypes = obj.getData('dataset-types');
 datasetTypes = [datasetTypes{:}];
 datasetTypeIdx = strcmp({datasetTypes.name}, datasetTypeName);
-assert(~any(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
+assert(any(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
 
 %%Now some preparations
 %Get datarepositories and their base paths

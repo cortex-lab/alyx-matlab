@@ -55,6 +55,8 @@ while ~obj.IsLoggedIn
         error(ex.identifier, ['Please locate ''onLoad'' (missing-http) function and add to MATLAB''s '...
           '<a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file'])
       end
+    elseif contains(ex.message, 'credentials')
+      disp('Unable to log in with provided credentials.')
     else % Another error altogether
       rethrow(ex)
     end

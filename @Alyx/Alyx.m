@@ -1,4 +1,4 @@
-classdef Alyx < handle
+classdef Alyx < handle & matlab.mixin.Copyable
   %ALYX
   %   TODO: Document!
   %
@@ -10,7 +10,6 @@ classdef Alyx < handle
   
   properties
     Subjects
-    Sessions
     % URL to the Alyx database
     BaseURL char = 'https://alyx.cortexlab.net'
     % Set the local directory for saving queued Alyx commands, create if needed
@@ -18,21 +17,30 @@ classdef Alyx < handle
   end
   
   properties (SetAccess = private)
+    % The username of whoever is logged in
     User
+    % A URL of the most-recent subsession created by newExp
+    SessionURL
   end
   
   properties (Access = private)
+    % The Alyx token acquired after loggin in
     Token
   end
   
   properties (Dependent)
+    % A flag indicating whether the user is logged into the database
     IsLoggedIn = false
   end
   
   methods
-    function obj = Alyx()
+    function obj = Alyx(user, token, session)
       %ALYX Class constructor
-      
+      if nargin
+        obj.User = user;
+        obj.Token = token;
+        obj.SessionURL = session;
+      end
     end
     
 %     function delete(obj)
@@ -43,6 +51,7 @@ classdef Alyx < handle
       %LOGOUT Delete token and user data from object
       obj.Token = [];
       obj.User = [];
+      obj.SessionURL = [];
     end
     
     function bool = get.IsLoggedIn(obj)
@@ -75,6 +84,14 @@ classdef Alyx < handle
     wa = postWater(obj, mouseName, amount, thisDate, isHydrogel)
     % Post a subject's weight to Alyx
     w = postWeight(obj, weight, subject)
+    % Create a new unique experiment in the database
+    [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstance)
+    % Update an Alyx session or subject narrative
+    narrative = updateNarrative(obj, subject, comments, endpoint)
+    % Converts input to string for UDP message and back
+    [ref, AlyxInstance] = parseAlyxInstance(varargin)
+    % TODO
+    s = saveobj(obj)
   end
   
   methods (Access = private)
@@ -95,6 +112,8 @@ classdef Alyx < handle
     outDatenum = datenum(date_time)
     % Returns the file path where you can find a specified file
     filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
+    % TODO
+    obj = loadobj(s)
   end
   
 end

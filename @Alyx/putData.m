@@ -19,7 +19,6 @@ function [data, statusCode] = putData(obj, endpoint, data)
 jsonData = savejson('', data);
 
 % Make a filename for the current command
-%TODO: Make queue datestr fmt same as Alyx date format-spec?
 queueFilename = [datestr(now, 'dd-mm-yyyy-HH-MM-SS-FFF') '.put'];
 queueFullfile = fullfile(obj.QueueDir, queueFilename);
 

@@ -19,8 +19,7 @@ function [data, statusCode] = postData(obj, endpoint, data)
 jsonData = savejson('', data);
 
 % Make a filename for the current command
-% TODO: Shouldn't queue datestr fmt be same as Alyx?
-queueFilename = [datestr(now, 'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
+% queueFilename = [datestr(now, 'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
 queueFullfile = fullfile(obj.QueueDir, queueFilename);
 
 % Save the endpoint and json locally

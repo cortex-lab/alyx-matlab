@@ -79,7 +79,7 @@ if ~strcmp(subject, 'default') % Ignore fake subject
       d.narrative = 'auto-generated session';
       d.start_time = expDate;
       d.type = 'Base';
-      %       d.users = {AlyxInstance.username}; % FIXME
+      %       d.users = {obj.User}; % FIXME
       
       base_submit = obj.postData('sessions', d);
       assert(isfield(base_submit,'subject'),...
@@ -99,7 +99,7 @@ if ~strcmp(subject, 'default') % Ignore fake subject
     d.type = 'Experiment';
     d.parent_session = latest_base.url;
     d.number = expSeq;
-    %   d.users = {AlyxInstance.username}; % FIXME
+    %   d.users = {obj.User}; % FIXME
     
     try
       subsession = obj.postData('sessions', d);

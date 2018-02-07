@@ -1,8 +1,21 @@
 classdef Alyx < handle & matlab.mixin.Copyable
-  %ALYX
-  %   TODO: Document!
+  %ALYX An class for interating with the Alyx database
+  %   Creates an object that allows the user to log in, GET, PUT and POST
+  %   data to the Alyx database primarily via the REST API.  
+  % 
+  %   All public methods such as POSTWATER, etc. should call the private
+  %   methods that actually post data and set the token. 
   %
-  % Dependencies: missing-http, JSONLab
+  %   Example:
+  %     ai = Alyx();
+  %     ai.login;
+  %     subjects = ai.getData('subjects');
+  %     ai.postWater('test', 0.25);
+  %     ai.logout;
+  %
+  %   Dependencies: missing-http, JSONLab
+  %
+  %   See also EUI.ALYXPANEL
   %
   % Part of Alyx
   
@@ -49,6 +62,12 @@ classdef Alyx < handle & matlab.mixin.Copyable
     
     function logout(obj)
       %LOGOUT Delete token and user data from object
+      % Unsets the User, Token and SessionURL attributes
+      % Example:
+      %   ai = Alyx;
+      %   ai.login; % Get token, set user
+      %   ai.logout; % Remove token, unset user
+      % See also LOGIN
       obj.Token = [];
       obj.User = [];
       obj.SessionURL = [];
@@ -90,7 +109,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
     narrative = updateNarrative(obj, subject, comments, endpoint)
     % Converts input to string for UDP message and back
     [ref, AlyxInstance] = parseAlyxInstance(varargin)
-    % TODO
+    % Return the instance of Alyx as a struct
     s = saveobj(obj)
   end
   
@@ -112,7 +131,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
     outDatenum = datenum(date_time)
     % Returns the file path where you can find a specified file
     filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
-    % TODO
+    % Load an Alyx object from a struct
     obj = loadobj(s)
   end
   

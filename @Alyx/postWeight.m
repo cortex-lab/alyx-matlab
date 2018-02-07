@@ -4,7 +4,13 @@ function w = postWeight(obj, weight, subject)
 % subject is provided, use this object's currently selected
 % subject.
 %
-% TODO: Explain 'w' variable
+% On success, returns the new weight record as a struct:
+%   date_time: '2018-02-07T11:21:14.628537Z'
+%   subject: 'test'
+%   url: 'https://alyx.cortexlab.net/weighings/c1b0a93d-fe40-449c-baf1-3305bfaae50f'
+%   user: 'miles'
+%   weighing_scale: []
+%   weight: 20
 %
 % See also ALYX, EUI.ALYXPANEL, POSTDATA
 

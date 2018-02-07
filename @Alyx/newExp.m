@@ -104,45 +104,47 @@ if ~strcmp(subject, 'default') % Ignore fake subject
     try
       subsession = obj.postData('sessions', d);
       obj.SessionURL = subsession.url;
-    catch % TODO Compulsory unless server is down?
+    catch ex % TODO Compulsory unless server is down?
+      rethrow(ex)
     end
+end
+
+% if the parameters had an experiment definition function, save a copy in
+% the experiment's folder
+if isfield(expParams, 'defFunction')
+  assert(file.exists(expParams.defFunction),...
+    'Experiment definition function does not exist: %s', expParams.defFunction);
+  assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
+    dat.expFilePath(expRef, 'expDefFun'))),...
+    'Copying definition function to experiment folders failed');
+end
   
-  % if the parameters had an experiment definition function, save a copy in
-  % the experiment's folder
-  if isfield(expParams, 'defFunction')
-    assert(file.exists(expParams.defFunction),...
-      'Experiment definition function does not exist: %s', expParams.defFunction);
-    assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
-      dat.expFilePath(expRef, 'expDefFun'))),...
-      'Copying definition function to experiment folders failed');
-  end
-  
-  % now save the experiment parameters variable
-  %TODO Make expFilePath an Alyx query?
-  superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
-  
-  try  % save a copy of parameters in json
-    % First, change all functions to strings
-    f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
-    fields = fieldnames(expParams);
-    paramCell = struct2cell(expParams);
-    paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
-    expParams = cell2struct(paramCell, fields);
-    % Generate JSON path and save
-    jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
+% now save the experiment parameters variable
+%TODO Make expFilePath an Alyx query?
+superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
+
+try  % save a copy of parameters in json
+  % First, change all functions to strings
+  f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
+  fields = fieldnames(expParams);
+  paramCell = struct2cell(expParams);
+  paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
+  expParams = cell2struct(paramCell, fields);
+  % Generate JSON path and save
+  jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
-    savejson('parameters', expParams, jsonPath);
-    % Register our JSON parameter set to Alyx
-    if ~strcmp(subject,'default')
-      obj.registerFile(jsonPath, 'json', obj.SessionURL, 'Parameters', []);
-    end
-  catch ex
-    warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
-    % Register our parameter set to Alyx
-    if ~strcmp(subject,'default')
-      obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-        obj.SessionURL, 'Parameters', []); %TODO Make expFilePath an Alyx query?
-    end
+  savejson('parameters', expParams, jsonPath);
+  % Register our JSON parameter set to Alyx
+  if ~strcmp(subject,'default')
+    obj.registerFile(jsonPath, 'json', obj.SessionURL, 'Parameters', []);
   end
-  
+catch ex
+  warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
+  % Register our parameter set to Alyx
+  if ~strcmp(subject,'default')
+    obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
+        obj.SessionURL, 'Parameters', []); %TODO Make expFilePath an Alyx query?
+  end
+end
+
 end

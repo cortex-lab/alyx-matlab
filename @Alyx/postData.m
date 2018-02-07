@@ -19,7 +19,7 @@ function [data, statusCode] = postData(obj, endpoint, data)
 jsonData = savejson('', data);
 
 % Make a filename for the current command
-% queueFilename = [datestr(now, 'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
+queueFilename = [datestr(now, 'dd-mm-yyyy-HH-MM-SS-FFF') '.post'];
 queueFullfile = fullfile(obj.QueueDir, queueFilename);
 
 % Save the endpoint and json locally

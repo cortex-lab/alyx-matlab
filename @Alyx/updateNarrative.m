@@ -28,5 +28,5 @@ narrative = deblank(strrep(mat2DStrTo1D(comments), newline, '\n'));
 data = struct('subject', subject, 'narrative', narrative);
 data = obj.putData(endpoint, data);
 if ~isempty(data)
-  narrative = strrep(data.narrative, '\n', newline); % TODO: untested!
+  narrative = strrep(data.narrative, '\n', newline);
 end

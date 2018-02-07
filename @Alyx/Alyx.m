@@ -91,6 +91,8 @@ classdef Alyx < handle & matlab.mixin.Copyable
     fullEndpoint = makeEndpoint(obj, endpoint)
     % Return a specific Alyx/REST read-only endpoint
     [data, statusCode] = getData(obj, endpoint)
+    % Put an updated data record to an Alyx/REST endpoint
+    [data, statusCode] = putData(obj, endpoint, data)
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
     % Returns experiment meta-data, given an experiment URL
@@ -118,8 +120,6 @@ classdef Alyx < handle & matlab.mixin.Copyable
     statusCode = getToken(obj, username, password)
     % Post any new data to an Alyx/REST endpoint
     [data, statusCode] = postData(obj, endpoint, data)
-    % Put an updated data record to an Alyx/REST endpoint
-    [data, statusCode] = putData(obj, endpoint, data)
     % Checks for and uploads queued data to Alyx
     [data, statusCode] = flushQueue(obj)
   end

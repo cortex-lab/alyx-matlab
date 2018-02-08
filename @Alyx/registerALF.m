@@ -76,6 +76,7 @@ for file = 1:length(alfFiles)
     fileFormat = alfFileParts{file,3};
     parentDataset = parentURLs{parentID(file)};
 
+    datasetTypes_filemasks(contains(datasetTypes_filemasks,'*.*')) = []; % Remove parant datasets from search
     matchIdx = regexp(alfFiles(file).name, regexptranslate('wildcard', datasetTypes_filemasks));
     matchIdx = find(~cellfun(@isempty, matchIdx));
     assert(numel(matchIdx)==1, 'Insufficient/Too many matches of datasetType for file %s', alfFiles(file).name);

@@ -65,12 +65,13 @@ for file = 1:length(alfFiles)
     fileFormat = alfFileParts{file,3};
     parentDataset = parentURLs{parentID(file)};
 
+    datasetTypes_filemasks(contains(datasetTypes_filemasks,'*.*')) = []; % Remove parant datasets from search
     matchIdx = regexp(alfFiles(file).name, regexptranslate('wildcard',datasetTypes_filemasks));
     matchIdx = find(~cellfun(@isempty, matchIdx));
     assert(numel(matchIdx)==1, 'Insufficient/Too many matches of datasetType for file %s', alfFiles(file).name);
     datasetType = datasetTypes(matchIdx).name;
     
-    alyx.registerFile2(fullPath, fileFormat, sessionURL, datasetType, parentDataset, alyxInstance);
+    alyx.registerFile(fullPath, fileFormat, sessionURL, datasetType, parentDataset, alyxInstance);
     
     fprintf('Registered file %s as datasetType %s\n',alfFiles(file).name, datasetType);
 end

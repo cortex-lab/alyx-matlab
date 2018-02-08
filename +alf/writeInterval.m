@@ -1,5 +1,3 @@
-
-
 function writeInterval(destDir, datasetName, onsetTimes, offsetTimes, b, timebaseName)
 % function writeInterval(destDir, datasetName, onsetTimes, offsetTimes, b, timebaseName)
 % Writes an "interval" dataset in the ALF format, with checks to try to

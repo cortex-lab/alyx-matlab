@@ -1,5 +1,5 @@
 function writeTimeseries(destDir, datasetName, timestamps, b, timebaseName)
-% function writeTimeseries(destDir, datasetName, data, timestamps, b, timebaseName)
+% function writeTimeseries(destDir, datasetName, timestamps, b, timebaseName)
 % Writes an "timeseries" dataset in the ALF format, providing conversion to universal
 % timebase if desired. Does not write the data - just the timestamps part.
 %

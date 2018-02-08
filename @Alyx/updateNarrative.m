@@ -7,17 +7,18 @@ function narrative = updateNarrative(obj, comments, endpoint, subject)
 %   is updated.
 %
 %   NARRATIVE = UPDATENARRATIVE(OBJ)
-%   If SessionURL is set, display comments dialog and post input to that
-%   subsession narrative, otherwise it returns an error.
+%   If SessionURL is set, display comments dialog (unless Headless flag
+%   set) and post input to that subsession narrative, otherwise it returns
+%   an error.
 %
 %   NARRATIVE = UPDATENARRATIVE(OBJ, COMMENTS)
 %   If SessionURL is set, posts COMMENTS to that subsession narrative,
 %   otherwise it returns an error. If COMMENTS is empty and not a charector
-%   array, prompts user for input.
+%   array, prompts user for input (unless Headless flag set).
 %
 %   NARRATIVE = UPDATENARRATIVE(OBJ, COMMENTS, ENDPOINT)
 %   Posts COMMENTS to ENDPOINT.  If COMMENTS is empty and not a charector
-%   array, prompts user for input.
+%   array, prompts user for input (unless Headless flag set).
 %
 %   NARRATIVE = UPDATENARRATIVE(OBJ, COMMENTS, ENDPOINT, SUBJECT)
 %   Posts COMMENTS to ENDPOINT narrative.  If ENDPOINT is empty, posts
@@ -42,7 +43,7 @@ if nargin < 3
   end
 end
 
-if isempty(comments) && ~isa(comments, 'char')
+if isempty(comments) && ~isa(comments, 'char') && ~obj.Headless
   if ~isempty(subject) && isempty(endpoint)
     titleStr = 'Update subject description';
   else

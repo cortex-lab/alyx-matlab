@@ -6,7 +6,7 @@ function [dataset, filerecord] = registerFile(obj, filePath, dataFormatName, ses
 %   filerecord (a record of the relative path within the repository). The
 %   dataset is associated with a session, which must be provided. Also must
 %   provide a datasetType. Can optionally provide a parentDataSet URL.
-%   
+%
 %   Inputs: 
 %     -filePath: full path of the file being registered
 %     -dataFormatName: data format, e.g. 'npy', 'mj2', or 'notData'

@@ -10,6 +10,11 @@ function login(obj, presetUsername)
 
 % 2017 -- created
 
+if obj.Headless % Don't prompt user if headless flag set
+  warning('Unable to log in; dialogs supressed')
+  return
+end
+
 while ~obj.IsLoggedIn
   if nargin < 2 % No preset username
     prompt = {'Alyx username:'};

@@ -27,6 +27,8 @@ classdef Alyx < handle & matlab.mixin.Copyable
     BaseURL char = 'https://alyx.cortexlab.net'
     % Set the local directory for saving queued Alyx commands, create if needed
     QueueDir char = 'C:\localAlyxQueue'
+    % Set whether input dialogs should appear, e.g. login window
+    Headless logical = false
   end
   
   properties (SetAccess = private)

@@ -21,6 +21,8 @@ function [expRef, expSeq] = newExp(obj, subject, expDate, expParams)
 % 2013-03 CB created
 % 2018-02 MW added to Alyx
 
+%%% Validate the input, create the new expRef and create any nessessary
+%%% experiment folders on the respository locations
 if nargin < 3
   % use today by default
   expDate = now;
@@ -62,10 +64,13 @@ assert(~any(file.exists(expPath)), ...
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
 
-if ~strcmp(subject, 'default') % Ignore fake subject
+%%% Here we create a new base session on Alyx if it doesn't already exist
+%%% for this subject today.  Then we create a new subsession and save the
+%%% URL in the Alyx object
+if ~strcmp(subject, 'default') && ~(ai.Headless && ~ai.IsLoggedIn) % Ignore fake subject
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
-  % Ensure subject is logged in
+  % Ensure user is logged in
   if ~obj.IsLoggedIn; obj.login; end
     % Get list of base sessions
     sessions = obj.getData(['sessions?type=Base&subject=' subject]);
@@ -102,28 +107,40 @@ if ~strcmp(subject, 'default') % Ignore fake subject
     %   d.users = {obj.User}; % FIXME
     
     try
-      subsession = obj.postData('sessions', d);
+      [subsession, statusCode] = obj.postData('sessions', d);
       obj.SessionURL = subsession.url;
-    catch ex % TODO Compulsory unless server is down?
-      rethrow(ex)
+    catch ex
+      if statusCode == 503 || obj.Headless % Unable to connect, or user is supressing errors
+        warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)
+      else % Probably fatal user error
+        rethrow(ex)
+      end
     end
 end
 
-% if the parameters had an experiment definition function, save a copy in
-% the experiment's folder
+%%% If the parameters had an experiment definition function, save a copy in
+%%% the experiment's folder and register the file to Alyx
 if isfield(expParams, 'defFunction')
   assert(file.exists(expParams.defFunction),...
     'Experiment definition function does not exist: %s', expParams.defFunction);
   assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
     dat.expFilePath(expRef, 'expDefFun'))),...
     'Copying definition function to experiment folders failed');
+  % Register the experiment definition file
+  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
+    obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'),...
+      'm', obj.SessionURL, 'expDefinition', []);
+  end
 end
   
-% now save the experiment parameters variable
-%TODO Make expFilePath an Alyx query?
+%%% Now save the experiment parameters variable both locally and in the
+%%% 'master' location
+%%%TODO Make expFilePath an Alyx query?
 superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
 
-try  % save a copy of parameters in json
+%%% Try to save a copy of the expParams as a JSON file, unpon failing that,
+%%% save as a mat file instead.  Register the parameters to Alyx
+try 
   % First, change all functions to strings
   f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
   fields = fieldnames(expParams);
@@ -135,16 +152,20 @@ try  % save a copy of parameters in json
       [expRef, '_parameters.json']);
   savejson('parameters', expParams, jsonPath);
   % Register our JSON parameter set to Alyx
-  if ~strcmp(subject,'default')
+  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
     obj.registerFile(jsonPath, 'json', obj.SessionURL, 'Parameters', []);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
   % Register our parameter set to Alyx
-  if ~strcmp(subject,'default')
+  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
         obj.SessionURL, 'Parameters', []); %TODO Make expFilePath an Alyx query?
   end
 end
 
+% If user not logged in and has suppressed prompts, print warning
+if ~strcmp(subject,'default') && (ai.Headless && ~ai.IsLoggedIn)
+  warning('Failed to register files; must be logged in');
+end
 end

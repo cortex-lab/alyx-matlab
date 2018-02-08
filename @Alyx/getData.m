@@ -16,6 +16,14 @@ fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
 
 if statusCode == 200 % Success
   data = loadjson(responseBody);
+elseif statusCode == 403 % Invalid token
+  obj.logout; % Delete token
+  if ~obj.Headless % Prompts not supressed
+    obj.login; % Re-login
+    data = obj.getData(fullEndpoint); % Retry
+  else
+    error(responseBody) % Throw error
+  end
 else % Fail
   error(responseBody)
 end

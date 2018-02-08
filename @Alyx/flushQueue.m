@@ -9,6 +9,7 @@ function [data, statusCode] = flushQueue(obj)
 %     200: Upload success - delete from queue
 %     300: Redirect - delete from queue
 %     400: User error - delete from queue
+%     403: Invalid token - delete from queue
 %     500: Server error - save in queue
 %
 % See also ALYX, HTTP.JSONPOST, LOADJSON
@@ -59,10 +60,19 @@ for curr_file = 1:length(alyxQueueFiles)
         delete(alyxQueueFiles{curr_file});
         disp([int2str(statusCode(curr_file)) ' Redirect, uploaded to Alyx: ' responseBody])
       case 4
-        % User error - delete from queue
-        data{curr_file} = loadjson(responseBody);
-        delete(alyxQueueFiles{curr_file});
-        warning([int2str(statusCode(curr_file)) ' Bad upload command: ' responseBody])
+        if statusCode(curr_file) == 403 % Invalid token
+          obj.logout; % delete token
+          if ~obj.Headless % if user can see dialog...
+            obj.login; % prompt for login
+            [data, statusCode] = obj.flushQueue; % Retry
+          else % otherwise - save in queue
+            warning([int2str(statusCode(curr_file)) ' Invalid token, saved in queue: ' responseBody])
+          end
+        else % User error - delete from queue
+          data{curr_file} = loadjson(responseBody);
+          delete(alyxQueueFiles{curr_file});
+          warning([int2str(statusCode(curr_file)) ' Bad upload command: ' responseBody])
+        end
       case 5
         % Server error - save in queue
         data{curr_file} = loadjson(responseBody);

@@ -1,19 +1,30 @@
-function UDP_string = parseAlyxInstance(obj, expRef)
+function [ref, AlyxInstance] = parseAlyxInstance(varargin)
 %PARSEALYXINSTANCE Converts input to string for UDP message and back
-%   [UDP_string] = obj.parseAlyxInstance(expRef)
+%   [UDP_string] = DATA.PARSEALYXINSTANCE(ref, AlyxInstance)
+%   [ref, AlyxInstance] = DATA.PARSEALYXINSTANCE(UDP_string)
+%   
+%   AlyxInstance should be an Alyx object.
 %
-%   The pattern for 'expRef' should be '{date}_{seq#}_{subject}', with two
-%   date formats accepted, either 'yyyy-mm-dd' or 'yyyymmdd'.
-%
-%   AlyxInstance should an Alyx object that is currently logged in, i.e.
-%   with the following properties set: 'BaseURL', 'Token', 'User'[,
-%   'SessionURL'].
+% See also SAVEOBJ, LOADOBJ
 %
 % Part of Alyx
 
 % 2017-10 MW created
 
-if nargin < 2; expRef = []; end
-d = obj.saveobj;
-d.expRef = expRef;
-UDP_string = jsonencode(d);
+if nargin > 1 % in [ref, AlyxInstance]
+  ref = varargin{1}; % extract expRef
+  ai = varargin{2}; % extract AlyxInstance struct
+  if isa(ai, 'Alyx') % if there is an AlyxInstance
+    d = ai.saveobj;
+  end
+  d.expRef = ref; % Add expRef field
+  ref = jsonencode(d); % Convert to JSON string
+else % in [UDP_string]
+    s = jsondecode(varargin{1}); % Convert JSON to structure
+    ref = s.expRef; % Extract the expRef
+    if numel(fieldnames(s)) > 1 % Assume to be Alyx object as struct
+      AlyxInstance = Alyx.loadobj(s); % Turn into object
+    else
+      AlyxInstance = []; % if input was just an expRef, output empty AlyxInstance
+    end
+end

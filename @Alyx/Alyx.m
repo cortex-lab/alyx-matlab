@@ -111,8 +111,6 @@ classdef Alyx < handle & matlab.mixin.Copyable
     [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstance)
     % Update an Alyx session or subject narrative
     narrative = updateNarrative(obj, subject, comments, endpoint)
-    % Converts input to string for UDP message and back
-    [ref, AlyxInstance] = parseAlyxInstance(varargin)
     % Return the instance of Alyx as a struct
     s = saveobj(obj)
   end
@@ -133,6 +131,8 @@ classdef Alyx < handle & matlab.mixin.Copyable
     outDatenum = datenum(date_time)
     % Returns the file path where you can find a specified file
     filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
+    % Converts input to string for UDP message and back
+    [ref, AlyxInstance] = parseAlyxInstance(varargin)
     % Load an Alyx object from a struct
     obj = loadobj(s)
   end

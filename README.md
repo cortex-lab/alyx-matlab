@@ -8,7 +8,7 @@ This package contains code for interacting with the Alyx database through MATLAB
 * alyx.loginWindow(). This function creates an Alyx login token via a login window popup.
 * alyx.getData(). This function gets data from the alyx database, via a REST API endpoint.
 * alyx.putData(). Similar to getData() but instead posts data to the database.
-* alyx.registerFile2(). This function registers a file located on a fileserver (in this case, 'zserver') to the database. Requires specifying an alyx session, dataset type, file format (see documentation)
+* alyx.registerFile(). This function registers a file located on a fileserver (in this case, 'zserver') to the database. Requires specifying an alyx session, dataset type, file format (see documentation)
 *
 
 ## Prerequisites

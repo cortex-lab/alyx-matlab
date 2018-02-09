@@ -67,7 +67,7 @@ assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories fa
 %%% Here we create a new base session on Alyx if it doesn't already exist
 %%% for this subject today.  Then we create a new subsession and save the
 %%% URL in the Alyx object
-if ~strcmp(subject, 'default') && ~(ai.Headless && ~ai.IsLoggedIn) % Ignore fake subject
+if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fake subject
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
@@ -127,7 +127,7 @@ if isfield(expParams, 'defFunction')
     dat.expFilePath(expRef, 'expDefFun'))),...
     'Copying definition function to experiment folders failed');
   % Register the experiment definition file
-  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
+  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'),...
       'm', obj.SessionURL, 'expDefinition', []);
   end
@@ -152,20 +152,20 @@ try
       [expRef, '_parameters.json']);
   savejson('parameters', expParams, jsonPath);
   % Register our JSON parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
+  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath, 'json', obj.SessionURL, 'Parameters', []);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
   % Register our parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(ai.Headless && ~ai.IsLoggedIn)
+  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
         obj.SessionURL, 'Parameters', []); %TODO Make expFilePath an Alyx query?
   end
 end
 
 % If user not logged in and has suppressed prompts, print warning
-if ~strcmp(subject,'default') && (ai.Headless && ~ai.IsLoggedIn)
+if ~strcmp(subject,'default') && (obj.Headless && ~obj.IsLoggedIn)
   warning('Failed to register files; must be logged in');
 end
 end

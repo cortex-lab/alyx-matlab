@@ -1,4 +1,4 @@
-function [dataset, filerecord] = registerFile(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
+function [dataset, filerecord] = registerFile(filePath, dataFormatName, session, datasetTypeName, parentDatasetURL, alyxInstance)
 %[dataset,filerecord] = registerFile2(filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL, alyxInstance)
 % Registers a filepath to Alyx. The file being registered should already be on the target server.
 % The repository being registered to will be automatically determined from
@@ -10,7 +10,7 @@ function [dataset, filerecord] = registerFile(filePath, dataFormatName, sessionU
 % Inputs:
 % -filePath: full path of the file being registered
 % -dataFormatName: data format, e.g. 'npy', 'mj2', or 'notData'
-% -sessionURL: Alyx URL for the session.
+% -session: Either Alyx URL for the session OR cell {subject,date,number}.
 % -datasetTypeName: Block, Timeline, Parameters, eye.movie, etc
 % -parentDatasetURL: optional URL for a parent dataset
 % -AlyxInstance: Optional alyx instance object, created from alyx.loginWindow().
@@ -31,9 +31,11 @@ dataFormats = [dataFormats{:}];
 dataFormatIdx = find( strcmp({dataFormats.name}, dataFormatName) );
 assert( ~isempty(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
-%Validate sessionURL supplied
-[status,body] = http.jsonGet(sessionURL, 'Authorization', ['Token ' alyxInstance.token]);
-assert(status==200,'SessionURL Invalid');
+if ischar(session)
+    %Validate sessionURL supplied
+    [status,body] = http.jsonGet(session, 'Authorization', ['Token ' alyxInstance.token]);
+    assert(status==200,'SessionURL Invalid');
+end
 
 %Validate optional parentDatasetURL
 if ~isempty(parentDatasetURL)
@@ -62,10 +64,17 @@ relativePath = strrep(filePath,repo_paths{which_repo},'');
 %% Now submit Dataset and Filerecord to Alyx
 pathInfo = dir(filePath); %Get path creation date/etc
 d = struct('created_by',alyxInstance.username,...
-    'dataset_type',datasetTypeName,...
-    'data_format',dataFormatName,...
-    'session',sessionURL,...
-    'created_date',alyx.datestr(pathInfo.datenum));
+        'dataset_type',datasetTypeName,...
+        'data_format',dataFormatName,...
+        'created_date',alyx.datestr(pathInfo.datenum));
+if ischar(session)
+    d.session = session;
+elseif iscell(session)
+    d.subject = session{1};
+    d.date = session{2};
+    d.number = session{3};
+end
+
 try
     d.md5 = mMD5(filePath);
 catch

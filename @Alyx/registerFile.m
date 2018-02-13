@@ -28,7 +28,7 @@ assert( exist(filePath,'file') == 2 , 'Path %s does not exist', filePath);
 assert( ~isdir(filePath), 'filePath supplied must not be a folder');
 
 % Log in, if required
-if obj.IsLoggedIn == false; obj.login; end
+if obj.IsLoggedIn == false; obj = obj.login; end
 
 % Validate dataFormat supplied
 dataFormats = obj.getData('data-formats');

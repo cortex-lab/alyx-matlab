@@ -71,7 +71,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
-  if ~obj.IsLoggedIn; obj.login; end
+  if ~obj.IsLoggedIn; obj = obj.login; end
     % Get list of base sessions
     sessions = obj.getData(['sessions?type=Base&subject=' subject]);
     

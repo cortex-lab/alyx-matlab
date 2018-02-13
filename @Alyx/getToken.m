@@ -1,4 +1,4 @@
-function statusCode = getToken(obj, username, password)
+function [obj, statusCode] = getToken(obj, username, password)
 %GETTOKEN Acquire an authentication token for Alyx
 %   Makes a request for an authentication token to an Alyx instance;
 %   returns the token and status code.

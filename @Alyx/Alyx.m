@@ -1,4 +1,4 @@
-classdef Alyx < handle & matlab.mixin.Copyable
+classdef Alyx %< handle & matlab.mixin.Copyable
   %ALYX An class for interating with the Alyx database
   %   Creates an object that allows the user to log in, GET, PUT and POST
   %   data to the Alyx database primarily via the REST API.  
@@ -62,7 +62,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
 %       %DELETE Class destructor
 %     end
     
-    function logout(obj)
+    function obj = logout(obj)
       %LOGOUT Delete token and user data from object
       % Unsets the User, Token and SessionURL attributes
       % Example:
@@ -79,7 +79,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
       bool = ~isempty(obj.User)&&~isempty(obj.Token);
     end
     
-    function set.QueueDir(obj, qDir)
+    function obj = set.QueueDir(obj, qDir)
       %SET.QUEUEDIR Ensure directory exists
       if ~exist(qDir, 'dir'); mkdir(qDir); end
       obj.QueueDir = qDir;
@@ -88,7 +88,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
   
   methods
     % UI for retrieving a token from Alyx
-    [alyxInstance, username] = login(obj, presetUsername)
+    obj = login(obj, presetUsername)
     % Returns a complete Alyx Rest API endpoint URL
     fullEndpoint = makeEndpoint(obj, endpoint)
     % Return a specific Alyx/REST read-only endpoint
@@ -108,7 +108,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
     % Post a subject's weight to Alyx
     w = postWeight(obj, weight, subject)
     % Create a new unique experiment in the database
-    [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstance)
+    [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
     % Update an Alyx session or subject narrative
     narrative = updateNarrative(obj, subject, comments, endpoint)
     % Converts input to string for UDP message and back
@@ -119,7 +119,7 @@ classdef Alyx < handle & matlab.mixin.Copyable
   
   methods (Access = private)
     % Acquire an authentication token for Alyx
-    statusCode = getToken(obj, username, password)
+    [obj, statusCode] = getToken(obj, username, password)
     % Post any new data to an Alyx/REST endpoint
     [data, statusCode] = postData(obj, endpoint, data)
     % Checks for and uploads queued data to Alyx

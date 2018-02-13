@@ -35,7 +35,7 @@ assert(~contains(alfDir,'/'), 'Do not use forward slashes in the path');
 assert(exist(alfDir,'dir') == 7 , 'alfDir %s does not exist', alfDir);
 
 % Validate alyxInstance, creating one if not supplied
-if ~obj.IsLoggedIn; obj.login; end
+if ~obj.IsLoggedIn; obj = obj.login; end
 
 %%Validate that the files within alfDir match a datasetType.
 %1) Get all datasetTypes from the database, and list the alf_filenames

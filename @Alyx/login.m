@@ -1,4 +1,4 @@
-function login(obj, presetUsername)
+function obj = login(obj, presetUsername)
 %LOGINWINDOW UI for retrieving a token from Alyx
 %   [alyxInstance, username] = obj.loginWindow(presetUsername)
 %   Opens a login window to get an alyx token. Returns empty if you click
@@ -36,7 +36,7 @@ while ~obj.IsLoggedIn
   pwd = passwordUI();
   
   try
-    obj.getToken(username, pwd);
+    obj = obj.getToken(username, pwd);
     %         alyxInstance = alyx.getToken('http://127.0.0.1:8000', username, pwd);
   catch ex
     products = ver;

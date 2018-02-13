@@ -29,7 +29,7 @@ else % Already in the correct format
   d.date_time = thisDate;
 end
 d.hydrogel = isHydrogel;
-d.user = obj.User;
+if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = mouseName; % Subject name
 d.water_administered = amount; % Units of mL
 

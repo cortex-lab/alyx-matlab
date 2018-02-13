@@ -38,7 +38,7 @@ assert(~any(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 if ischar(session)
     %Validate sessionURL supplied
-    [status,~] = http.jsonGet(session, 'Authorization', ['Token ' alyxInstance.token]);
+    [status,~] = http.jsonGet(session, 'Authorization', ['Token ' obj.Token]);
     assert(status==200,'SessionURL Invalid');
 end
 
@@ -61,17 +61,17 @@ repo_paths = cellfun(@(r) r.path, repositories, 'uni', 0);
 
 %Identify which repository the filePath is in
 which_repo = cellfun( @(rp) startsWith(filePath, rp), repo_paths);
-assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n',filePath);
+assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePath);
 
 %Define the relative path of the file within the repo
 relativePath = strrep(filePath, repo_paths{which_repo}, '');
 
 %%Now submit Dataset and Filerecord to Alyx
 pathInfo = dir(filePath); %Get path creation date/etc
-d = struct('created_by',alyxInstance.username,...
-    'dataset_type',datasetTypeName,...
-    'data_format',dataFormatName,...
-    'created_date',alyx.datestr(pathInfo.datenum));
+d = struct('created_by', obj.User,...
+    'dataset_type', datasetTypeName,...
+    'data_format', dataFormatName,...
+    'created_date', Alyx.datestr(pathInfo.datenum));
 if ischar(session)
     d.session = session;
 elseif iscell(session)

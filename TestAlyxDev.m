@@ -1,10 +1,10 @@
 %Runs a bunch of tests on alyx-dev
-mode = 'normal'; %'dev' (for alyx-dev) or 'normal' (for alyx)
+mode = 'dev'; %'dev' (for alyx-dev) or 'normal' (for alyx)
 
 %Setup 1:  Test basic HTTP communication to the server
-[statusCode, responseBody] = http.jsonGet(URL, 'Authorization', '');
-assert(statusCode==200,'Could not communicate');
-assert(~isempty(responseBody), 'Could not get list of endpoints');
+% [statusCode, responseBody] = http.jsonGet(URL, 'Authorization', '');
+% assert(statusCode==200,'Could not communicate');
+% assert(~isempty(responseBody), 'Could not get list of endpoints');
 
 %Setup 2: login to alyx-dev to create an alyxInstance
 try
@@ -111,7 +111,10 @@ catch
     error('Problem creating file record');
 end
 
-%% Test: alyx.registerFile
+%% Test: Get the dataset(s) associated with a particular date
+filePath = alyx.expFilePath('test', datetime(1:10), 1, []);
+
+%% Test: alyx.registerFile using the session URL
 sessions = alyx.getData(alyxInstance,['sessions?subject=test&type=Experiment&start_time=' datetime]);
 assert( length(sessions)==1, 'Unexpected number of returned sessions');
 fid = fopen(serverFile, 'wt' ); fclose(fid);
@@ -121,6 +124,18 @@ fid = fopen(serverFile, 'wt' ); fclose(fid);
 %Delete file
 delete(serverFile);
 
-%% Test: Get the dataset(s) associated with a particular date
-filePath = alyx.expFilePath('test', datetime(1:10), 1, []);
+%% Test alyx.registerFile using the session CELL {subject,date,number}
+fid = fopen(serverFile, 'wt' ); fclose(fid);
+[dataset,filerecord] = alyx.registerFile(serverFile,'mat',{'test','2020-02-02',10},'Block',[],alyxInstance);
+delete(serverFile);
 
+%% Test: Create a dataset but auto-create session on server
+d = struct('created_by',alyxInstance.username,...
+    'dataset_type','Block',...
+    'subject','test',...
+    'date','2034-06-01',...
+    'number',1);
+dataset = alyx.postData(alyxInstance, 'datasets', d);
+
+[status,body] = http.jsonGet(dataset.session, 'Authorization', ['Token ' alyxInstance.token]);
+assert(status==200,'Auto-generated sessionURL was not accessible');

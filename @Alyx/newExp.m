@@ -67,6 +67,7 @@ assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories fa
 %%% Here we create a new base session on Alyx if it doesn't already exist
 %%% for this subject today.  Then we create a new subsession and save the
 %%% URL in the Alyx object
+url = [];
 if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fake subject
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
@@ -110,7 +111,6 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       [subsession, statusCode] = obj.postData('sessions', d);
       url = subsession.url;
     catch ex
-      url = [];
       if statusCode == 503 || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)
       else % Probably fatal user error
@@ -133,7 +133,7 @@ if isfield(expParams, 'defFunction')
       'm', {subject, expDate(1:10), expSeq}, 'expDefinition', []);
   end
 end
-  
+
 %%% Now save the experiment parameters variable both locally and in the
 %%% 'master' location
 %%%TODO Make expFilePath an Alyx query?

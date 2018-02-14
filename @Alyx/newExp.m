@@ -1,4 +1,4 @@
-function [expRef, expSeq] = newExp(obj, subject, expDate, expParams)
+function [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
 %NEWEXP Create a new unique experiment in the database
 %   [ref, seq, url] = NEWEXP(subject, expDate, expParams)
 %   Create a new experiment by creating the relevant folder tree in the
@@ -108,8 +108,9 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
-      obj.SessionURL = subsession.url;
+      url = subsession.url;
     catch ex
+      url = [];
       if statusCode == 503 || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)
       else % Probably fatal user error
@@ -129,7 +130,7 @@ if isfield(expParams, 'defFunction')
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'),...
-      'm', obj.SessionURL, 'expDefinition', []);
+      'm', {subject, expDate(1:10), expSeq}, 'expDefinition', []);
   end
 end
   
@@ -153,14 +154,14 @@ try
   savejson('parameters', expParams, jsonPath);
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(jsonPath, 'json', obj.SessionURL, 'Parameters', []);
+    obj.registerFile(jsonPath, 'json', {subject, expDate(1:10), expSeq}, 'Parameters', []);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
   % Register our parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-        obj.SessionURL, 'Parameters', []); %TODO Make expFilePath an Alyx query?
+        {subject, expDate(1:10), expSeq}, 'Parameters', []); %TODO Make expFilePath an Alyx query?
   end
 end
 

@@ -29,13 +29,13 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     QueueDir char = 'C:\localAlyxQueue'
     % Set whether input dialogs should appear, e.g. login window
     Headless logical = false
+    % A URL of the most-recent subsession created by newExp
+    SessionURL
   end
   
   properties (SetAccess = private)
     % The username of whoever is logged in
     User
-    % A URL of the most-recent subsession created by newExp
-    SessionURL
   end
   
   properties (Access = private)
@@ -49,12 +49,11 @@ classdef Alyx %< handle & matlab.mixin.Copyable
   end
   
   methods
-    function obj = Alyx(user, token, session)
+    function obj = Alyx(user, token)
       %ALYX Class constructor
       if nargin
         obj.User = user;
         obj.Token = token;
-        obj.SessionURL = session;
       end
     end
     
@@ -72,7 +71,6 @@ classdef Alyx %< handle & matlab.mixin.Copyable
       % See also LOGIN
       obj.Token = [];
       obj.User = [];
-      obj.SessionURL = [];
     end
     
     function bool = get.IsLoggedIn(obj)

@@ -11,7 +11,7 @@ function [dataset, filerecord] = registerFile(obj, filePath, dataFormatName, ses
 %     -filePath: full path of the file being registered, including file
 %     name and extension
 %     -dataFormatName: data format, e.g. 'npy', 'mj2', or 'notData'
-%     -session: Either Alyx URL for the session OR cell {subject,date,number}.
+%     -session: Either Alyx URL for the session, an expRef, or cell {subject, date, number}.
 %     -datasetTypeName: Block, Timeline, Parameters, eye.movie, etc.
 %     -parentDatasetURL: optional URL for a parent dataset
 %
@@ -37,9 +37,20 @@ dataFormatIdx = strcmp({dataFormats.name}, datasetTypeName);
 assert(~any(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 if ischar(session)
+  parsed = regexp(session, dat.expRefRegExp, 'tokens');
+  if ~isempty(parsed) % Is an expRef
+    subject = parsed{1}{3};
+    expDate = parsed{1}{1};
+    seq = parsed{1}{2};
+  else % Assumed session URL
     %Validate sessionURL supplied
-    [status,~] = http.jsonGet(session, 'Authorization', ['Token ' obj.Token]);
+    status = http.jsonGet(session, 'Authorization', ['Token ' obj.Token]);
     assert(status==200,'SessionURL Invalid');
+  end
+else
+  subject = session{1};
+  expDate = session{2};
+  seq = session{3};
 end
 
 %Validate optional parentDatasetURL
@@ -75,9 +86,9 @@ d = struct('created_by', obj.User,...
 if ischar(session)
     d.session = session;
 elseif iscell(session)
-    d.subject = session{1};
-    d.date = session{2};
-    d.number = session{3};
+    d.subject = subject;
+    d.date = expDate;
+    d.number = seq;
 end
 
 try

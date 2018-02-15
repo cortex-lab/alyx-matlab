@@ -1,8 +1,11 @@
 function [fullpath, filename, fileID, records] = expFilePath(obj, varargin)
 %EXPFILEPATH Full path for file pertaining to designated experiment
 %   Returns the path(s) that a particular type of experiment file should be
-%   located at for a specific experiment. i.e. if you want to know where a
-%   file should be saved to, or where to load it from, use this function.
+%   located at for a specific experiment. NB: Unlike dat.expFilePath, this
+%   CAN NOT be used to determine where a file should be saved to.  This
+%   function only returns existing file records from Alyx.  There may be
+%   files that exist but aren't on Alyx and likewise, may not exist but are
+%   still on Alyx.
 %
 %   e.g. to get the paths for an experiments 2 photon TIFF movie:
 %   ALYX.EXPFILEPATH('mouse1', datenum(2013, 01, 01), 1, 'block');

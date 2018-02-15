@@ -1,5 +1,5 @@
 function [data, statusCode] = putData(obj, endpoint, data)
-%POSTDATA Put an updated data record to an Alyx/REST endpoint
+%PUTDATA Put an updated data record to an Alyx/REST endpoint
 %   Makes a request to an Alyx endpoint with new data as a MATLAB struct;
 %   returns the JSON response data as a MATLAB struct.
 %

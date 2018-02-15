@@ -1,98 +1,116 @@
-function filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
-%EXPFILEPATH Returns the file path where you can find a specified file.
-%   filePath = expFilePath(subject, queryDate, sessNum, dsetType[, conn])
+function [fullpath, filename, fileID, records] = expFilePath(obj, varargin)
+%EXPFILEPATH Full path for file pertaining to designated experiment
+%   Returns the path(s) that a particular type of experiment file should be
+%   located at for a specific experiment. i.e. if you want to know where a
+%   file should be saved to, or where to load it from, use this function.
+%
+%   e.g. to get the paths for an experiments 2 photon TIFF movie:
+%   ALYX.EXPFILEPATH('mouse1', datenum(2013, 01, 01), 1, 'block');
+%
+%   [full, filename] = expFilePath(ref, type[, user, reposlocation])
+%   [full, filename] = expFilePath(subject, date, seq, type[, user, reposlocation])
+%
+%   
 %   You specify:
-%     - subject: a string with the subject name 
-%     - queryDate: a string in 'yyyy-mm-dd' format or a datenum 
-%     - sessNum: an integer number of the experiment you want
-%     - dsetType: a string specifying which file you want, like 'Block']
-%     - conn: optional argument supplying the SQL connection object 
-%     obtained from openAlyxSQL(). If not supplied, then one is created and
-%     then closed at the end of the query, which slows down the code!
+%     - subject/ref: a string with the subject name or an experiment
+%       reference
+%     - date: a string in 'yyyy-mm-dd', 'yyyymmdd' or  'yyyy-mm-ddTHH:MM:SS'
+%       format, or a datenum 
+%     - seq: an integer number of the experiment you want
+%     - type: a case-insensitive string specifying which file you want, e.g. 'Block'.  Must
+%       be a valid dataset type on Alyx (see /dataset-types)
+%     - user: optional string argument specifying the user who created the files 
+%     - reposlocation: optional case-insensitive string argument specifying
+%       the location of the files e.g. 'zubjects'.  Must be a valid data 
+%       repository on Alyx (see /data-repository)
+%
+%   Outputs:
+%     - fullpath: the full file paths of the files
+%     - filename: the names of the files
+%     - uuid: the Alyx ids of the files
+%     - records: the complete records returned by Alyx
 %
 %   If more than one matching paths are found, output argument filePath
 %   will be a cell array of strings, otherwise just a string.
 %
-%   Future TODO:
-%     - enable excluding sessNum to return all sessions
-%     - when excluding dsetType, also return the dsetType of each record?
-%     - enable a range of queryDates
-%     - enable multiple subjects
-%
-% See also ALYX, OPENALYXSQL
+%   TODO:
+%     - Exists flag
+%     - Replace functionality of dar.expFilePath?
 %
 % Part of Alyx
 
-% 2017 -- created
+% 2018-02 MW created
 
-if nargin == 5 && ~isempty(conn)
-  suppliedConn = true;
+% Validate input
+assert(nargin > 2, 'Error: Not enough arguments supplied.')
+
+parsed = regexp(varargin{1}, dat.expRefRegExp, 'tokens');
+if isempty(parsed) % Subject, not ref
+  subject = varargin{1};
+  expDate = varargin{2};
+  seq = varargin{3};
+  type = varargin{4};
+  varargin(1:4) = [];
+else % Ref, not subject
+  subject = parsed{1}{3};
+  expDate = parsed{1}{1};
+  seq = parsed{1}{2};
+  type = varargin{2};
+  varargin(1:2) = [];
+end
+
+% Check date
+if ~ischar(expDate)||(ischar(expDate)&&length(expDate)==8)
+  expDate = datestr(expDate, 'yyyy-mm-dd');
+elseif ischar(expDate)&&length(expDate)==19
+  expDate = datestr(expDate, 'yyyy-mm-ddTHH:MM:SS');
+end
+
+if length(varargin) > 1 % Repository location defined
+ location = varargin{2};
+ % Validate repository
+ repos = catStructs(obj.getData('data-repository'));
+ idx = strcmpi(location, {repos.name});
+ assert(any(idx), 'Error: ''%s'' is an invalid data set type', location)
+ location = repos(idx).name; % Ensures correct case
+elseif ~isempty(varargin)
+  user = varargin{1};
 else
-  suppliedConn = false;
-  conn = openAlyxSQL(); %TODO: Shouldn't this be an endpoint!?
+  location = [];
+  user = '';
 end
 
-if isempty(dsetType) % get all datasets for this experiment
-  
-  myQuery = sprintf([...
-    'select data_filerecord.relative_path, data_datarepository.path '...
-    'from data_filerecord '...
-    'left join data_dataset on data_filerecord.dataset_id=data_dataset.id '...
-    'left join actions_session on data_dataset.session_id=actions_session.id '...
-    'left join subjects_subject on actions_session.subject_id=subjects_subject.id '...
-    'left join data_datarepository on data_filerecord.data_repository_id=data_datarepository.id '...
-    'left join data_datasettype on data_dataset.dataset_type_id=data_datasettype.id '...
-    'where subjects_subject.nickname=''%s'' '...
-    'and actions_session.start_time>=''%s'' '...
-    'and actions_session.start_time<''%s'' '...
-    'and actions_session.type=''Experiment'' '...
-    'and actions_session.number=%d '...
-    ],...
-    subject, ...
-    datestr(floor(datenum(queryDate)), 'yyyy-mm-dd'), ...
-    datestr(floor(datenum(queryDate)+1), 'yyyy-mm-dd'), ...
-    sessNum ...
-    );
-  
-else % get one specific dataset
-  
-  myQuery = sprintf([...
-    'select data_filerecord.relative_path, data_datarepository.path '...
-    'from data_filerecord '...
-    'left join data_dataset on data_filerecord.dataset_id=data_dataset.id '...
-    'left join actions_session on data_dataset.session_id=actions_session.id '...
-    'left join subjects_subject on actions_session.subject_id=subjects_subject.id '...
-    'left join data_datarepository on data_filerecord.data_repository_id=data_datarepository.id '...
-    'left join data_datasettype on data_dataset.dataset_type_id=data_datasettype.id '...
-    'where subjects_subject.nickname=''%s'' '...
-    'and actions_session.start_time>=''%s'' '...
-    'and actions_session.start_time<''%s'' '...
-    'and actions_session.type=''Experiment'' '...
-    'and actions_session.number=%d '...
-    'and data_datasettype.name=''%s'' '...
-    ],...
-    subject, ...
-    datestr(floor(datenum(queryDate)), 'yyyy-mm-dd'), ...
-    datestr(floor(datenum(queryDate)+1), 'yyyy-mm-dd'), ...
-    sessNum, ...
-    dsetType ...
-    );
+% Validate type
+dataSets = catStructs(obj.getData('dataset-types'));
+idx = strcmpi(type, {dataSets.name});
+assert(any(idx), 'Error: ''%s'' is an invalid data set type', type)
+type = dataSets(idx).name; % Ensures correct case
+
+% Construct the endpoint
+endpoint = sprintf('/datasets?subject=%s&date=%s&experiment_number=%s&dataset_type=%s&created_by=%s',...
+  subject, expDate, num2str(seq), type, user);
+
+% Get data
+records = obj.getData(endpoint);
+if ~isempty(records)
+  data = catStructs(records);
+  fileRecords = catStructs([data(:).file_records]);
 end
 
-q = fetch(exec(conn, myQuery));
-
-if ~isempty(q.Data) && ~strcmp(q.Data{1}, 'No Data')
-  %cell2table(q.Data, 'VariableNames', myColNames(q))
-  filePath = arrayfun(@(x)fullfile(q.Data{x,2}, q.Data{x,1}), 1:size(q.Data,1), 'uni', false);
-  if numel(filePath)==1
-    filePath = filePath{1};
-  end
-else
-  fprintf(1, 'no results returned\n');
-  filePath = '';
+if ~isempty(location)
+  % Remove records in unwanted repo locations
+  idx = contains({fileRecords.data_repository_path}, location);
+  data = data(idx);
+  fileRecords = fileRecords(idx);
 end
 
-if suppliedConn == false
-  %Close connection
-  conn.close;
+fullpath = strcat({fileRecords.data_repository_path}, {fileRecords.relative_path});
+filename = {data.name};
+fileID = {fileRecords.id};
+
+% If only one record was returned, don't return a cell array
+if numel(fullpath)==1
+  fullpath = fullpath{1};
+  filename = filename{1};
+  fileID = fileID{1};
 end

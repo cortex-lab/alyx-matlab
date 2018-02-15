@@ -95,6 +95,8 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     [data, statusCode] = putData(obj, endpoint, data)
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
+    % Returns the file path where you can find a specified file
+    filePath = expFilePath(obj, varargin)
     % Returns experiment meta-data, given an experiment URL
     expMetaData = getExpMeta(obj, expUrl)
     % Register a filepath to Alyx. The file being registered should already be on the target server.
@@ -127,8 +129,6 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     outStr = datestr(inDatenum)
     % Returns a MATLAB datenum given a date_time string provided by Alyx
     outDatenum = datenum(date_time)
-    % Returns the file path where you can find a specified file
-    filePath = expFilePath(subject, queryDate, sessNum, dsetType, conn)
     % Converts input to string for UDP message and back
     [ref, AlyxInstance] = parseAlyxInstance(varargin)
     % Load an Alyx object from a struct

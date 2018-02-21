@@ -54,6 +54,8 @@ classdef Alyx %< handle & matlab.mixin.Copyable
       if nargin
         obj.User = user;
         obj.Token = token;
+      else
+        obj = obj.login;
       end
     end
     

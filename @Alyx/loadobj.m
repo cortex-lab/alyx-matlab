@@ -14,10 +14,8 @@ function obj = loadobj(obj_struct)
 % 2018 MW created
 
 % Create new object
-obj = Alyx();
+obj = Alyx(obj_struct.User, obj_struct.Token);
 % Set all the relevant attributes
 obj.BaseURL = obj_struct.BaseURL;
 obj.QueueDir = obj_struct.QueueDir;
-obj.User = obj_struct.User;
 obj.SessionURL = obj_struct.SessionURL;
-obj.Token = obj_struct.Token;

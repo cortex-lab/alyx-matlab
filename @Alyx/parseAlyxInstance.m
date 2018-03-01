@@ -22,9 +22,8 @@ if nargin > 1 % in [ref, AlyxInstance]
 else % in [UDP_string]
     s = jsondecode(varargin{1}); % Convert JSON to structure
     ref = s.expRef; % Extract the expRef
+    AlyxInstance = Alyx('',''); % Create empty Alyx object
     if numel(fieldnames(s)) > 1 % Assume to be Alyx object as struct
-      AlyxInstance = Alyx.loadobj(s); % Turn into object
-    else
-      AlyxInstance = []; % if input was just an expRef, output empty AlyxInstance
+      AlyxInstance = AlyxInstance.loadobj(s); % Turn into object
     end
 end

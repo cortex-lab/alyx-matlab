@@ -11,7 +11,7 @@ function obj = login(obj, presetUsername)
 % 2017 -- created
 
 if obj.Headless % Don't prompt user if headless flag set
-  warning('Unable to log in; dialogs supressed')
+  warning('Alyx:HeadlessLoginFail','Unable to log in; dialogs supressed')
   return
 end
 
@@ -55,7 +55,7 @@ while ~obj.IsLoggedIn
       % onLoad not run
       if ~isempty(which('onLoad'))
         onLoad
-        warning('Please add ''onLoad'' to MATLAB''s <a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file')
+        warning('Alyx:MissingPath','Please add ''onLoad'' to MATLAB''s <a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file')
       else % onLoad not in path
         error(ex.identifier, ['Please locate ''onLoad'' (missing-http) function and add to MATLAB''s '...
           '<a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file'])

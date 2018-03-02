@@ -167,6 +167,6 @@ end
 
 % If user not logged in and has suppressed prompts, print warning
 if ~strcmp(subject,'default') && (obj.Headless && ~obj.IsLoggedIn)
-  warning('Failed to register files; must be logged in');
+  warning('Alyx:HeadlessLoginFail', 'Failed to register files; must be logged in');
 end
 end

@@ -54,7 +54,7 @@ end
 
 if ~isempty(subject)
   % Assume post is intended for subject description
-  warning('This feature is not yet implemented')
+  warning('Alyx:TODO', 'This feature is not yet implemented')
   return
   % TODO: retreive subject narrative endpoint, requires endpoint to allow
   % PUT requests and /subject=%s option.  NB: subject's 'narrative' field

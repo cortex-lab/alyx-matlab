@@ -81,7 +81,7 @@ for curr_file = 1:length(alyxQueueFiles)
     data = catStructs(data); % Convert cell array into struct
   catch
     % If the JSON command failed (e.g. internet is down)
-    warning('Alyx upload failed - saved in queue');
+    warning('Alyx:flushQueue:NotConnected', 'Alyx upload failed - saved in queue');
   end
 end
 

@@ -31,7 +31,7 @@ fclose(fid);
 if obj.IsLoggedIn
   [data, statusCode] = obj.flushQueue();
 else
-  warning('Not connected to Alyx - saved in queue');
+  warning('Alyx:flushQueue:NotConnected','Not connected to Alyx - saved in queue');
 end
 
 end

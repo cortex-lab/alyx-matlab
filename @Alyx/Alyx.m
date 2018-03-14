@@ -100,7 +100,7 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     % Lists recorded subjects
     subjects = listSubjects(obj, stock, alive, sortByUser)
     % Returns the file path where you can find a specified file
-    filePath = expFilePath(obj, varargin)
+    [fullpath, filename, fileID, records] = expFilePath(obj, varargin)
     % Returns experiment meta-data, given an experiment URL
     expMetaData = getExpMeta(obj, sessionURL)
     % Register a filepath to Alyx. The file being registered should already be on the target server.

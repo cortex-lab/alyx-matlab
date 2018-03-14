@@ -78,6 +78,7 @@ if length(varargin) > 1 % Repository location defined
  location = repos(idx).name; % Ensures correct case
 elseif ~isempty(varargin)
   user = varargin{1};
+  location = [];
 else
   location = [];
   user = '';
@@ -98,6 +99,11 @@ records = obj.getData(endpoint);
 if ~isempty(records)
   data = catStructs(records);
   fileRecords = catStructs([data(:).file_records]);
+else
+  fullpath = [];
+  filename = [];
+  fileID = [];
+  return
 end
 
 if ~isempty(location)

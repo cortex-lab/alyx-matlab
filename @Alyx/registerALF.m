@@ -104,11 +104,11 @@ try %#ok<UNRCH>
   subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z]+', 'match');
   
   D.subject = subject{1};
-  D.filenames = {alfFiles.name}
+  D.filenames = {alfFiles.name};
   D.dirname = relativePath;
   D.exists_in = repo_paths{which_repo};
   
-  [fileRecordReturnData, statusCode] = obj.postData('register-file', D);
+  [record, sc] = obj.postData('register-file', D);
 catch ex
   warning(ex.identifier, '%s', ex.message)
 end

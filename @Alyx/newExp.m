@@ -111,7 +111,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       [subsession, statusCode] = obj.postData('sessions', d);
       url = subsession.url;
     catch ex
-      if statusCode == 503 || obj.Headless % Unable to connect, or user is supressing errors
+      if (isinteger(statusCode) && statusCode == 503) || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)
       else % Probably fatal user error
         rethrow(ex)

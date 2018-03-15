@@ -124,10 +124,11 @@ try %#ok<UNRCH>
     D.dirname = relativePath;
     D.filenames = {[filename, ext]};
     D.exists_in = repo_paths{which_repo};
-    [fileRecordReturnData, statusCode] = obj.postData('register-file', D);
+    [record, sc] = obj.postData('register-file', D);
   end
 catch ex
   warning(ex.identifier, '%s', ex.message)
+  disp(record)
 end
 obj.BaseURL = 'https://alyx.cortexlab.net';
 end

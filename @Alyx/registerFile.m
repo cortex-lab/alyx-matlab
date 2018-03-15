@@ -102,14 +102,14 @@ if ~isempty(parentDatasetURL)
 end
 
 [datasetReturnData, statusCode] = obj.postData('datasets', d);
-assert(statusCode==201, 'Failed to submit dataset to Alyx');
+assert(statusCode(end)==201, 'Failed to submit dataset to Alyx');
 
 d = struct('dataset', datasetReturnData.url,...
   'data_repository', repositories{which_repo}.name,...
   'relative_path', relativePath);
 
 [fileRecordReturnData, statusCode] = obj.postData('files', d);
-assert(statusCode==201, 'Failed to submit filerecord to Alyx');
+assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
 
 dataset = datasetReturnData;
 filerecord = fileRecordReturnData;

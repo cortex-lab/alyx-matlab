@@ -109,7 +109,11 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
-      url = subsession.url;
+      if iscell(subsession) % Multiple records
+        url = subsession{end}.url; % Assume it was the last to be posted
+      else
+        url = subsession.url;
+      end
     catch ex
       if (isinteger(statusCode) && statusCode == 503) || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)

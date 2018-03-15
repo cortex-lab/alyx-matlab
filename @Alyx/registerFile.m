@@ -37,11 +37,11 @@ dataFormatIdx = strcmp({dataFormats.name}, datasetTypeName);
 assert(~any(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 if ischar(session)
-  parsed = regexp(session, dat.expRefRegExp, 'tokens');
+  parsed = cellflat(regexp(session, dat.expRefRegExp, 'tokens'));
   if ~isempty(parsed) % Is an expRef
-    subject = parsed{1}{3};
-    expDate = parsed{1}{1};
-    seq = parsed{1}{2};
+    subject = parsed{3};
+    expDate = parsed{1};
+    seq = parsed{2};
   else % Assumed session URL
     %Validate sessionURL supplied
     status = http.jsonGet(session, 'Authorization', ['Token ' obj.Token]);
@@ -103,16 +103,16 @@ end
 
 [datasetReturnData, statusCode] = obj.postData('datasets', d);
 assert(statusCode(end)==201, 'Failed to submit dataset to Alyx');
-
-d = struct('dataset', datasetReturnData.url,...
+  
+d = struct('dataset', datasetReturnData(end).url,...
   'data_repository', repositories{which_repo}.name,...
   'relative_path', relativePath);
 
 [fileRecordReturnData, statusCode] = obj.postData('files', d);
 assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
 
-dataset = datasetReturnData;
-filerecord = fileRecordReturnData;
+dataset = datasetReturnData(end);
+filerecord = fileRecordReturnData(end);
 
 %% Alyx-dev test
 return

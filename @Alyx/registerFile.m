@@ -113,4 +113,21 @@ assert(statusCode==201, 'Failed to submit filerecord to Alyx');
 
 dataset = datasetReturnData;
 filerecord = fileRecordReturnData;
+
+%% Alyx-dev test
+return
+try %#ok<UNRCH>
+  if ~contains(dataFormatName, '.npy')
+    obj.BaseURL = 'https://alyx-dev.cortexlab.net';
+    [relativePath, filename, ext] = fileparts(relativePath);
+    D.subject = subject;
+    D.dirname = relativePath;
+    D.filenames = {[filename, ext]};
+    D.exists_in = repo_paths{which_repo};
+    [fileRecordReturnData, statusCode] = obj.postData('register-file', D);
+  end
+catch ex
+  warning(ex.identifier, '%s', ex.message)
+end
+obj.BaseURL = 'https://alyx.cortexlab.net';
 end

@@ -78,7 +78,7 @@ for curr_file = 1:length(alyxQueueFiles)
         data{curr_file} = loadjson(responseBody);
         warning([int2str(statusCode(curr_file)) ' Alyx server error, saved in queue: ' responseBody])
     end
-    data = data(~cellfun('isempty',data)); % Remove empty cells
+    data = cellflat(data(~cellfun('isempty',data))); % Remove empty cells
     data = catStructs(data); % Convert cell array into struct
   catch
     % If the JSON command failed (e.g. internet is down)

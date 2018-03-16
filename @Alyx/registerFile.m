@@ -121,7 +121,8 @@ try %#ok<UNRCH>
   if ~contains(dataFormatName, '.npy')
     obj.BaseURL = 'https://alyx-dev.cortexlab.net';
     [relativePath, filename, ext] = fileparts(relativePath);
-    D.subject = subject;
+    subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z]+', 'match');
+    D.subject = subject{1};
     D.dirname = relativePath;
     D.filenames = {[filename, ext]};
     D.exists_in = repositories{which_repo}.name;
@@ -129,7 +130,6 @@ try %#ok<UNRCH>
   end
 catch ex
   warning(ex.identifier, '%s', ex.message)
-  disp(record)
 end
 obj.BaseURL = 'https://alyx.cortexlab.net';
 end

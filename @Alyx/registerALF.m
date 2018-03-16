@@ -101,7 +101,7 @@ try %#ok<UNRCH>
   relativePath = strrep(alfDir, repo_paths{which_repo}, '');
   if relativePath(1)=='\'; relativePath = relativePath(2:end); end
   obj.BaseURL = 'https://alyx-dev.cortexlab.net';
-  subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z]+', 'match');
+  subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
   
   D.subject = subject{1};
   D.filenames = {alfFiles.name};

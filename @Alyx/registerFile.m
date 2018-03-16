@@ -121,7 +121,7 @@ try %#ok<UNRCH>
   if ~contains(dataFormatName, '.npy')
     obj.BaseURL = 'https://alyx-dev.cortexlab.net';
     [relativePath, filename, ext] = fileparts(relativePath);
-    subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z]+', 'match');
+    subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
     D.subject = subject{1};
     D.dirname = relativePath;
     D.filenames = {[filename, ext]};

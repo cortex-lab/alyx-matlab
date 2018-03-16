@@ -76,6 +76,7 @@ assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a reposit
 
 %Define the relative path of the file within the repo
 relativePath = strrep(filePath, repo_paths{which_repo}, '');
+if relativePath(1)=='\'; relativePath = relativePath(2:end); end
 
 %%Now submit Dataset and Filerecord to Alyx
 pathInfo = dir(filePath); %Get path creation date/etc
@@ -123,7 +124,7 @@ try %#ok<UNRCH>
     D.subject = subject;
     D.dirname = relativePath;
     D.filenames = {[filename, ext]};
-    D.exists_in = repo_paths{which_repo};
+    D.exists_in = repositories{which_repo}.name;
     [record, sc] = obj.postData('register-file', D);
   end
 catch ex

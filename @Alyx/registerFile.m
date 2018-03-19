@@ -37,11 +37,11 @@ dataFormatIdx = strcmp({dataFormats.name}, datasetTypeName);
 assert(~any(dataFormatIdx), 'dataFormat %s not found', dataFormatName);
 
 if ischar(session)
-  parsed = regexp(session, dat.expRefRegExp, 'tokens');
+  parsed = cellflat(regexp(session, dat.expRefRegExp, 'tokens'));
   if ~isempty(parsed) % Is an expRef
-    subject = parsed{1}{3};
-    expDate = parsed{1}{1};
-    seq = parsed{1}{2};
+    subject = parsed{3};
+    expDate = parsed{1};
+    seq = parsed{2};
   else % Assumed session URL
     %Validate sessionURL supplied
     status = http.jsonGet(session, 'Authorization', ['Token ' obj.Token]);
@@ -76,6 +76,7 @@ assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a reposit
 
 %Define the relative path of the file within the repo
 relativePath = strrep(filePath, repo_paths{which_repo}, '');
+if relativePath(1)=='\'; relativePath = relativePath(2:end); end
 
 %%Now submit Dataset and Filerecord to Alyx
 pathInfo = dir(filePath); %Get path creation date/etc
@@ -102,15 +103,33 @@ if ~isempty(parentDatasetURL)
 end
 
 [datasetReturnData, statusCode] = obj.postData('datasets', d);
-assert(statusCode==201, 'Failed to submit dataset to Alyx');
-
-d = struct('dataset', datasetReturnData.url,...
+assert(statusCode(end)==201, 'Failed to submit dataset to Alyx');
+  
+d = struct('dataset', datasetReturnData(end).url,...
   'data_repository', repositories{which_repo}.name,...
   'relative_path', relativePath);
 
 [fileRecordReturnData, statusCode] = obj.postData('files', d);
-assert(statusCode==201, 'Failed to submit filerecord to Alyx');
+assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
 
-dataset = datasetReturnData;
-filerecord = fileRecordReturnData;
+dataset = datasetReturnData(end);
+filerecord = fileRecordReturnData(end);
+
+%% Alyx-dev test
+return
+try %#ok<UNRCH>
+  if ~contains(dataFormatName, '.npy')
+    obj.BaseURL = 'https://alyx-dev.cortexlab.net';
+    [relativePath, filename, ext] = fileparts(relativePath);
+    subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
+    D.subject = subject{1};
+    D.dirname = relativePath;
+    D.filenames = {[filename, ext]};
+    D.exists_in = repositories{which_repo}.name;
+    [record, sc] = obj.postData('register-file', D);
+  end
+catch ex
+  warning(ex.identifier, '%s', ex.message)
+end
+obj.BaseURL = 'https://alyx.cortexlab.net';
 end

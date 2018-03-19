@@ -14,6 +14,7 @@ function registerALF(obj, alfDir, sessionURL)
 %
 % See also ALYX, REGISTERFILES, POSTDATA, HTTP.JSONGET
 % TODO: Fix up; Put in +alf??
+% TODO: Validate data repository
 % Part of Alyx
 
 % 2017 NS created
@@ -86,4 +87,30 @@ for file = 1:length(alfFiles)
     
     fprintf('Registered file %s as datasetType %s\n', alfFiles(file).name, datasetType);
 end
+
+%% Alyx-dev
+return
+try %#ok<UNRCH>
+  %Get datarepositories and their base paths
+  repositories = obj.getData('data-repository');
+  repo_paths = cellfun(@(r) r.path, repositories, 'uni', 0);
+  
+  %Identify which repository the filePath is in
+  which_repo = cellfun( @(rp) startsWith(alfDir, rp), repo_paths);
+  assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', alfDir);
+  relativePath = strrep(alfDir, repo_paths{which_repo}, '');
+  if relativePath(1)=='\'; relativePath = relativePath(2:end); end
+  obj.BaseURL = 'https://alyx-dev.cortexlab.net';
+  subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
+  
+  D.subject = subject{1};
+  D.filenames = {alfFiles.name};
+  D.dirname = relativePath;
+  D.exists_in = repositories{which_repo}.name;
+  
+  [record, sc] = obj.postData('register-file', D);
+catch ex
+  warning(ex.identifier, '%s', ex.message)
+end
+obj.BaseURL = 'https://alyx-dev.cortexlab.net';
 end

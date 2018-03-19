@@ -68,10 +68,10 @@ assert(any(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
 %%Now some preparations
 %Get datarepositories and their base paths
 repositories = obj.getData('data-repository');
-repo_paths = cellfun(@(r) r.path, repositories, 'uni', 0);
+repo_paths = cellfun(@(r) r.name, repositories, 'uni', 0);
 
 %Identify which repository the filePath is in
-which_repo = cellfun( @(rp) startsWith(filePath, rp), repo_paths);
+which_repo = cellfun( @(rp) contains(filePath, rp), repo_paths);
 assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePath);
 
 %Define the relative path of the file within the repo

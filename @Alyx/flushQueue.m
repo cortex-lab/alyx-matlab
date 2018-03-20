@@ -82,8 +82,7 @@ for curr_file = 1:length(alyxQueueFiles)
     % If the JSON command failed (e.g. internet is down)
     warning('Alyx:flushQueue:NotConnected', 'Alyx upload failed - saved in queue');
   end
-  data = cellflat(data(~cellfun('isempty',data))); % Remove empty cells
-  data = catStructs(data); % Convert cell array into struct
 end
-
+data = cellflat(data(~cellfun('isempty',data))); % Remove empty cells
+data = catStructs(data); % Convert cell array into struct
 end

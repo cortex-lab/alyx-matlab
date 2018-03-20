@@ -9,6 +9,11 @@ function fullEndpoint = makeEndpoint(obj, endpoint)
 
 % 2017 -- created
 
+% validate endpoint
+assert(~isempty(endpoint)...
+    &&ischar(endpoint)...
+    &&length(endpoint) > 3, 'Invalid endpoint');
+
 if strcmp(endpoint(1:4), 'http')
   % this is a full url already
   fullEndpoint = endpoint;

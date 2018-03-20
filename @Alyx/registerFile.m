@@ -40,7 +40,7 @@ if ischar(session)
   parsed = cellflat(regexp(session, dat.expRefRegExp, 'tokens'));
   if ~isempty(parsed) % Is an expRef
     subject = parsed{3};
-    expDate = parsed{1};
+    expDate = Alyx.datestr(parsed{1});
     seq = parsed{2};
   else % Assumed session URL
     %Validate sessionURL supplied
@@ -49,7 +49,7 @@ if ischar(session)
   end
 else
   subject = session{1};
-  expDate = session{2};
+  expDate = Alyx.datestr(session{2});
   seq = session{3};
 end
 

@@ -39,10 +39,10 @@ assert(exist(alfDir,'dir') == 7 , 'alfDir %s does not exist', alfDir);
 if ~obj.IsLoggedIn; obj = obj.login; end
 
 %%Validate that the files within alfDir match a datasetType.
-%1) Get all datasetTypes from the database, and list the alf_filenames
+%1) Get all datasetTypes from the database, and list the filename patterns
 datasetTypes = obj.getData('dataset-types');
 datasetTypes = [datasetTypes{:}];
-datasetTypes_filemasks = {datasetTypes.alf_filename};
+datasetTypes_filemasks = {datasetTypes.filename_pattern};
 datasetTypes_filemasks(cellfun(@isempty,datasetTypes_filemasks)) = {''}; %Ensures all entries are character arrays
 
 %2) Get all the files contained within the alfDir, which match a
@@ -93,13 +93,16 @@ return
 try %#ok<UNRCH>
   %Get datarepositories and their base paths
   repositories = obj.getData('data-repository');
-  repo_paths = cellfun(@(r) r.path, repositories, 'uni', 0);
+  repo_paths = cellfun(@(r) r.name, repositories, 'uni', 0);
   
   %Identify which repository the filePath is in
-  which_repo = cellfun( @(rp) startsWith(alfDir, rp), repo_paths);
-  assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', alfDir);
-  relativePath = strrep(alfDir, repo_paths{which_repo}, '');
-  if relativePath(1)=='\'; relativePath = relativePath(2:end); end
+  which_repo = cellfun( @(rp) contains(filePath, rp), repo_paths);
+  assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePath);
+  
+  %Define the relative path of the file within the repo
+  dnsId = regexp(alfDir, ['(?<=' repo_paths{which_repo} '.*)\\?'], 'once')+1;
+  relativePath = alfDir(dnsId:end);
+  
   obj.BaseURL = 'https://alyx-dev.cortexlab.net';
   subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
   

@@ -130,7 +130,7 @@ if isfield(expParams, 'defFunction')
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'),...
-      'm', {subject, expDate(1:10), expSeq}, 'expDefinition', []);
+      'm', url, 'expDefinition', []);
   end
 end
 
@@ -161,7 +161,7 @@ catch ex
   % Register our parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-        {subject, expDate(1:10), expSeq}, 'Parameters', []); %TODO Make expFilePath an Alyx query?
+        url, 'Parameters', []); %TODO Make expFilePath an Alyx query?
   end
 end
 

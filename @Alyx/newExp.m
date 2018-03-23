@@ -154,7 +154,7 @@ try
   savejson('parameters', expParams, jsonPath);
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(jsonPath, 'json', {subject, expDate(1:10), expSeq}, 'Parameters', []);
+    obj.registerFile(jsonPath, 'json', url, 'Parameters', []);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)

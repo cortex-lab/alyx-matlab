@@ -103,12 +103,12 @@ try %#ok<UNRCH>
   relativePath = alfDir(dnsId:end);
   
   obj.BaseURL = 'https://alyx-dev.cortexlab.net';
-  subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
+%   subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
   
-  D.subject = subject{1};
+%   D.subject = subject{1};
   D.filenames = {alfFiles.name};
-  D.dirname = relativePath;
-  D.exists_in = repo_paths{which_repo};
+  D.path = alfDir;
+%   D.exists_in = repo_paths{which_repo};
   
   obj.postData('register-file', D);
 catch ex

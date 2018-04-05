@@ -120,12 +120,12 @@ return
 try %#ok<UNRCH>
   if ~contains(dataFormatName, '.npy')
     obj.BaseURL = 'https://alyx-dev.cortexlab.net';
-    [relativePath, filename, ext] = fileparts(relativePath);
-    subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
-    D.subject = subject{1};
-    D.dirname = relativePath;
+    [~, filename, ext] = fileparts(relativePath);
+%     subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
+%     D.subject = subject{1};
+    D.path = fileparts(filePath);
     D.filenames = {[filename, ext]};
-    D.exists_in = repositories{which_repo}.name;
+%     D.exists_in = repositories{which_repo}.name;
     [record, sc] = obj.postData('register-file', D);
   end
 catch ex

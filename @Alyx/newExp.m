@@ -130,6 +130,8 @@ if isfield(expParams, 'defFunction')
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
+%     obj.registerFile_old(dat.expFilePath(expRef, 'expDefFun', 'master'),...
+%       'm', url, 'expDefinition', []);
   end
 end
 
@@ -154,12 +156,15 @@ try
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath);
+%     obj.registerFile_old(jsonPath, 'json', url, 'Parameters', []);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
   % Register our parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master')); %TODO Make expFilePath an Alyx query?
+%     obj.registerFile_old(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
+%         url, 'Parameters', []); %TODO Make expFilePath an Alyx query?
   end
 end
 

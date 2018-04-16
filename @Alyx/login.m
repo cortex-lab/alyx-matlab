@@ -62,6 +62,8 @@ while ~obj.IsLoggedIn
       end
     elseif contains(ex.message, 'credentials')
       disp('Unable to log in with provided credentials.')
+    elseif contains(ex.message, 'password')&&contains(ex.message, 'blank')
+      disp('Password may not be left blank')
     else % Another error altogether
       rethrow(ex)
     end

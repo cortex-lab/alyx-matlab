@@ -92,28 +92,27 @@ end
 return
 try %#ok<UNRCH>
   %Get datarepositories and their base paths
-  repositories = obj.getData('data-repository');
-  repo_paths = cellfun(@(r) r.name, repositories, 'uni', 0);
+  repo_paths = cellfun(@(r) r.name, obj.getData('data-repository'), 'uni', 0);
   
   %Identify which repository the filePath is in
-  which_repo = cellfun( @(rp) contains(filePath, rp), repo_paths);
-  assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePath);
+  which_repo = cellfun( @(rp) contains(alfDir, rp), repo_paths);
+  assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', alfDir);
   
   %Define the relative path of the file within the repo
   dnsId = regexp(alfDir, ['(?<=' repo_paths{which_repo} '.*)\\?'], 'once')+1;
   relativePath = alfDir(dnsId:end);
   
   obj.BaseURL = 'https://alyx-dev.cortexlab.net';
-  subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
+%   subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
   
-  D.subject = subject{1};
+%   D.subject = subject{1};
   D.filenames = {alfFiles.name};
-  D.dirname = relativePath;
-  D.exists_in = repositories{which_repo}.name;
+  D.path = alfDir;
+%   D.exists_in = repo_paths{which_repo};
   
-  [record, sc] = obj.postData('register-file', D);
+  obj.postData('register-file', D);
 catch ex
   warning(ex.identifier, '%s', ex.message)
 end
-obj.BaseURL = 'https://alyx-dev.cortexlab.net';
+obj.BaseURL = 'https://alyx.cortexlab.net';
 end

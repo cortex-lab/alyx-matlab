@@ -69,6 +69,11 @@ if obj.IsLoggedIn == false; obj = obj.login; end
 % filePaths = cellfun(@(s)strip(s,'\'), filePaths, 'uni', 0);
 % filePaths = cellfun(@(s)strrep(s,'\','/'), filePaths, 'uni', 0);
 
+% TODO: Validate datasetType supplied
+% datasetTypes = obj.getData('dataset-types');
+% datasetTypeIdx = strcmp({datasetTypes.name}, datasetTypeName);
+% assert(any(datasetTypeIdx), 'DatasetType %s not found', datasetTypeName);
+
 %%Now some preparations
 %Get datarepositories and their base paths
 repositories = obj.getData('data-repository');
@@ -104,7 +109,6 @@ filenames = strcat(filenames, ext);
 % Initialize datasets array
 datasets = cell(1, sum([numel(dirPaths) numel(filePath)]));
 
-% obj.BaseURL = 'https://alyx-dev.cortexlab.net';
 % Register directories
 D = struct('created_by', obj.User);
 for i = 1:length(dirPaths)
@@ -129,44 +133,4 @@ for j = 1:length(filePath)
 end
 
 datasets = catStructs(datasets);
-% try
-%   d.md5 = mMD5(filePaths);
-% catch
-%   warning('Failed to compute MD5, using NULL');
-% end
-% 
-% if ~isempty(parentDatasetURL)
-%   d.parent_dataset = parentDatasetURL;
-% end
-% 
-% [datasetReturnData, statusCode] = obj.postData('datasets', d);
-% assert(statusCode(end)==201, 'Failed to submit dataset to Alyx')
-%   
-% d = struct('dataset', datasetReturnData(end).url,...
-%   'data_repository', repositories{which_repo}.name,...
-%   'relative_path', relativePath);
-
-% [fileRecordReturnData, statusCode] = obj.postData('files', d);
-% assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx')
-% 
-% dataset = datasetReturnData(end);
-% filerecord = fileRecordReturnData(end);
-
-%% Alyx-dev test
-% return
-% try %#ok<UNRCH>
-%   if ~contains(dataFormatName, '.npy')
-%     obj.BaseURL = 'https://alyx-dev.cortexlab.net';
-%     [relativePath, filename, ext] = fileparts(relativePath);
-%     subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
-%     D.subject = subject{1};
-%     D.dirname = relativePath;
-%     D.filenames = {[filename, ext]};
-%     D.exists_in = repositories{which_repo}.name;
-%     [record, sc] = obj.postData('register-file', D);
-%   end
-% catch ex
-%   warning(ex.identifier, '%s', ex.message)
-% end
-% obj.BaseURL = 'https://alyx.cortexlab.net';
 end

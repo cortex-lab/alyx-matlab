@@ -1,4 +1,4 @@
-function [data, statusCode] = flushQueue(obj)
+function [data, statusCode] = flushQueue2(obj)
 % FLUSHQUEUE Checks for and uploads queued data to Alyx
 %   Checks all .post and .put files in obj.QueueDir and tries to post/put
 %   them to the database.  If the upload is successfull, the queued file is
@@ -12,16 +12,14 @@ function [data, statusCode] = flushQueue(obj)
 %     403: Invalid token - delete from queue
 %     500: Server error - save in queue
 %
-% See also ALYX, ALYX.JSONPOST
+% See also ALYX, HTTP.JSONPOST, LOADJSON
 %
 % Part of Alyx
 
 % 2017 -- created
 
-% Get all currently queued posts, puts, etc.
-alyxQueue = [dir([obj.QueueDir filesep '*.post']);...
-  dir([obj.QueueDir filesep '*.put']);...
-  dir([obj.QueueDir filesep '*.patch'])];
+% Get all currently queued posts/puts
+alyxQueue = [dir([obj.QueueDir filesep '*.post']); dir([obj.QueueDir filesep '*.put'])];
 alyxQueueFiles = sort(cellfun(@(x) fullfile(obj.QueueDir, x), {alyxQueue.name}, 'uni', false));
 
 % Leave the function if there aren't any queued commands
@@ -35,24 +33,32 @@ for curr_file = 1:length(alyxQueueFiles)
   fid = fopen(alyxQueueFiles{curr_file});
   % First line is the endpoint
   endpoint = fgetl(fid);
+  fullEndpoint = obj.makeEndpoint(endpoint);
   % Rest of the text is the JSON data
   jsonData = fscanf(fid,'%c');
   fclose(fid);
   
   try
-    [statusCode(curr_file), responseBody] = obj.jsonPost(endpoint, jsonData, uploadType(2:end));
-%     [statusCode(curr_file), responseBody] = http.jsonPost(obj.makeEndpoint(endpoint), jsonData, 'Authorization', ['Token ' obj.Token]);
+    switch uploadType
+      case '.post'
+        [statusCode(curr_file), responseBody] = ...
+          http.jsonPost(fullEndpoint, jsonData, 'Authorization', ['Token ' obj.Token]);
+      case '.put'
+        [statusCode(curr_file), responseBody] = ...
+          http.jsonPut(fullEndpoint, jsonData, 'Authorization', ['Token ' obj.Token]);
+    end
+    
     switch floor(statusCode(curr_file)/100)
       case 2
         % Upload success - delete from queue
-        data{curr_file} = responseBody;
+        data{curr_file} = loadjson(responseBody);
         delete(alyxQueueFiles{curr_file});
-        disp([int2str(statusCode(curr_file)) ' Success, uploaded to Alyx: ' jsonData])
+        disp([int2str(statusCode(curr_file)) ' Success, uploaded to Alyx: ' responseBody])
       case 3
         % Redirect - delete from queue
-        data{curr_file} = responseBody;
+        data{curr_file} = loadjson(responseBody);
         delete(alyxQueueFiles{curr_file});
-        disp([int2str(statusCode(curr_file)) ' Redirect, uploaded to Alyx: ' jsonData])
+        disp([int2str(statusCode(curr_file)) ' Redirect, uploaded to Alyx: ' responseBody])
       case 4
         if statusCode(curr_file) == 403 % Invalid token
           obj.logout; % delete token
@@ -60,18 +66,17 @@ for curr_file = 1:length(alyxQueueFiles)
             obj.login; % prompt for login
             [data, statusCode] = obj.flushQueue; % Retry
           else % otherwise - save in queue
-            warning('Alyx:flushQueue:InvalidToken', '%s (%i): %s saved in queue',...
-              responseBody, statusCode(curr_file), alyxQueue(curr_file).name)
+            warning([int2str(statusCode(curr_file)) ' Invalid token, saved in queue: ' responseBody])
           end
         else % User error - delete from queue
+          data{curr_file} = loadjson(responseBody);
           delete(alyxQueueFiles{curr_file});
-          warning('Alyx:flushQueue:BadUploadCommand', '%s (%i): %s saved in queue',...
-            responseBody, statusCode(curr_file), alyxQueue(curr_file).name)
+          warning([int2str(statusCode(curr_file)) ' Bad upload command: ' responseBody])
         end
       case 5
         % Server error - save in queue
-        warning('Alyx:flushQueue:InternalServerError', '%s (%i): %s saved in queue',...
-          responseBody, statusCode(curr_file), alyxQueue(curr_file).name)
+        data{curr_file} = loadjson(responseBody);
+        warning([int2str(statusCode(curr_file)) ' Alyx server error, saved in queue: ' responseBody])
     end
   catch
     % If the JSON command failed (e.g. internet is down)

@@ -8,12 +8,13 @@ function [obj, statusCode] = getToken(obj, username, password)
 %
 % See also ALYX, LOGIN
 
-[statusCode, responseBody] = http.jsonPost([obj.BaseURL, '/auth-token/'],...
+[statusCode, responseBody] = obj.jsonPost('auth-token',...
   ['{"username":"', username, '","password":"', password, '"}']);
 if statusCode == 200
-  resp = loadjson(responseBody);
-  obj.Token = resp.token;
+  obj.Token = responseBody.token;
   obj.User = username;
+  % Add the token to the authorization header field
+  obj.WebOptions.HeaderFields = {'Authorization', ['Token ' obj.Token]};
   
   % Flush the local queue on successful login
   obj.flushQueue();

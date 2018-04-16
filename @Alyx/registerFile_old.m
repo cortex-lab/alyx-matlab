@@ -1,4 +1,4 @@
-function [dataset, filerecord] = registerFileNew(obj, filePaths)
+function [dataset, filerecord] = registerFile_old(obj, filePath, dataFormatName, session, datasetTypeName, parentDatasetURL)
 %REGISTERFILE Registers a filepath to Alyx. The file being registered should already be on the target server.
 %   The repository being registered to will be automatically determined
 %   from the filePath. Registration work first by creating a dataset (a
@@ -22,14 +22,10 @@ function [dataset, filerecord] = registerFileNew(obj, filePaths)
 % 2017 PZH created
 
 %%INPUT VALIDATION
-filePaths = ensureCell(filePaths);
-[relativePath, filename, ext] = cellfun(@fileparts, filePaths, 'uni', 0);
-% Validate input paths
-dataFormats = cellfun(@(f)['.' f.name], obj.getData('data-formats'), 'uni', 0);
-valid = cellfun(@(e)any(strcmp(dataFormats,e))||isempty(e), ext);
-
-assert( exist(filePaths,'file') || exist(filePaths,'dir'), 'Path %s does not exist', filePaths);
-% assert( ~isdir(filePaths), 'filePath supplied must not be a folder');
+% Validate input path
+assert( ~contains(filePath,'/'), 'Do not use forward slashes in the path');
+assert( exist(filePath,'file') == 2 , 'Path %s does not exist', filePath);
+assert( ~isdir(filePath), 'filePath supplied must not be a folder');
 
 % Log in, if required
 if obj.IsLoggedIn == false; obj = obj.login; end
@@ -75,15 +71,15 @@ repositories = obj.getData('data-repository');
 repo_paths = cellfun(@(r) r.name, repositories, 'uni', 0);
 
 %Identify which repository the filePath is in
-which_repo = cellfun( @(rp) contains(filePaths, rp), repo_paths);
-assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePaths);
+which_repo = cellfun( @(rp) contains(filePath, rp), repo_paths);
+assert(sum(which_repo) == 1, 'Input filePath\n%s\ndoes not contain the a repository path\n', filePath);
 
 %Define the relative path of the file within the repo
-dnsId = regexp(filePaths, ['(?<=' repo_paths{which_repo} '.*)\\?'], 'once')+1;
-relativePath = filePaths(dnsId:end);
+dnsId = regexp(filePath, ['(?<=' repo_paths{which_repo} '.*)\\?'], 'once')+1;
+relativePath = filePath(dnsId:end);
 
 %%Now submit Dataset and Filerecord to Alyx
-pathInfo = dir(filePaths); %Get path creation date/etc
+pathInfo = dir(filePath); %Get path creation date/etc
 d = struct('created_by', obj.User,...
     'dataset_type', datasetTypeName,...
     'data_format', dataFormatName,...
@@ -97,7 +93,7 @@ elseif iscell(session)
 end
 
 try
-  d.md5 = mMD5(filePaths);
+  d.md5 = mMD5(filePath);
 catch
   warning('Failed to compute MD5, using NULL');
 end
@@ -126,7 +122,7 @@ try %#ok<UNRCH>
     obj.BaseURL = 'https://alyx-dev.cortexlab.net';
     [relativePath, filename, ext] = fileparts(relativePath);
     subject = regexpi(relativePath, '(?<=Subjects\\)[A-Z_0-9]+', 'match');
-    D.subject = subject{1};
+%     D.subject = subject{1};
     D.dirname = relativePath;
     D.filenames = {[filename, ext]};
     D.exists_in = repositories{which_repo}.name;

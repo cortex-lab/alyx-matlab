@@ -38,7 +38,7 @@ function [fullpath, filename, fileID, records] = expFilePath(obj, varargin)
 %
 %   TODO:
 %     - Exists flag
-%     - Replace functionality of dar.expFilePath?
+%     - Replace functionality of dat.expFilePath?
 %
 % Part of Alyx
 
@@ -72,7 +72,7 @@ end
 if length(varargin) > 1 % Repository location defined
  location = varargin{2};
  % Validate repository
- repos = catStructs(obj.getData('data-repository'));
+ repos = catStructs(obj.getData('data-repository')); %FIXME Datasets now returned as structs by default
  idx = strcmpi(location, {repos.name});
  assert(any(idx), 'Error: ''%s'' is an invalid data set type', location)
  location = repos(idx).name; % Ensures correct case
@@ -85,7 +85,7 @@ else
 end
 
 % Validate type
-dataSets = catStructs(obj.getData('dataset-types'));
+dataSets = catStructs(obj.getData('dataset-types')); %FIXME Datasets now returned as structs by default
 idx = strcmpi(type, {dataSets.name});
 assert(any(idx), 'Error: ''%s'' is an invalid data set type', type)
 type = dataSets(idx).name; % Ensures correct case
@@ -97,7 +97,7 @@ endpoint = sprintf('/datasets?subject=%s&date=%s&experiment_number=%s&dataset_ty
 % Get data
 records = obj.getData(endpoint);
 if ~isempty(records)
-  data = catStructs(records);
+  data = catStructs(records); %FIXME Datasets now returned as structs by default
   fileRecords = catStructs([data(:).file_records]);
 else
   fullpath = [];

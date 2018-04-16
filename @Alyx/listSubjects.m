@@ -27,11 +27,11 @@ if obj.IsLoggedIn % user provided an alyx instance
   s = obj.getData(sprintf('subjects?stock=%s&alive=%s', stock, alive));
   
   % get cell array of subject names
-  subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
+  subjNames = {s.nickname};
   
   if sortByUser
     % determine the user for each mouse
-    respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
+    respUser = {s.responsible_user};
     
     % determine which subjects belong to this user
     thisUserSubs = sort(subjNames(strcmp(respUser, obj.User)));

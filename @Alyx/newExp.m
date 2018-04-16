@@ -78,14 +78,14 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     
     %If the date of this latest base session is not the same date as
     %today, then create a new base session for today
-    if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), expDate(1:10))
+    if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), expDate(1:10))
       d = struct;
       d.subject = subject;
       d.procedures = {'Behavior training/tasks'};
       d.narrative = 'auto-generated session';
       d.start_time = expDate;
       d.type = 'Base';
-      %       d.users = {obj.User}; % FIXME
+      d.users = {obj.User}; % FIXME
       
       base_submit = obj.postData('sessions', d);
       assert(isfield(base_submit,'subject'),...
@@ -94,7 +94,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       %Now retrieve the sessions again
       sessions = obj.getData(['sessions?type=Base&subject=' subject]);
     end
-    latest_base = sessions{end};
+    latest_base = sessions(end);
     
     %Now create a new SUBSESSION, using the same experiment number
     d = struct;
@@ -105,11 +105,11 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.type = 'Experiment';
     d.parent_session = latest_base.url;
     d.number = expSeq;
-    %   d.users = {obj.User}; % FIXME
+    d.users = {obj.User}; % FIXME
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
-      url = subsession(end).url; % Assume it was the last to be posted
+      url = subsession.url; % Assume it was the last to be posted
     catch ex
       if (isinteger(statusCode) && statusCode == 503) || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)
@@ -129,8 +129,7 @@ if isfield(expParams, 'defFunction')
     'Copying definition function to experiment folders failed');
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'),...
-      'm', {subject, expDate(1:10), expSeq}, 'expDefinition', []);
+    obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
   end
 end
 
@@ -147,21 +146,20 @@ try
   fields = fieldnames(expParams);
   paramCell = struct2cell(expParams);
   paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
-  expParams = cell2struct(paramCell, fields);
+  parameters = jsonencode(cell2struct(paramCell, fields), 'ConvertInfAndNaN', true); %#ok<NASGU>
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
-  savejson('parameters', expParams, jsonPath);
+  save(jsonPath, 'parameters', '-ascii');
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(jsonPath, 'json', {subject, expDate(1:10), expSeq}, 'Parameters', []);
+    obj.registerFile(jsonPath);
   end
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
   % Register our parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-        {subject, expDate(1:10), expSeq}, 'Parameters', []); %TODO Make expFilePath an Alyx query?
+    obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master')); %TODO Make expFilePath an Alyx query?
   end
 end
 

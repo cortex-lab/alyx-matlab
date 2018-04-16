@@ -1,31 +1,43 @@
 function [data, statusCode] = getData(obj, endpoint)
 %GETDATA Return a specific Alyx/REST read-only endpoint
-%   Makes a request to an Alyx endpoint; returns the data as a bMATLAB struct.
+%   Makes a request to an Alyx endpoint; returns the data as a MATLAB struct.
 %
-%   Example:
-%     subjects = obj.getData('subjects')
+%   Examples:
+%     subjects = obj.getData('sessions')
+%     subjects = obj.getData('https://alyx.cortexlab.net/sessions')
+%     subjects = obj.getData('sessions?type=Base')
 %
-% See also ALYX, MAKEENDPOINT, REGISTERFILE, HTTP.JSONGET, LOADJSON
+% See also ALYX, MAKEENDPOINT, REGISTERFILE
 %
 % Part of Alyx
 
 % 2017 PZH created
 
+% Validate input If the endpoint url contains query name-value pairs,
+% extract them
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
-[statusCode, responseBody] = http.jsonGet(fullEndpoint, 'Authorization', ['Token ' obj.Token]);
 
-if statusCode == 200 % Success
-  data = loadjson(responseBody);
-elseif statusCode == 403 % Invalid token
-  obj = obj.logout; % Delete token
-  if ~obj.Headless % Prompts not supressed
-    obj = obj.login; % Re-login
-    data = obj.getData(fullEndpoint); % Retry
-  else
-    error(responseBody) % Throw error
+try
+  data = webread(fullEndpoint, obj.WebOptions);
+  statusCode = 200; % Success
+  return
+catch ex
+  switch ex.identifier
+    case 'MATLAB:webservices:UnknownHost'
+      rethrow(ex)
+    otherwise
+      response = regexp(ex.message, '(?:the status )\d{3}', 'tokens');
+      statusCode = str2double(response);
+      if statusCode == 403 % Invalid token
+        warning('Alyx:getData:InvalidToken', 'Invalid token, please re-login')
+        obj = obj.logout; % Delete token
+        if ~obj.Headless % Prompts not supressed
+          obj = obj.login; % Re-login
+          data = obj.getData(fullEndpoint); % Retry
+        end
+      else
+        rethrow(ex)
+      end
   end
-else % Fail
-  error(responseBody)
 end
-
 end

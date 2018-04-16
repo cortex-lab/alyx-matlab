@@ -1,4 +1,4 @@
-classdef Alyx %< handle & matlab.mixin.Copyable
+classdef Alyx
   %ALYX An class for interating with the Alyx database
   %   Creates an object that allows the user to log in, GET, PUT and POST
   %   data to the Alyx database primarily via the REST API.  
@@ -22,7 +22,6 @@ classdef Alyx %< handle & matlab.mixin.Copyable
   % 2017 -- created
   
   properties
-    Subjects
     % URL to the Alyx database
     BaseURL char = 'https://alyx.cortexlab.net'
     % Set the local directory for saving queued Alyx commands, create if needed
@@ -38,9 +37,11 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     User
   end
   
-  properties (Access = private)
+  properties %(Access = private)
     % The Alyx token acquired after loggin in
     Token
+    % Options for reading and writing to database via http
+    WebOptions = weboptions('MediaType','application/json');
   end
   
   properties (Dependent)
@@ -59,10 +60,6 @@ classdef Alyx %< handle & matlab.mixin.Copyable
       end
     end
     
-%     function delete(obj)
-%       %DELETE Class destructor
-%     end
-    
     function obj = logout(obj)
       %LOGOUT Delete token and user data from object
       % Unsets the User, Token and SessionURL attributes
@@ -72,6 +69,7 @@ classdef Alyx %< handle & matlab.mixin.Copyable
       %   ai.logout; % Remove token, unset user
       % See also LOGIN
       obj.Token = [];
+      obj.WebOptions.HeaderFields = []; % Remove token from header field
       obj.User = [];
     end
     
@@ -92,9 +90,11 @@ classdef Alyx %< handle & matlab.mixin.Copyable
     % Returns a complete Alyx Rest API endpoint URL
     fullEndpoint = makeEndpoint(obj, endpoint)
     % Return a specific Alyx/REST read-only endpoint
-    [data, statusCode] = getData(obj, endpoint)
-    % Put an updated data record to an Alyx/REST endpoint
-    [data, statusCode] = putData(obj, endpoint, data)
+    [data, statusCode] = getData(obj, endpoint, varargin)
+    % Post any new data to an Alyx/REST endpoint
+    [data, statusCode] = postData(obj, endpoint, data, requestMethod)
+    % Checks for and uploads queued data to Alyx
+    [data, statusCode] = flushQueue(obj)
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
     % Lists recorded subjects
@@ -122,12 +122,12 @@ classdef Alyx %< handle & matlab.mixin.Copyable
   methods (Access = private)
     % Acquire an authentication token for Alyx
     [obj, statusCode] = getToken(obj, username, password)
-    % Post any new data to an Alyx/REST endpoint
-    [data, statusCode] = postData(obj, endpoint, data)
-    % Checks for and uploads queued data to Alyx
-    [data, statusCode] = flushQueue(obj)
+    % Makes POST, PUT and PATCH requests to endpoint with a JSON request body
+    [statusCode, responseBody] = jsonPost(obj, endpoint, jsonData, requestMethod)
+    % Makes POST, PUT and PATCH requests to endpoint URL encoded web form
+    [statusCode, responseBody] = httpPost(obj, endpoint, varargin)
   end
-  
+    
   methods (Static)
     % Returns a datenum in the Alyx format-spec for posting
     outStr = datestr(inDatenum)

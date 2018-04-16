@@ -1,4 +1,4 @@
-function [datasets, filerecord] = registerFile(obj, filePath)
+function [datasets, filerecords] = registerFile(obj, filePath)
 %REGISTERFILE Registers filepath(s) to Alyx. The file being registered should already be on the target server.
 %   The repository being registered to will be automatically determined
 %   from the filePath. Registration work first by creating a dataset (a
@@ -119,10 +119,10 @@ for i = 1:length(dirPaths)
   assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
   datasets{i} = record(end);
 end
+if isempty(i); i = 0; end
 
 % Register files
 for j = 1:length(filePath)
-%   [relativePath, filename, ext] = fileparts(relativePath);
   idx = which_repo(:,~dirs);
   D.dns = repo_paths{idx(:,j)};
   D.path = [strrep(filePath{j}, ['\\' D.dns '\Subjects\'], '') '\'];
@@ -133,4 +133,5 @@ for j = 1:length(filePath)
 end
 
 datasets = catStructs(datasets);
+filerecords = [datasets(:).file_records];
 end

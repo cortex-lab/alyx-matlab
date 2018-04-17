@@ -85,7 +85,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       d.narrative = 'auto-generated session';
       d.start_time = expDate;
       d.type = 'Base';
-      d.users = {obj.User}; % FIXME
+%       d.users = {obj.User}; % FIXME
       
       base_submit = obj.postData('sessions', d);
       assert(isfield(base_submit,'subject'),...
@@ -105,7 +105,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.type = 'Experiment';
     d.parent_session = latest_base.url;
     d.number = expSeq;
-    d.users = {obj.User}; % FIXME
+%     d.users = {obj.User}; % FIXME
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);

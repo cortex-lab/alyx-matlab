@@ -110,7 +110,7 @@ filenames = strcat(filenames, ext);
 datasets = cell(1, sum([numel(dirPaths) numel(filePath)]));
 
 % Register directories
-D = struct('created_by', obj.User);
+% D = struct('created_by', obj.User); % FIXME
 for i = 1:length(dirPaths)
   idx = which_repo(:,dirs);
   D.dns = repo_paths{idx(:,i)};

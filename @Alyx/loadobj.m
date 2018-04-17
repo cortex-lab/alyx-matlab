@@ -19,3 +19,4 @@ obj = Alyx(obj_struct.User, obj_struct.Token);
 obj.BaseURL = obj_struct.BaseURL;
 obj.QueueDir = obj_struct.QueueDir;
 obj.SessionURL = obj_struct.SessionURL;
+obj.WebOptions.HeaderFields = {'Authorization', ['Token ' obj_struct.Token]};

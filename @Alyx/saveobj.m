@@ -17,6 +17,8 @@ function s = saveobj(obj)
 warning('off', 'MATLAB:structOnObject');
 % Turn object into struct
 s = struct(obj);
+% Remove weboptions object
+s.WebOptions = [];
 % Turn warnings back on
 warning('on', 'MATLAB:structOnObject');
 end

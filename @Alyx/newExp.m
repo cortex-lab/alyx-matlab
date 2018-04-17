@@ -148,7 +148,8 @@ try
   fields = fieldnames(expParams);
   paramCell = struct2cell(expParams);
   paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
-  parameters = jsonencode(cell2struct(paramCell, fields), 'ConvertInfAndNaN', true); %#ok<NASGU>
+  % In 2017b and later, jsonencode allows 'ConvertInfAndNaN' flag
+  parameters = jsonencode(cell2struct(paramCell, fields)); %#ok<NASGU> 
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);

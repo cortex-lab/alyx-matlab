@@ -96,7 +96,7 @@ assert(all(sum(which_repo) > 0), 'Alyx:registerFile:InvalidRepoPath',...
 % Remove redundant paths, i.e. those that point to specific files if a path
 % to the same directory was also provided
 filePath = unique(filePath);
-dirs = cellfun(@isfolder, filePath);
+dirs = cellfun(@(p)exist(p,'dir')~=0, filePath); % For 2017b and later, we can use @isfolder
 dirPaths = filePath(dirs);
 dirPaths(~endsWith(dirPaths, '\')) = strcat(dirPaths(~endsWith(dirPaths, '\')), '\');
 filePath = filePath(~dirs);

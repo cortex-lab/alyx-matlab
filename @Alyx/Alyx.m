@@ -37,7 +37,7 @@ classdef Alyx
     User
   end
   
-  properties %(Access = private)
+  properties (Access = private)
     % The Alyx token acquired after loggin in
     Token
     % Options for reading and writing to database via http

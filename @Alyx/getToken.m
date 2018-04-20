@@ -8,6 +8,7 @@ function [obj, statusCode] = getToken(obj, username, password)
 %
 % See also ALYX, LOGIN
 
+
 [statusCode, responseBody] = obj.jsonPost('auth-token',...
   ['{"username":"', username, '","password":"', password, '"}']);
 if statusCode == 200
@@ -18,6 +19,12 @@ if statusCode == 200
   
   % Flush the local queue on successful login
   obj.flushQueue();
+elseif statusCode == 000
+  % Alyx is down, set as headless
+  obj.Headless = true;
+  return
+elseif statusCode == 400 && isempty(password)
+  error('Alyx:Login:PasswordEmpty', 'Password may not be left blank')
 else
   error(responseBody)
 end

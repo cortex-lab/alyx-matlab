@@ -30,7 +30,13 @@ try % Post data
 catch ex
   switch ex.identifier
     case 'MATLAB:webservices:UnknownHost'
-      rethrow(ex)
+      % Can't resolve URL
+      warning(ex.identifier, '%s Posting temporarily supressed', ex.message)
+      statusCode = 000;
+    case 'MATLAB:webservices:CopyContentToDataStreamError'
+      % Connection refused, set as headless and continue on
+      warning(ex.identifier, '%s. Posting temporarily supressed', ex.message)
+      statusCode = 000;
     otherwise
       response = regexp(ex.message, '(?:the status )(?<status>\d{3}).*"(?<message>.+)"', 'names');
       statusCode = str2double(response.status);

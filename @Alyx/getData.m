@@ -3,9 +3,9 @@ function [data, statusCode] = getData(obj, endpoint)
 %   Makes a request to an Alyx endpoint; returns the data as a MATLAB struct.
 %
 %   Examples:
-%     subjects = obj.getData('sessions')
-%     subjects = obj.getData('https://alyx.cortexlab.net/sessions')
-%     subjects = obj.getData('sessions?type=Base')
+%     sessions = obj.getData('sessions')
+%     sessions = obj.getData('https://alyx.cortexlab.net/sessions')
+%     sessions = obj.getData('sessions?type=Base')
 %
 % See also ALYX, MAKEENDPOINT, REGISTERFILE
 %
@@ -16,15 +16,16 @@ function [data, statusCode] = getData(obj, endpoint)
 % Validate input If the endpoint url contains query name-value pairs,
 % extract them
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
-
+if ~obj.IsLoggedIn; obj = obj.login; end % Log in if necessary
 try
   data = webread(fullEndpoint, obj.WebOptions);
   statusCode = 200; % Success
   return
 catch ex
   switch ex.identifier
-    case 'MATLAB:webservices:UnknownHost'
-      rethrow(ex)
+    case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:CopyContentToDataStreamError'}
+      warning(ex.identifier, '%s Posting temporarily supressed', ex.message)
+      statusCode = 000;
     otherwise
       response = regexp(ex.message, '(?:the status )\d{3}', 'tokens');
       statusCode = str2double(response);

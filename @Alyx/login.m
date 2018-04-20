@@ -15,7 +15,7 @@ if obj.Headless % Don't prompt user if headless flag set
   return
 end
 
-while ~obj.IsLoggedIn
+while ~obj.IsLoggedIn && ~obj.Headless
   if nargin < 2 % No preset username
     prompt = {'Alyx username:'};
     dlg_title = 'Alyx login';
@@ -60,7 +60,7 @@ while ~obj.IsLoggedIn
         error(ex.identifier, ['Please locate ''onLoad'' (missing-http) function and add to MATLAB''s '...
           '<a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file'])
       end
-    elseif contains(ex.message, 'credentials')
+    elseif contains(ex.message, 'credentials')||strcmpi(ex.message, 'Bad Request')
       disp('Unable to log in with provided credentials.')
     elseif contains(ex.message, 'password')&&contains(ex.message, 'blank')
       disp('Password may not be left blank')

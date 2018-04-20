@@ -1,6 +1,6 @@
 function [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
 %NEWEXP Create a new unique experiment in the database
-%   [ref, seq, url] = NEWEXP(subject, expDate, expParams)
+%   [ref, seq] = NEWEXP(subject, expDate, expParams)
 %   Create a new experiment by creating the relevant folder tree in the
 %   local and main data repositories in the following format:
 %
@@ -67,18 +67,18 @@ assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories fa
 %%% Here we create a new base session on Alyx if it doesn't already exist
 %%% for this subject today.  Then we create a new subsession and save the
 %%% URL in the Alyx object
-url = [];
+url = []; % Clear any previous subsession URL
 if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fake subject
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
   if ~obj.IsLoggedIn; obj = obj.login; end
     % Get list of base sessions
-    sessions = obj.getData(['sessions?type=Base&subject=' subject]);
+    [sessions, statusCode] = obj.getData(['sessions?type=Base&subject=' subject]);
     
     %If the date of this latest base session is not the same date as
     %today, then create a new base session for today
-    if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), expDate(1:10))
+    if statusCode ~= 000 && (isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), expDate(1:10)))
       d = struct;
       d.subject = subject;
       d.procedures = {'Behavior training/tasks'};
@@ -93,6 +93,10 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       
       %Now retrieve the sessions again
       sessions = obj.getData(['sessions?type=Base&subject=' subject]);
+    elseif statusCode == 000
+      % Failed to reach Alyx; making headless.  NB: Headless only within
+      % scope of this method
+      obj.Headless = true;
     end
     latest_base = sessions(end);
     
@@ -109,7 +113,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
-      url = subsession.url; % Assume it was the last to be posted
+      url = subsession.url;
     catch ex
       if (isinteger(statusCode) && statusCode == 503) || obj.Headless % Unable to connect, or user is supressing errors
         warning(ex.identifier, 'Failed to create subsession file: %s.', ex.message)

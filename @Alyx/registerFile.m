@@ -28,6 +28,7 @@ function [datasets, filerecords] = registerFile(obj, filePath)
 %   TODO: Perhaps we should be able to register non-existent files?  I.e.
 %   those that are not yet on the target server.
 %   TODO: Validation based on regexp of dat.paths?
+%   TODO: No longer allowing registration to non-existant sessions
 %
 % See also ALYX, GETDATA, POSTDATA, HTTP.JSONGET
 %
@@ -108,6 +109,7 @@ filenames = strcat(filenames, ext);
 [filePath,~,ic] = unique(filePath);
 % Initialize datasets array
 datasets = cell(1, sum([numel(dirPaths) numel(filePath)]));
+filerecords = []; % Initialize in case unable to access server
 
 % Register directories
 % D = struct('created_by', obj.User); % FIXME
@@ -116,6 +118,7 @@ for i = 1:length(dirPaths)
   D.dns = repo_paths{idx(:,i)};
   D.path = strrep(dirPaths{i}, ['\\' D.dns '\Subjects\'], '');
   [record, statusCode] = obj.postData('register-file', D);
+  if statusCode==000; continue; end % Cannot reach server
   assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
   datasets{i} = record(end);
 end
@@ -128,10 +131,15 @@ for j = 1:length(filePath)
   D.path = [strrep(filePath{j}, ['\\' D.dns '\Subjects\'], '') '\'];
   D.filenames = filenames(ic==j);
   [record, statusCode] = obj.postData('register-file', D);
+  if statusCode==000; continue; end % Cannot reach server
   assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
   datasets{j+i} = record(end);
 end
 
 datasets = catStructs(datasets);
+if statusCode==000
+% Cannot reach server
+  return
+end
 filerecords = [datasets(:).file_records];
 end

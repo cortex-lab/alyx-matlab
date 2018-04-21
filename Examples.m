@@ -63,6 +63,10 @@ doc webread
 % it is slow to load as you are running a GET within the browser.  NB: Not
 % all endpoints have a GET options, again see the DJANGO API page
 % Example: https://alyx.cortexlab.net/sessions
+% HTTP 200 OK % HTTP version
+% Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS % Methods allowed
+% Content-Type: application/json % Post using Alyx.jsonPost
+% Vary: Accept
 
 %% Posting data
 % POST requests (those that create new records on Alyx) can be made with
@@ -104,35 +108,144 @@ d.type = 'Experiment';
 d.parent_session = ai.SessionURL;
 d.number = 1;
 
-[subsession, statusCode] = ai.postData('sessions', d) %#ok<*NOPTS>
+[subsession, statusCode] = ai.postData('sessions', d) %#ok<*ASGLU,*NOPTS>
 
 % With this method you can also make PUT and PATCH requests to amending a
 % record.  NB: Only for those endpoints with these options availible.
-data = obj.postData(endpoint, data, 'put'); % Update the record
+% Let's update the session's end time:
+d = struct('end_time', ai.datestr(now), 'subject', 'test'); % Subject is a required field
+ai.postData(ai.SessionURL, d, 'put'); % Update the record
 
+% The postData method uses the jsonPost method, which in turn uses the
+% built in MATLAB function webwrite.  More info:
+doc Alyx.jsonPost
+doc webwrite
+
+clear d subsession statusCode url comments expSeq
 %% Datasets
-% Data repository
+% One of the purposes of Alyx is to make sharing data to a wider group
+% simple and accessible.  In order to do this effectively there are a few
+% things imposed on the user in terms of how data and meta-data are stored:
 
-% Dataset type
+% 1. Files must be stored in a directory by mouse name, then experiment
+% date (corresponding to the base session on Alyx), then
+% experiment/sequence number (corresponding to subsessions on Alyx). Alyx
+% infers information about the files based on this directory structure.
 
-% Data formats
-doc dat
-opentoline(which('dat.expFilePath'),45,1)
-% ALFs
+% 2. Where the files are saved must correspond to a data repository that
+% has been created on Alyx.  One such example is zubjects.  The data
+% repository records are used by Globus to map the drive in order to copy
+% selected files to The Flatiron Institute (availiable to other labs - only
+% subjects under the project 'IBL' are copied).  More information:
+% https://alyx.cortexlab.net/admin/data/datarepository/
+
+% 3. The files must have a corresponding dataset type.  This is a record on
+% Alyx that includes a human readable description of what the data are and
+% a filename pattern for identifying the file.  It is suggested that the
+% filename pattern correspond either to the ALF standard, or the Rigbox
+% standard of expRef_type (more on this later).  Datasets, like sessions,
+% are hierachical, for instance you could have a parent dataset type (with
+% no corresponding files) that is called 'twoPhoton', with the ALF pattern
+% '*_2P*.*'.  Child dataset types could include ROI files (e.g.
+% '*_2P_ROI.*') and raw frames (e.g. '*_2P_ROI.*'). More info:
+% https://alyx.cortexlab.net/admin/data/datasettype/
+% ALFs (feel free to add):
 % https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM/edit#gid=0
 
+% 4. The files must have a valid format, defined on Alyx by the data format
+% records.  These records include a description of the file format, the
+% filename pattern (e.g. '*.mat' or '*.*.npy' for ALF files), and the
+% function name for loading the file in MATLAB and Python.  More info:
+% https://alyx.cortexlab.net/admin/data/dataformat/
+
+%% Saving files
+% Saving files in a standard way can be easily achieved by using
+% dat.expFilePath to return the path and file name for your data.  The main
+% data repository is defined in dat.paths, the folder tree by
+% dat.canstructExpRef (used by dat.newExp), and the file name is
+% constructed from the expRef + '_filetype'.  The list of file types are
+% found here:
+opentoline(which('dat.expFilePath'),45,1)
+doc dat % further info
+
+% For example, let's create a new experiment, then save the associated
+% eye tracking data:
+expRef = ai.newExp('test'); % Create new experiment ref and Alyx (sub)session
+fullpath = dat.expFilePath(expRef, 'eyetracking', 'master')
+% Without specifying the which repo location (i.e. 'master' or 'local'),
+% you get both paths returned.
+fullpaths = dat.expFilePath(expRef, 'eyetracking')
+
+clear fullpaths
 %% File registration
+% In order to successfully register a file to Alyx, you must make sure the
+% dataset type, repository and format records are created on the database
+% first.  To register a file, you can use the registerFile method:
+[datasets, filerecords] = ai.registerFile(fullpath) % Register a specific file
+% The returned dataset records should contain the associated session URL
+% and the dataset type, as well as a list of filerecords.  The filerecords
+% contain the path to the files and what repository they're found on.
+
+% You can also input a cell array of paths, including whole directories:
+expPath = dat.expPath(expRef, 'main', 'master') % Returns the directory
+[datasets, filerecords] = ai.registerFile(expPath)
+% Returns the datasets are filerecords of all successfully registered files
+% in the provided directory.  You can register the same file multiple
+% times.  If a filerecord already exists, Alyx simply returns the original.
 
 %% Alyx queue
+% All posts to Alyx are first saved as a JSON file in a location specified
+% by the objects QueueDir property.  This means that when a post fails for
+% reasons other than user error, the posts remain in the queue until
+% further notice.  Each time a user 'logs in', the queue is flushed,
+% meaning that all saved posts are re-submitted to Alyx.  You can manually
+% flush the queue by called in the flushQueue method:
+ai.flushQueue
 
 %% Debugging with http.jsonPost
+% Unfortunately, the MATLAB built in http interface functions are limited
+% in terms of debugging, as they don't directly return the server's
+% responses upon failure.  Status codes must be extracted from the error
+% message bodies, and the full reponse of the server is usually not
+% returned.  In order to debug your Alyx posts, you can use the missing
+% http package's jsonPost function instead.  See line 47 of
+% Alyx.flushQueue:
+opentoline(which('flushQueue'),47,1)
 
 %% Sending Alyx around
+% An Alyx instance can be sent between rigs in one of two ways:
+% 1. Via Java Websockets using the io.WSJCommunicator.server/client object.
+%   This object uses the hlp_serialize/deserialize functions to send the
+%   object.
+% 2. Via UDP using Rigbox services objects (using udp and pnet functions).
+%   The Alyx.parseAlyxInstance method can be used to convert the object
+%   into a JSON string and back again.
+% Both methods ultimately use saveobj and loadobj methods to convert the
+% Alyx object.  This isn't really important to know.
+% More info: 
+doc Alyx.parseAlyxInstance % Used by srv.BasicUDPService and tl.mpepListener
+doc io.WSJCommunicator.server % Used by expServer to communicate with mc
+doc srv.StimulusControl % Used by mc to communicate with expServer
 
 %% Headless Alyx
-
-%% 
+% Before sending an instance of Alyx to a stimulus computer, consider
+% setting the Headless property to 'true'.  This means that the object will
+% not spawn any user prompts, and will supress some errors.  This can also
+% be set when the database become unreachable.  All posts are still saved
+% in the queue for when a user logs in on that computer.  NB: Even when
+% headless the Alyx object may throw errors.  On recording computers,
+% always put GET/POST related methods in a try-catch, or only attempt such
+% things at the end of the experiment
+ai.Headless = true;
+ai = ai.logout;
+ai = ai.login; % Dialog surpressed
+ai.registerFile(expPath); % Dialog surpressed
 
 %% MySQL queries
+% One can also interact with Alyx through connection to the underlying
+% MySQL database.  This currently isn't really supported by the alyx-matlab
+% package and isn't encouraged.  More information:
+open openAlyxSQL.m
+doc alyx.expFilePath
 
 %% Etc.

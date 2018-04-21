@@ -85,7 +85,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       d.narrative = 'auto-generated session';
       d.start_time = expDate;
       d.type = 'Base';
-%       d.users = {obj.User}; % FIXME
+      d.users = {obj.User};
       
       base_submit = obj.postData('sessions', d);
       assert(isfield(base_submit,'subject'),...
@@ -109,7 +109,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.type = 'Experiment';
     d.parent_session = latest_base.url;
     d.number = expSeq;
-%     d.users = {obj.User}; % FIXME
+    d.users = {obj.User};
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
@@ -142,7 +142,8 @@ end
 %%% Now save the experiment parameters variable both locally and in the
 %%% 'master' location
 %%%TODO Make expFilePath an Alyx query?
-superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
+expParams = struct('parameters', expParams);
+superSave(dat.expFilePath(expRef, 'parameters'), expParams);
 
 %%% Try to save a copy of the expParams as a JSON file, unpon failing that,
 %%% save as a mat file instead.  Register the parameters to Alyx

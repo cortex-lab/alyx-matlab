@@ -15,6 +15,7 @@ function [data, statusCode] = getData(obj, endpoint)
 
 % Validate input If the endpoint url contains query name-value pairs,
 % extract them
+data = [];
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
 if ~obj.IsLoggedIn; obj = obj.login; end % Log in if necessary
 try
@@ -24,11 +25,11 @@ try
 catch ex
   switch ex.identifier
     case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:CopyContentToDataStreamError'}
-      warning(ex.identifier, '%s Posting temporarily supressed', ex.message)
+      warning(ex.identifier, '%s', ex.message)
       statusCode = 000;
     otherwise
-      response = regexp(ex.message, '(?:the status )\d{3}', 'tokens');
-      statusCode = str2double(response);
+      response = regexp(ex.message, '(?:the status )(\d{3})', 'tokens');
+      statusCode = str2double(cellflat(response));
       if statusCode == 403 % Invalid token
         warning('Alyx:getData:InvalidToken', 'Invalid token, please re-login')
         obj = obj.logout; % Delete token

@@ -72,7 +72,7 @@ if any(statusCode==000)||(any(statusCode==403)&&obj.Headless)
     'Unable to validate paths, some posts may fail')
 else %%% FURTHER VALIDATION %%%
   % Ensure there are DNS fields on the database
-  repo_dns = rmEmp({repositories.dns});
+  repo_dns = rmEmpty({repositories.dns});
   if isempty(repo_dns)
     warning('Alyx:registerFile:EmptyDNSField',...
     'No valid DNS returned by database data repositories.')

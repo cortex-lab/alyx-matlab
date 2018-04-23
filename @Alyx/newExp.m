@@ -142,8 +142,7 @@ end
 %%% Now save the experiment parameters variable both locally and in the
 %%% 'master' location
 %%%TODO Make expFilePath an Alyx query?
-expParams = struct('parameters', expParams);
-superSave(dat.expFilePath(expRef, 'parameters'), expParams);
+superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
 
 %%% Try to save a copy of the expParams as a JSON file, unpon failing that,
 %%% save as a mat file instead.  Register the parameters to Alyx

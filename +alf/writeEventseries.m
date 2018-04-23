@@ -1,4 +1,3 @@
-
 function writeEventseries(destDir, datasetName, eventTimes, b, timebaseName)
 % function writeEventseries(destDir, datasetName, eventTimes, b, timebaseName)
 % Writes an "eventseries" dataset in the ALF format, providing conversion to universal

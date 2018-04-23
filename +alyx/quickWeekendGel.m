@@ -1,4 +1,4 @@
-classdef quickWeekendGel < handle
+function postWeekendGel = 
     properties (Access=public)
         weekendDates;
     end

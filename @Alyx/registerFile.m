@@ -136,11 +136,16 @@ if isempty(filePath)&&isempty(dirPath)
   return
 end
 
+% Regex pattern for the relative path
+exp = ['\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((?:(\\|\/))\d+)+(?=(\\|\/)\w+\.\w+)|',...
+  '\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((\\|\/)\w+)+'];
+realtivePath = cellflat(regexp([dirPath; filePath], exp, 'match'));
+
 % Register directories
 D = struct('created_by', obj.User);
 for i = 1:length(dirPath)
   D.dns = dns_dirs{i};
-  D.path = strrep(dirPath{i}, ['\\' D.dns '\Subjects\'], '');
+  D.path = realtivePath{i};
   [record, statusCode] = obj.postData('register-file', D);
   if statusCode==000; continue; end % Cannot reach server
   assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
@@ -151,7 +156,7 @@ if isempty(i); i = 0; end
 % Register files
 for j = 1:length(filePath)
   D.dns = dns_files{j};
-  D.path = [strrep(filePath{j}, ['\\' D.dns '\Subjects\'], '') '\'];
+  D.path = realtivePath{j+i};
   D.filenames = filenames(ic==j);
   [record, statusCode] = obj.postData('register-file', D);
   if statusCode==000; continue; end % Cannot reach server

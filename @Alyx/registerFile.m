@@ -137,9 +137,9 @@ if isempty(filePath)&&isempty(dirPath)
 end
 
 % Regex pattern for the relative path
-exp = ['\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((?:(\\|\/))\d+)+(?=(\\|\/)\w+\.\w+)|',...
+expr = ['\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((?:(\\|\/))\d+)+(?=(\\|\/)\w+\.\w+)|',...
   '\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((\\|\/)\w+)+'];
-realtivePath = cellflat(regexp([dirPath; filePath], exp, 'match'));
+realtivePath = cellflat(regexp([dirPath; filePath], expr, 'match'));
 
 % Register directories
 D = struct('created_by', obj.User);

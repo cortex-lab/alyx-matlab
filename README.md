@@ -148,5 +148,9 @@ Further details can be found in the accompanying [Examples script](https://githu
 ## Deployment
 For use with [Rigbox](https://github.com/cortex-lab/Rigbox), use the submodule that comes with the Rigbox repository and follow the documentation there.
 
+## Built With
+* [dirPlus](https://uk.mathworks.com/matlabcentral/fileexchange/60716-dirplus) - Used for registering files
+* [MD5 in MATLAB](https://uk.mathworks.com/matlabcentral/fileexchange/7919-md5-in-matlab) - For checksums (no longer used)
+
 ## Authors
-This code is maintained and developed by a number of people at [CortexLab](https://www.ucl.ac.uk/cortexlab).
+This code is maintained and developed by a number of people at [CortexLab](https://www.ucl.ac.uk/cortexlab).  See [contributors](https://github.com/cortex-lab/alyx-matlab/graphs/contributors) list for more info.

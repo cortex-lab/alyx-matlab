@@ -134,8 +134,6 @@ if isfield(expParams, 'defFunction')
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
-%     obj.registerFile_old(dat.expFilePath(expRef, 'expDefFun', 'master'),...
-%       'm', url, 'expDefinition', []);
   end
 end
 
@@ -148,12 +146,7 @@ superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams)
 %%% save as a mat file instead.  Register the parameters to Alyx
 try 
   % First, change all functions to strings
-  f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
-  fields = fieldnames(expParams);
-  paramCell = struct2cell(expParams);
-  paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
-  % In 2017b and later, jsonencode allows 'ConvertInfAndNaN' flag
-  parameters = jsonencode(cell2struct(paramCell, fields)); %#ok<NASGU> 
+  parameters = obj2json(expParams); %#ok<NASGU> 
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
@@ -161,16 +154,9 @@ try
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath);
-%     obj.registerFile_old(jsonPath, 'json', url, 'Parameters', []);
   end
 catch ex
-  warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
-  % Register our parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master')); %TODO Make expFilePath an Alyx query?
-%     obj.registerFile_old(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-%         url, 'Parameters', []); %TODO Make expFilePath an Alyx query?
-  end
+  warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
 % If user not logged in and has suppressed prompts, print warning

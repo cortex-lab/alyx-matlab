@@ -7,7 +7,7 @@ function s = saveobj(obj)
 %   object for sending over Web sockets. Ideally this method should be
 %   private.
 %
-% See also LOADOBJ, HLP_DESERIALIZE
+% See also LOADOBJ, HLP_SERIALIZE
 %
 % Part of Alyx
 

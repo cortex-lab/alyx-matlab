@@ -45,11 +45,11 @@ if obj.IsLoggedIn % user provided an alyx instance
     subjects = [{'default'}, subjNames]';
   end
 else
-  % The master 'expInfo' repository is the reference for the existence of
+  % The master 'main' repository is the reference for the existence of
   % experiments, as given by the folder structure
-  expInfoPath = dat.reposPath('main', 'master');
+  mainPath = dat.reposPath('main', 'master');
   
-  dirs = file.list(expInfoPath, 'dirs');
+  dirs = file.list(mainPath, 'dirs');
   subjects = setdiff(dirs, {'@Recently-Snapshot', '@Recycle'}); %exclude the trash directories
 end
 end

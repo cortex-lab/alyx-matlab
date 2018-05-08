@@ -35,8 +35,11 @@ fclose(fid);
 % Flush the queue
 if obj.IsLoggedIn
   [data, statusCode] = obj.flushQueue();
-  if ~isempty(data); data = data(end); end
-  statusCode = statusCode(end); % Return only relevent data
+  % Return only relevent data
+  if numel(statusCode) > 1; statusCode = statusCode(end); end
+  if floor(statusCode/100) == 2 && ~isempty(data)
+    data = data(end);
+  end
 else
   warning('Alyx:flushQueue:NotConnected','Not connected to Alyx - saved in queue');
 end

@@ -97,6 +97,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       % Failed to reach Alyx; making headless.  NB: Headless only within
       % scope of this method
       obj.Headless = true;
+      sessions = struct('url', []); % FIXME: Post may fail
     end
     latest_base = sessions(end);
     
@@ -133,7 +134,11 @@ if isfield(expParams, 'defFunction')
     'Copying definition function to experiment folders failed');
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
+    try
+      obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
+    catch ex
+      warning(ex.identifier, 'Registration of experiment definition failed: %s', ex.message)
+    end
   end
 end
 

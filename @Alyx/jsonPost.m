@@ -28,6 +28,7 @@ try % Post data
   responseBody = webwrite(endpoint, jsonData, options);
   statusCode = iff(endsWith(endpoint,'auth-token'), 200, 201);
 catch ex
+  responseBody = ex.message;
   switch ex.identifier
     case 'MATLAB:webservices:UnknownHost'
       % Can't resolve URL

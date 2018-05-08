@@ -33,8 +33,8 @@ catch ex
       % Can't resolve URL
       warning(ex.identifier, '%s Posting temporarily supressed', ex.message)
       statusCode = 000;
-    case 'MATLAB:webservices:CopyContentToDataStreamError'
-      % Connection refused, set as headless and continue on
+    case {'MATLAB:webservices:CopyContentToDataStreamError', 'MATLAB:webservices:Timeout'}
+      % Connection refused or timed out, set as headless and continue on
       warning(ex.identifier, '%s. Posting temporarily supressed', ex.message)
       statusCode = 000;
     otherwise

@@ -36,7 +36,9 @@ catch ex
         obj = obj.logout; % Delete token
         if ~obj.Headless % Prompts not supressed
           obj = obj.login; % Re-login
-          data = obj.getData(fullEndpoint); % Retry
+          if obj.IsLoggedIn % If succeded
+            data = obj.getData(fullEndpoint); % Retry
+          end
         end
       else
         rethrow(ex)

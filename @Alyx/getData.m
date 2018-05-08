@@ -24,7 +24,8 @@ try
   return
 catch ex
   switch ex.identifier
-    case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:CopyContentToDataStreamError'}
+    case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:Timeout', ...
+        'MATLAB:webservices:CopyContentToDataStreamError'}
       warning(ex.identifier, '%s', ex.message)
       statusCode = 000;
     otherwise

@@ -41,7 +41,7 @@ classdef Alyx
     % The Alyx token acquired after loggin in
     Token
     % Options for reading and writing to database via http
-    WebOptions = weboptions('MediaType','application/json');
+    WebOptions = weboptions('MediaType','application/json','Timeout',10);
   end
   
   properties (Dependent)

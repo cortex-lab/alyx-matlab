@@ -150,12 +150,10 @@ superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams)
 %%% Try to save a copy of the expParams as a JSON file, unpon failing that,
 %%% save as a mat file instead.  Register the parameters to Alyx
 try 
-  % First, change all functions to strings
-  parameters = obj2json(expParams); %#ok<NASGU> 
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
-  save(jsonPath, 'parameters', '-ascii');
+  fid = fopen(jsonPath); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath);

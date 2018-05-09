@@ -26,6 +26,8 @@ jsonData = jsonencode(data);
 % Make a filename for the current command
 queueFilename = [datestr(now, 'yyyy-mm-dd-HH-MM-SS-FFF') '.' lower(requestMethod)];
 queueFullfile = fullfile(obj.QueueDir, queueFilename);
+% If local Alyx queue directory doesn't exist, create one
+if ~exist(obj.QueueDir, 'dir'); mkdir(obj.QueueDir); end
 
 % Save the endpoint and json locally
 fid = fopen(queueFullfile, 'w');

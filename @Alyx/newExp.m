@@ -153,7 +153,7 @@ try
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
-  fid = fopen(jsonPath); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
+  fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath);

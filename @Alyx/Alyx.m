@@ -59,6 +59,10 @@ classdef Alyx
       else
         obj = obj.login;
       end
+      % Set the directory and URL paths
+      p = dat.paths;
+      obj.BaseURL = p.databaseURL;
+      obj.QueueDir = p.localAlyxQueue;
     end
     
     function obj = logout(obj)

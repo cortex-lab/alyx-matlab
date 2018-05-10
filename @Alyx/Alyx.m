@@ -24,7 +24,7 @@ classdef Alyx
   
   properties
     % URL to the Alyx database
-    BaseURL char = 'https://alyx.cortexlab.net'
+    BaseURL char = 'https://alyx-dev.cortexlab.net'
     % Set the local directory for saving queued Alyx commands, create if needed
     QueueDir char = 'C:\localAlyxQueue'
     % Set whether input dialogs should appear, e.g. login window
@@ -53,6 +53,8 @@ classdef Alyx
   methods
     function obj = Alyx(user, token)
       %ALYX Class constructor
+      p = dat.paths;
+      obj.QueueDir = p.localAlyxQueue;
       if nargin
         obj.User = user;
         obj.Token = token;

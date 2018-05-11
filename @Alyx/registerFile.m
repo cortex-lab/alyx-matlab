@@ -57,6 +57,8 @@ filePath = [filePath(~dirs); cellflat(cellfun(@dirPlus, filePath(dirs), 'uni', 0
 filePath = unique(filePath);
 
 % Get the DNS part of the file paths
+p = dat.paths;
+filePath = strrep(filePath, p.mainRepository(1:end-9), '\\zubjects.cortexlab.net');
 dns = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
 
 % Retrieve information from Alyx for file validation
@@ -89,11 +91,9 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Validate dataset format
-  isValidFormat = @(p)any(cell2mat(regexp(p,...
-    regexptranslate('wildcard', rmEmpty({dataFormats.filename_pattern})))));
-  valid = cellfun(isValidFormat, filePath);
+  [~,~,ext] = cellfun(@fileparts, filePath, 'uni', 0);
+  valid = cellfun(@(p)any(strcmp(p,{dataFormats.file_extension})), ext);
   if ~all(valid)
-    [~,~,ext] = cellfun(@fileparts, filePath, 'uni', 0);
     warning('Alyx:registerFile:InvalidFileType',...
       'File extention(s) ''%s'' not found on Alyx', strjoin(unique(ext(~valid)),''', '''))
     filePath = filePath(valid);

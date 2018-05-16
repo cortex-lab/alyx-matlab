@@ -24,7 +24,8 @@ try
   return
 catch ex
   switch ex.identifier
-    case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:CopyContentToDataStreamError'}
+    case {'MATLAB:webservices:UnknownHost', 'MATLAB:webservices:Timeout', ...
+        'MATLAB:webservices:CopyContentToDataStreamError'}
       warning(ex.identifier, '%s', ex.message)
       statusCode = 000;
     otherwise
@@ -35,7 +36,9 @@ catch ex
         obj = obj.logout; % Delete token
         if ~obj.Headless % Prompts not supressed
           obj = obj.login; % Re-login
-          data = obj.getData(fullEndpoint); % Retry
+          if obj.IsLoggedIn % If succeded
+            data = obj.getData(fullEndpoint); % Retry
+          end
         end
       else
         rethrow(ex)

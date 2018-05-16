@@ -1,7 +1,8 @@
 classdef Alyx
   %ALYX An class for interating with the Alyx database
   %   Creates an object that allows the user to log in, GET, PUT and POST
-  %   data to the Alyx database primarily via the REST API.  
+  %   data to the Alyx database primarily via the REST API.  For a tutorial
+  %   on how to use see the README and Examples files.
   % 
   %   All public methods such as POSTWATER, etc. should call the private
   %   methods that actually post data and set the token. 
@@ -13,7 +14,7 @@ classdef Alyx
   %     ai.postWater('test', 0.25);
   %     ai.logout;
   %
-  %   Dependencies: missing-http, JSONLab
+  %   Dependencies: missing-http
   %
   %   See also EUI.ALYXPANEL
   %
@@ -41,7 +42,7 @@ classdef Alyx
     % The Alyx token acquired after loggin in
     Token
     % Options for reading and writing to database via http
-    WebOptions = weboptions('MediaType','application/json');
+    WebOptions = weboptions('MediaType','application/json','Timeout',10);
   end
   
   properties (Dependent)
@@ -58,6 +59,10 @@ classdef Alyx
       else
         obj = obj.login;
       end
+      % Set the directory and URL paths
+      p = dat.paths;
+      obj.BaseURL = p.databaseURL;
+      obj.QueueDir = p.localAlyxQueue;
     end
     
     function obj = logout(obj)

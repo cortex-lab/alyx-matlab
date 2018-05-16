@@ -28,13 +28,14 @@ try % Post data
   responseBody = webwrite(endpoint, jsonData, options);
   statusCode = iff(endsWith(endpoint,'auth-token'), 200, 201);
 catch ex
+  responseBody = ex.message;
   switch ex.identifier
     case 'MATLAB:webservices:UnknownHost'
       % Can't resolve URL
       warning(ex.identifier, '%s Posting temporarily supressed', ex.message)
       statusCode = 000;
-    case 'MATLAB:webservices:CopyContentToDataStreamError'
-      % Connection refused, set as headless and continue on
+    case {'MATLAB:webservices:CopyContentToDataStreamError', 'MATLAB:webservices:Timeout'}
+      % Connection refused or timed out, set as headless and continue on
       warning(ex.identifier, '%s. Posting temporarily supressed', ex.message)
       statusCode = 000;
     otherwise

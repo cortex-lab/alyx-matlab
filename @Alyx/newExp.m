@@ -55,8 +55,8 @@ if isempty(expSeq)
   expSeq = 1;
 end
 
-% expInfo repository is the reference location for which experiments exist
-[expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'expInfo');
+% Main repository is the reference location for which experiments exist
+[expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
 % ensure nothing went wrong in making a "unique" ref and path to hold
 assert(~any(file.exists(expPath)), ...
   sprintf('Something went wrong as experiment folders already exist for "%s".', expRef));
@@ -97,6 +97,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
       % Failed to reach Alyx; making headless.  NB: Headless only within
       % scope of this method
       obj.Headless = true;
+      sessions = struct('url', []); % FIXME: Post may fail
     end
     latest_base = sessions(end);
     
@@ -133,45 +134,32 @@ if isfield(expParams, 'defFunction')
     'Copying definition function to experiment folders failed');
   % Register the experiment definition file
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
-%     obj.registerFile_old(dat.expFilePath(expRef, 'expDefFun', 'master'),...
-%       'm', url, 'expDefinition', []);
+    try
+      obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
+    catch ex
+      warning(ex.identifier, 'Registration of experiment definition failed: %s', ex.message)
+    end
   end
 end
 
 %%% Now save the experiment parameters variable both locally and in the
 %%% 'master' location
 %%%TODO Make expFilePath an Alyx query?
-expParams = struct('parameters', expParams);
-superSave(dat.expFilePath(expRef, 'parameters'), expParams);
+superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
 
 %%% Try to save a copy of the expParams as a JSON file, unpon failing that,
 %%% save as a mat file instead.  Register the parameters to Alyx
 try 
-  % First, change all functions to strings
-  f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
-  fields = fieldnames(expParams);
-  paramCell = struct2cell(expParams);
-  paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx), 'UniformOutput', false);
-  % In 2017b and later, jsonencode allows 'ConvertInfAndNaN' flag
-  parameters = jsonencode(cell2struct(paramCell, fields)); %#ok<NASGU> 
   % Generate JSON path and save
   jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
       [expRef, '_parameters.json']);
-  save(jsonPath, 'parameters', '-ascii');
+  fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
   % Register our JSON parameter set to Alyx
   if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
     obj.registerFile(jsonPath);
-%     obj.registerFile_old(jsonPath, 'json', url, 'Parameters', []);
   end
 catch ex
-  warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
-  % Register our parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(dat.expFilePath(expRef, 'parameters', 'master')); %TODO Make expFilePath an Alyx query?
-%     obj.registerFile_old(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-%         url, 'Parameters', []); %TODO Make expFilePath an Alyx query?
-  end
+  warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
 % If user not logged in and has suppressed prompts, print warning

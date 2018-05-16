@@ -38,6 +38,9 @@ function [datasets, filerecords] = registerFile(obj, filePath)
 
 %%INPUT VALIDATION
 filePath = ensureCell(filePath);
+if size(filePath,1) < size(filePath,2)
+  filePath = filePath';
+end
 
 % Validate files/directories exist
 exists = cellfun(@(p) exist(p,'file') || exist(p,'dir'), filePath);
@@ -49,16 +52,12 @@ end
 
 % Remove redundant paths, i.e. those that point to specific files if a path
 % to the same directory was also provided
-filePath = unique(filePath);
 dirs = cellfun(@(p)exist(p,'dir')~=0, filePath); % For 2017b and later, we can use @isfolder
-dirPath = filePath(dirs);
-dirPath(~endsWith(dirPath, '\')) = strcat(dirPath(~endsWith(dirPath, '\')), '\');
-filePath = filePath(~dirs);
-filePath = filePath(~startsWith(filePath, dirPath));
+filePath = [filePath(~dirs); cellflat(cellfun(@dirPlus, filePath(dirs), 'uni', 0))];
+filePath = unique(filePath);
 
 % Get the DNS part of the file paths
-dns_dirs = cellflat(regexp(dirPath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
-dns_files = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
+dns = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
 
 % Retrieve information from Alyx for file validation
 [dataFormats, statusCode(1)] = obj.getData('data-formats');
@@ -80,17 +79,13 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Identify which repository the filePath is in
-  valid_dirs = cellfun(@(p)any(strcmp(p,repo_dns)), dns_dirs);
-  valid_files = cellfun(@(p)any(strcmp(p,repo_dns)), dns_files);
-  if ~all(valid_dirs)||~all(valid_files)
+  valid = cellfun(@(p)any(strcmp(p,repo_dns)), dns);
+  if ~all(valid)
     warning('Alyx:registerFile:InvalidRepoPath',...
       ['The following file path(s) not valid repository path(s):\n%s\n',...
-      'Check dns field of data repositories on Alyx'],...
-      strjoin([filePath(~valid_files), dirPath(~valid_dirs)], '\n'))
-    filePath = filePath(valid_files);
-    dns_files = dns_files(valid_files);
-    dirPath = dirPath(valid_dirs);
-    dns_dirs = dns_dirs(valid_dirs);
+      'Check dns field of data repositories on Alyx'], strjoin(filePath(~valid), '\n'))
+    filePath = filePath(valid);
+    dns = dns(valid);
   end
   
   % Validate dataset format
@@ -102,7 +97,7 @@ else %%% FURTHER VALIDATION %%%
     warning('Alyx:registerFile:InvalidFileType',...
       'File extention(s) ''%s'' not found on Alyx', strjoin(unique(ext(~valid)),''', '''))
     filePath = filePath(valid);
-    dns_files = dns_files(valid);
+    dns = dns(valid);
   end
   
   % Validate file name matching a dataset type
@@ -114,7 +109,7 @@ else %%% FURTHER VALIDATION %%%
       'The following input file path(s) have invalid file name pattern(s):\n%s ',...
       strjoin(filePath(~valid), '\n'))
     filePath = filePath(valid);
-    dns_files = dns_files(valid);
+    dns = dns(valid);
   end
 end
 
@@ -128,35 +123,29 @@ end
 filenames = strcat(filenames, ext);
 [filePath,~,ic] = unique(filePath);
 % Initialize datasets array
-datasets = cell(1, sum([numel(dirPath) numel(filePath)]));
+datasets = cell(1, numel(filePath));
 filerecords = []; % Initialize in case unable to access server
 
-if isempty(filePath)&&isempty(dirPath)
+if isempty(filePath)
   warning('Alyx:registerFile:NoValidPaths', 'No file paths were registered')
   return
 end
 
-% Register directories
+% Regex pattern for the relative path
+expr = ['\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((?:(\\|\/))\d+)+(?=(\\|\/)\w+\.\w+)|',...
+  '\w+(\\|\/)\d{4}\-\d{2}\-\d{2}((\\|\/)\w+)+'];
+realtivePath = cellflat(regexp(filePath, expr, 'match'));
+
+% Register files
 D = struct('created_by', obj.User);
-for i = 1:length(dirPath)
-  D.dns = dns_dirs{i};
-  D.path = strrep(dirPath{i}, ['\\' D.dns '\Subjects\'], '');
+for i = 1:length(filePath)
+  D.dns = dns{i};
+  D.path = realtivePath{i};
+  D.filenames = filenames(ic==i);
   [record, statusCode] = obj.postData('register-file', D);
   if statusCode==000; continue; end % Cannot reach server
   assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
   datasets{i} = record(end);
-end
-if isempty(i); i = 0; end
-
-% Register files
-for j = 1:length(filePath)
-  D.dns = dns_files{j};
-  D.path = [strrep(filePath{j}, ['\\' D.dns '\Subjects\'], '') '\'];
-  D.filenames = filenames(ic==j);
-  [record, statusCode] = obj.postData('register-file', D);
-  if statusCode==000; continue; end % Cannot reach server
-  assert(statusCode(end)==201, 'Failed to submit filerecord to Alyx');
-  datasets{j+i} = record(end);
 end
 
 datasets = catStructs(datasets);

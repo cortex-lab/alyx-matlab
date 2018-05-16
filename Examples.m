@@ -149,6 +149,7 @@ clear d subsession statusCode url comments expSeq
 % '*_2P*.*'.  Child dataset types could include ROI files (e.g.
 % '*_2P_ROI.*') and raw frames (e.g. '*_2P_ROI.*'). More info:
 % https://alyx.cortexlab.net/admin/data/datasettype/
+% https://github.com/cortex-lab/ALF
 % ALFs (feel free to add):
 % https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM/edit#gid=0
 

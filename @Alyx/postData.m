@@ -26,6 +26,8 @@ jsonData = jsonencode(data);
 % Make a filename for the current command
 queueFilename = [datestr(now, 'yyyy-mm-dd-HH-MM-SS-FFF') '.' lower(requestMethod)];
 queueFullfile = fullfile(obj.QueueDir, queueFilename);
+% If local Alyx queue directory doesn't exist, create one
+if ~exist(obj.QueueDir, 'dir'); mkdir(obj.QueueDir); end
 
 % Save the endpoint and json locally
 fid = fopen(queueFullfile, 'w');
@@ -35,8 +37,11 @@ fclose(fid);
 % Flush the queue
 if obj.IsLoggedIn
   [data, statusCode] = obj.flushQueue();
-  if ~isempty(data); data = data(end); end
-  statusCode = statusCode(end); % Return only relevent data
+  % Return only relevent data
+  if numel(statusCode) > 1; statusCode = statusCode(end); end
+  if floor(statusCode/100) == 2 && ~isempty(data)
+    data = data(end);
+  end
 else
   warning('Alyx:flushQueue:NotConnected','Not connected to Alyx - saved in queue');
 end

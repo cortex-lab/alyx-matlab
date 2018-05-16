@@ -73,9 +73,14 @@ for curr_file = 1:length(alyxQueueFiles)
         warning('Alyx:flushQueue:InternalServerError', '%s (%i): %s saved in queue',...
           responseBody, statusCode(curr_file), alyxQueue(curr_file).name)
     end
-  catch
-    % If the JSON command failed (e.g. internet is down)
-    warning('Alyx:flushQueue:NotConnected', 'Alyx upload failed - saved in queue');
+  catch ex
+      if strcmp(ex.identifier, 'MATLAB:weboptions:unrecognizedStringChoice')
+          warning('Alyx:flushQueue:MethodNotSupported',...
+              '%s method not supported', upper(uploadType(2:end)));
+      else
+          % If the JSON command failed (e.g. internet is down)
+          warning('Alyx:flushQueue:NotConnected', 'Alyx upload failed - saved in queue');
+      end
   end
 end
 data = cellflat(data(~cellfun('isempty',data))); % Remove empty cells

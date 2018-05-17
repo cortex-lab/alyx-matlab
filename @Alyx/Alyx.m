@@ -61,8 +61,8 @@ classdef Alyx
       end
       % Set the directory and URL paths
       p = dat.paths;
-      obj.BaseURL = p.databaseURL;
-      obj.QueueDir = p.localAlyxQueue;
+      obj.BaseURL = getOr(p, 'databaseURL', obj.BaseURL);
+      obj.QueueDir = getOr(p, 'localAlyxQueue', obj.QueueDir);
     end
     
     function obj = logout(obj)

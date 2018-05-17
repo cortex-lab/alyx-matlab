@@ -17,10 +17,18 @@ function [data, statusCode] = getData(obj, endpoint)
 % extract them
 data = [];
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
+if contains(fullEndpoint, '?')
+  fullEndpoint = [fullEndpoint '&limit=0'];
+else
+  fullEndpoint = [fullEndpoint '?limit=0'];
+end
 if ~obj.IsLoggedIn; obj = obj.login; end % Log in if necessary
 try
   data = webread(fullEndpoint, obj.WebOptions);
   statusCode = 200; % Success
+  if isfield(data, 'results')
+      data = data.results;
+  end
   return
 catch ex
   switch ex.identifier

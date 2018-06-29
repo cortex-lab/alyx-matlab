@@ -14,10 +14,10 @@ st = sp.st;
 anatData.coords = sp.coords;
 anatData.borders = sp.borders;
 
-if isempty(pars)
-    mode = 'clu';
+if nargin>1 && ~isempty(pars)    
+    mode = pars.mode;    
 else
-    mode = pars.mode;
+    mode = 'clu';
 end
 switch mode
     case 'mua'

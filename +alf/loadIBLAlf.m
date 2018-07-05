@@ -1,6 +1,6 @@
 
-function [sp, cweA, cwtA, moveData, lickTimes, incl] = loadIBLAlf(alfDir)
-% function [sp, cweA, cwtA, moveData, lickTimes, incl] = loadIBLAlf(directory)
+function [sp, cweA, cwtA, moveData, lickTimes] = loadIBLAlf(alfDir)
+% function [sp, cweA, cwtA, moveData, lickTimes] = loadIBLAlf(directory)
 %
 
 if ~exist(alfDir, 'dir')

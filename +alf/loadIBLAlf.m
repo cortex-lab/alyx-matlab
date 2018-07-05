@@ -102,8 +102,3 @@ moveData.moveOnsets = moveOnsets; moveData.moveOffsets = moveOffsets; moveData.m
 % - lickTimes - a vector of lick times
 lickTimes = readNPY(fullfile(alfDir, 'licks.times.npy'));
 
-if exist(fullfile(alfDir, 'include.recording.npy'))
-    incl = readNPY(fullfile(alfDir, 'include.recording.npy'));
-else
-    incl = [];
-end

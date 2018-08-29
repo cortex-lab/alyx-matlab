@@ -1,6 +1,6 @@
 
 
-function f = evRastersALF(mouseName, thisDate, ephysTag, pars)
+function f = evRastersIBL(directory, pars)
 % Load ALF data and call evRastersGUI with it
 %
 % - pars - struct contains:
@@ -8,17 +8,16 @@ function f = evRastersALF(mouseName, thisDate, ephysTag, pars)
 %   just cluster number
 %   - depthBinSize - in µm
 
-[sp, cweA, cwtA, moveData, lickTimes] = alf.loadCWAlf(...
-        mouseName, thisDate, ephysTag);
+[sp, cweA, cwtA, moveData, lickTimes] = alf.loadIBLAlf(directory);
     
 st = sp.st;    
 anatData.coords = sp.coords;
 anatData.borders = sp.borders;
 
-if isempty(pars)
-    mode = 'clu';
+if nargin>1 && ~isempty(pars)    
+    mode = pars.mode;    
 else
-    mode = pars.mode;
+    mode = 'clu';
 end
 switch mode
     case 'mua'
@@ -49,7 +48,7 @@ switch mode
         inclCID = cids(cgs>1);
         st = st(ismember(clu, inclCID));
         clu = clu(ismember(clu, inclCID));
-        wfs = wfs(cgs>1,:,:)*10;                
+        wfs = wfs(cgs>1,:,:);                
         
         wfLoc = squeeze(max(abs(wfs), [], 2));
         

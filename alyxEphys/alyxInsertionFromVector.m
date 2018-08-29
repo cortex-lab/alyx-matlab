@@ -20,27 +20,39 @@ if p(2)<0
     p = -p;
 end
 
-% move down into the brain just a bit, in case we're starting at the
-% surface
-m = m+p*voxelSize*10;
-
 % Work out the point of intersection with the brain
-ann = 10;
-gotToCtx = false;
-isoCtxId = num2str(st.id(strcmp(st.acronym, 'Isocortex')));
-while ~(ann==1 && gotToCtx) %ann==1 is "root" i.e. outside brain
-    m = m-p*voxelSize; % step 10um, backwards up the track
-    inds = round(m./voxelSize);
-    ann = av(inds(1),inds(2),inds(3));
-%     fprintf(1, '%s\n', st.acronym{ann});
-    if ~isempty(strfind(st.structure_id_path{ann}, isoCtxId))
-        % if the track didn't get to cortex yet, keep looking, might be in
-        % a gap between midbrain/thal/etc and cortex. Once you got to
-        % isocortex once, you're good. 
-        gotToCtx = true;
-    end    
-    
-end
+% -- new method
+% find all points along this whole vector
+inds = round((m+p*(-10000:voxelSize:10000))./voxelSize);
+
+inds = inds(:,inds(1,:)>0 & inds(1,:)<size(av,1) & ...
+    inds(2,:)>0 & inds(2,:)<size(av,2) & ...
+    inds(3,:)>0 & inds(3,:)<size(av,3));
+
+allAnn = av(sub2ind(size(av), inds(1,:), inds(2,:), inds(3,:)));
+firstBrain = find(allAnn~=1,1);
+m = inds(:,firstBrain).*voxelSize;
+
+% -- old method
+% % move down into the brain just a bit, in case we're starting at the
+% % surface
+% m = m+p*voxelSize*10;
+% ann = 10;
+% gotToCtx = false;
+% isoCtxId = num2str(st.id(strcmp(st.acronym, 'Isocortex')));
+% while ~(ann==1 && gotToCtx) %ann==1 is "root" i.e. outside brain
+%     m = m-p*voxelSize; % step 10um, backwards up the track
+%     inds = round(m./voxelSize);
+%     ann = av(inds(1),inds(2),inds(3));
+% %     fprintf(1, '%s\n', st.acronym{ann});
+%     if ~isempty(strfind(st.structure_id_path{ann}, isoCtxId))
+%         % if the track didn't get to cortex yet, keep looking, might be in
+%         % a gap between midbrain/thal/etc and cortex. Once you got to
+%         % isocortex once, you're good. 
+%         gotToCtx = true;
+%     end    
+%     
+% end
 
 ccfBregma = allenCCFbregma*voxelSize;
 entryRL = m(3)-ccfBregma(3); 

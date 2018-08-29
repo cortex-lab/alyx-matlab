@@ -89,8 +89,9 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Validate dataset format
+  dataFormats(strcmp({dataFormats.name}, 'unknown')) = [];
   isValidFormat = @(p)any(cell2mat(regexp(p,...
-    regexptranslate('wildcard', rmEmpty({dataFormats.filename_pattern})))));
+    regexptranslate('wildcard', rmEmpty({dataFormats.file_extension})))));
   valid = cellfun(isValidFormat, filePath);
   if ~all(valid)
     [~,~,ext] = cellfun(@fileparts, filePath, 'uni', 0);
@@ -101,6 +102,7 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Validate file name matching a dataset type
+  datasetTypes(strcmp({datasetTypes.name}, 'unknown')) = [];
   isValidFileName = @(p)any(cell2mat(regexp(p,...
     regexptranslate('wildcard', rmEmpty({datasetTypes.filename_pattern})))));
   valid = cellfun(isValidFileName, filePath);

@@ -122,6 +122,12 @@ classdef Alyx
     narrative = updateNarrative(obj, subject, comments, endpoint)
     % Return the instance of Alyx as a struct
     s = saveobj(obj)
+    % Validate Base URL string
+    function obj = set.BaseURL(obj, value)
+      % Drop trailing slash and ensure protocol defined
+      value = iff(value(1:4)~='http', ['https://' value], value);
+      obj.BaseURL = iff(value(end)=='/', value(1:end-1), value);
+    end
   end
   
   methods (Access = private)

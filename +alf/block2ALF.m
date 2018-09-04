@@ -6,7 +6,7 @@ function [fullpath, filename] = block2ALF(data)
 
 expPath = dat.expPath(data.expRef, 'main', 'master');
 expDef = getOr(data, {'expDef' 'expType'}); %TODO
-namespace = iff(strcmp(expDef, 'choiceWorld'), '_ibl_', '_misc_');
+namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
 expStartTime = data.events.expStartTimes; % CW: data.experimentStartedTime
 evts = removeIncompleteTrials(data.events, length(data.events.endTrialTimes));
 

@@ -16,7 +16,7 @@ feedback = double(feedback);
 feedback(feedback == 0) = -1;
 if ~isnan(feedback)
   writeNPY(feedback(:), fullfile(expPath, [namespace 'trials.feedbackType.npy']));
-  alf.writeEventseries(expPath, [namespace 'trials.feedback_times'],...
+  alf.writeEventseries(expPath, [namespace 'trials.feedback'],...
     evts.feedbackTimes, [], []);
   rewardValues = feedback;
   rewardValues(feedback==1) = data.outputs.rewardValues;
@@ -31,7 +31,7 @@ end
 interactiveOn = getOr(evts, 'interactiveOnTimes', NaN);
 if ~isnan(interactiveOn)
   interactiveOn = interactiveOn - expStartTime;
-  alf.writeEventseries(expPath, [namespace 'trials.goCue_times'], interactiveOn, [], []);
+  alf.writeEventseries(expPath, [namespace 'trials.goCue'], interactiveOn, [], []);
 else
   warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
 end
@@ -48,7 +48,7 @@ end
 if ~isnan(response)
   writeNPY(response(:), fullfile(expPath, [namespace 'trials.choice.npy']));
   responseTimes = evts.responseTimes - expStartTime;
-  alf.writeEventseries(expPath, [namespace 'trials.response_times'],...
+  alf.writeEventseries(expPath, [namespace 'trials.response'],...
     responseTimes, [], []);
 else
   warning('No ''feedback'' events recorded, cannot register to Alyx')
@@ -57,7 +57,7 @@ end
 % Write stim on times
 stimOnTimes = getOr(evts, 'stimulusOnTimes', NaN);
 if ~isnan(stimOnTimes)
-  alf.writeEventseries(expPath, [namespace 'trials.stimOn_times'], stimOnTimes, [], []);
+  alf.writeEventseries(expPath, [namespace 'trials.stimOn'], stimOnTimes, [], []);
 else
   warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
 end
@@ -76,7 +76,7 @@ endTimes = evts.endTrialTimes(:)-expStartTime;
 if length(endTimes) < length(startTimes)
   endTimes(end+1) = evts.expStopTimes-expStartTime;
 end
-alf.writeInterval(expPath, [namespace 'trials.intervals'], startTimes, endTimes, [], []);
+alf.writeInterval(expPath, [namespace 'trials'], startTimes, endTimes, [], []);
 repNum = evts.repeatNumValues(:);
 writeNPY(repNum == 1, fullfile(expPath, [namespace 'trials.included.npy']));
 writeNPY(repNum, fullfile(expPath, [namespace 'trials.repNum.npy']));
@@ -117,7 +117,7 @@ txtMoveType(moveType==0) = "flinch";
 txtMoveType(moveType==1) = "CCW";
 txtMoveType(moveType==-1) = "CW";
 
-alf.writeInterval(expPath, [namespace 'wheelMoves.intervals'], ...
+alf.writeInterval(expPath, [namespace 'wheelMoves'], ...
   moveOnsets, moveOffsets, [], []);
 fid = fopen(fullfile(expPath, [namespace 'wheelMoves.type.csv']),'w');
 fprintf(fid, '%s', strjoin(txtMoveType,','));
@@ -125,9 +125,27 @@ fclose(fid);
 
 % Collate paths
 files = dir(expPath);
-isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
-isCSV = cellfun(@(f)endsWith(f, '.csv'), {files.name});
-files = files(isNPY|isCSV);
+% Contruct paths
+ALFnames = {...
+  'trials.feedbackType.npy',...
+  'trials.feedback_times.npy',...
+  'trials.rewardVolume.npy',...
+  'trials.goCue_times.npy',...
+  'trials.choice.npy',...
+  'trials.response_times.npy',...
+  'trials.stimOn_times.npy',...
+  'trials.contrastLeft.npy',...
+  'trials.contrastRight.npy',...
+  'trials.intervals.npy',...
+  'trials.included.npy',...
+  'trials.repNum.npy',...
+  'wheel.position.npy',...
+  'wheel.velocity.npy',...
+  'wheel.timestamps.npy',...
+  'wheelMoves.type.csv',...
+  'wheelMoves.intervals.npy'};
+incl = cellfun(@(f)endsWith(f, ALFnames), {files.name});
+files = files(incl);
 fullpath = fullfile({files.folder}, {files.name});
 filename = {files.name};
 end

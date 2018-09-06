@@ -9,6 +9,7 @@ expDef = getOr(data, {'expDef' 'expType'}); %TODO
 namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
 expStartTime = data.events.expStartTimes; % CW: data.experimentStartedTime
 evts = removeIncompleteTrials(data.events, length(data.events.endTrialTimes));
+data.outputs.rewardValues(data.outputs.rewardTimes>evts.endTrialTimes(end)) = [];
 
 % Write feedback
 feedback = getOr(evts, 'feedbackValues', NaN);

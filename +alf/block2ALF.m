@@ -154,7 +154,7 @@ end
 function S = removeIncompleteTrials(S, completedTrials)
     lengths = structfun(@length, S);
     names = fieldnames(S);
-    names = names(lengths == completedTrials+1);
+    names = names(lengths == completedTrials+1 | lengths == completedTrials+2);
     s = cellfun(@(x) x(1:completedTrials), pick(S, names), 'UniformOutput', 0);
     for n = 1:length(s)
         S.(names{n}) = s{n};

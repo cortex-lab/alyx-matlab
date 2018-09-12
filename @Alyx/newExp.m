@@ -72,43 +72,15 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
   % logged in, find or create BASE session
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
-  if ~obj.IsLoggedIn; obj = obj.login; end
-    % Get list of base sessions
-    [sessions, statusCode] = obj.getData(['sessions?type=Base&subject=' subject]);
-    
-    %If the date of this latest base session is not the same date as
-    %today, then create a new base session for today
-    if statusCode ~= 000 && (isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), expDate(1:10)))
-      d = struct;
-      d.subject = subject;
-      d.procedures = {'Behavior training/tasks'};
-      d.narrative = 'auto-generated session';
-      d.start_time = expDate;
-      d.type = 'Base';
-      d.users = {obj.User};
-      
-      base_submit = obj.postData('sessions', d);
-      assert(isfield(base_submit,'subject'),...
-        'Submitted base session did not return appropriate values');
-      
-      %Now retrieve the sessions again
-      sessions = obj.getData(['sessions?type=Base&subject=' subject]);
-    elseif statusCode == 000
-      % Failed to reach Alyx; making headless.  NB: Headless only within
-      % scope of this method
-      obj.Headless = true;
-      sessions = struct('url', []); % FIXME: Post may fail
-    end
-    latest_base = sessions(end);
-    
-    %Now create a new SUBSESSION, using the same experiment number
+  if ~obj.IsLoggedIn; obj = obj.login; end    
+    % Create a new SUBSESSION, using the same experiment number
     d = struct;
     d.subject = subject;
     d.procedures = {'Behavior training/tasks'};
     d.narrative = 'auto-generated session';
     d.start_time = expDate;
     d.type = 'Experiment';
-    d.parent_session = latest_base.url;
+    %d.parent_session = latest_base.url;
     d.number = expSeq;
     d.users = {obj.User};
     

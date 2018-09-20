@@ -16,9 +16,9 @@ feedback = getOr(evts, 'feedbackValues', NaN);
 feedback = double(feedback);
 feedback(feedback == 0) = -1;
 if ~isnan(feedback)
-  writeNPY(feedback(:), fullfile(expPath, [namespace 'trials.feedbackType.npy']));
+  writeNPY(int8(feedback(:)), fullfile(expPath, [namespace 'trials.feedbackType.npy']));
   alf.writeEventseries(expPath, [namespace 'trials.feedback'],...
-    evts.feedbackTimes, [], []);
+    evts.feedbackTimes - expStartTime, [], []);
   rewardValues = feedback;
   rewardValues(feedback==1) = data.outputs.rewardValues;
   rewardValues(feedback==-1) = 0;
@@ -47,7 +47,7 @@ else
   response = -sign(response); % -ve now means CCW
 end
 if ~isnan(response)
-  writeNPY(response(:), fullfile(expPath, [namespace 'trials.choice.npy']));
+  writeNPY(int8(response(:)), fullfile(expPath, [namespace 'trials.choice.npy']));
   responseTimes = evts.responseTimes - expStartTime;
   alf.writeEventseries(expPath, [namespace 'trials.response'],...
     responseTimes, [], []);
@@ -58,6 +58,7 @@ end
 % Write stim on times
 stimOnTimes = getOr(evts, 'stimulusOnTimes', NaN);
 if ~isnan(stimOnTimes)
+  stimOnTimes = stimOnTimes - expStartTime;
   alf.writeEventseries(expPath, [namespace 'trials.stimOn'], stimOnTimes, [], []);
 else
   warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
@@ -71,6 +72,11 @@ else
   warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
 end
 
+% Write probability left
+probLeft = getOr(evts, 'proportionLeft', ...
+  ones(length(data.events.endTrialTimes),1)*0.5);
+writeNPY(probLeft(:), fullfile(expPath, [namespace 'trials.probabilityLeft.npy']));
+
 % Write trial intervals
 startTimes = evts.newTrialTimes(:)-expStartTime;
 endTimes = evts.endTrialTimes(:)-expStartTime;
@@ -78,7 +84,7 @@ if length(endTimes) < length(startTimes)
   endTimes(end+1) = evts.expStopTimes-expStartTime;
 end
 alf.writeInterval(expPath, [namespace 'trials'], startTimes, endTimes, [], []);
-repNum = evts.repeatNumValues(:);
+repNum = uint8(evts.repeatNumValues(:));
 writeNPY(repNum == 1, fullfile(expPath, [namespace 'trials.included.npy']));
 writeNPY(repNum, fullfile(expPath, [namespace 'trials.repNum.npy']));
 
@@ -88,6 +94,7 @@ t = data.inputs.wheelTimes(1):1/Fs:data.inputs.wheelTimes(end);
 t = t - expStartTime;
 rawPos = wheel.correctCounterDiscont(data.inputs.wheelValues);
 pos = interp1(data.inputs.wheelTimes-expStartTime, rawPos, t, 'linear');
+pos = pos - pos(1); % Position relative to beginning of session
 
 switch lower(data.rigName) % TODO: add to rig hardware
   case {'zym1', 'zym2', 'zym3'}
@@ -97,7 +104,7 @@ switch lower(data.rigName) % TODO: add to rig hardware
   otherwise
     encRes = 1024;
 end
-pos = pos./(4*encRes)*2*pi*31; % convert to mm
+pos = pos./(4*encRes)*2*pi*3.1; % convert to cm
 
 alf.writeTimeseries(expPath, [namespace 'wheel'], t(:), [], []);
 writeNPY(pos, fullfile(expPath, [namespace 'wheel.position.npy']));
@@ -137,6 +144,7 @@ ALFnames = {...
   'trials.stimOn_times.npy',...
   'trials.contrastLeft.npy',...
   'trials.contrastRight.npy',...
+  'trials.probabilityLeft.npy',...
   'trials.intervals.npy',...
   'trials.included.npy',...
   'trials.repNum.npy',...

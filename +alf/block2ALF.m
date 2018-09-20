@@ -41,8 +41,7 @@ end
 response = getOr(evts, 'responseValues', NaN);
 if max(response) == 3
   response(response == 3) = 0; % No go
-  response(response == 1) = -1; % CCW
-  response(response == 2) = 1; % CW
+  response(response == 2) = -1; % CCW
 else
   response = -sign(response); % -ve now means CCW
 end
@@ -116,6 +115,9 @@ writeNPY(wheel.computeVelocity2(pos, 0.03, Fs), ...
 
 hasTurn = response~=0;
 resp = response(hasTurn);
+% Convert response to type required by classifyWheelMoves
+resp(resp == 0) = 3; % No go
+resp(resp == -1) = 2; % CCW
 intStartTime = interactiveOn(hasTurn);
 respTime = responseTimes(hasTurn);
 moveType = wheel.classifyWheelMoves(data.inputs.wheelTimes-expStartTime, ...
@@ -124,6 +126,7 @@ moveType = wheel.classifyWheelMoves(data.inputs.wheelTimes-expStartTime, ...
 txtMoveType(moveType==0) = "flinch";
 txtMoveType(moveType==1) = "CCW";
 txtMoveType(moveType==-1) = "CW";
+txtMoveType(moveType==3) = "other";
 
 alf.writeInterval(expPath, [namespace 'wheelMoves'], ...
   moveOnsets, moveOffsets, [], []);

@@ -70,16 +70,25 @@ assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories fa
 url = []; % Clear any previous subsession URL
 if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fake subject
   % logged in, find or create BASE session
+%   obj.getData(['/users/' obj.User])
+
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
   if ~obj.IsLoggedIn; obj = obj.login; end    
     % Create a new SUBSESSION, using the same experiment number
+    try
+        subdata = obj.getData(['/subjects/' subject]);
+        lab = subdata.lab;
+    catch
+        lab = '';
+    end 
     d = struct;
     d.subject = subject;
     d.procedures = {'Behavior training/tasks'};
     d.narrative = 'auto-generated session';
     d.start_time = expDate;
     d.type = 'Experiment';
+    if ~isempty(lab), d.lab = lab; end
     %d.parent_session = latest_base.url;
     d.number = expSeq;
     d.users = {obj.User};

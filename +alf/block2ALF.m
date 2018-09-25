@@ -125,7 +125,7 @@ moveType = wheel.classifyWheelMoves(data.inputs.wheelTimes-expStartTime, ...
 
 txtMoveType(moveType==0) = "flinch";
 txtMoveType(moveType==1) = "CCW";
-txtMoveType(moveType==-1) = "CW";
+txtMoveType(moveType==2) = "CW";
 txtMoveType(moveType==3) = "other";
 
 alf.writeInterval(expPath, [namespace 'wheelMoves'], ...
@@ -158,7 +158,7 @@ ALFnames = {...
   'wheelMoves.intervals.npy'};
 incl = cellfun(@(f)endsWith(f, ALFnames), {files.name});
 files = files(incl);
-fullpath = fullfile({files.folder}, {files.name});
+fullpath = fullfile({files.folder}, {files.name})';
 filename = {files.name};
 end
 

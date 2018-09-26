@@ -124,8 +124,8 @@ moveType = wheel.classifyWheelMoves(data.inputs.wheelTimes-expStartTime, ...
   data.inputs.wheelValues, moveOnsets, moveOffsets, intStartTime, respTime, resp);
 
 txtMoveType(moveType==0) = "flinch";
-txtMoveType(moveType==1) = "CCW";
-txtMoveType(moveType==2) = "CW";
+txtMoveType(moveType==1) = "CW";
+txtMoveType(moveType==2) = "CCW";
 txtMoveType(moveType==3) = "other";
 
 alf.writeInterval(expPath, [namespace 'wheelMoves'], ...

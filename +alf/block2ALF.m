@@ -1,15 +1,26 @@
-function [fullpath, filename] = block2ALF(data)
+function [fullpath, filename] = block2ALF(data, varargin)
 % ALF.BLOCK2ALF Extracts and saves ALF data from a block structure
 %  TODO: Extract and save ALFs from old ChoiceWorld blocks
 %  For more info on the dataset type, visit 
 %  https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM0
+% [fullpath, filename] = block2ALF(data_from_blockfile)
+% [...] = block2ALF(...,'namespace', '_ibĺ_')
+% [...] = block2ALF(...,'expPath', '/path/to/my/portable/experiment/subject/yyyy-mm-dd/1/')
 
-expPath = dat.expPath(data.expRef, 'main', 'master');
+
+% compute default namespace
 expDef = getOr(data, {'expDef' 'expType'}); %TODO
 namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
+
+% handle input parameters
+p = inputParser;
+addParameter(p,'expPath', dat.expPath(data.expRef, 'main', 'master'))
+addParameter(p,'namespace', namespace)
+parse(p,varargin{:});
+for fn = fieldnames(p.Results)'; eval([fn{1} '= p.Results.' (fn{1}) ';']); end
+
 expStartTime = data.events.expStartTimes; % CW: data.experimentStartedTime
 evts = removeIncompleteTrials(data.events, length(data.events.endTrialTimes));
-data.outputs.rewardValues(data.outputs.rewardTimes>evts.endTrialTimes(end)) = [];
 if isempty(evts.endTrialTimes)
     data.outputs.rewardValues =[];
 else
@@ -116,8 +127,7 @@ writeNPY(pos, fullfile(expPath, [namespace 'wheel.position.npy']));
 writeNPY(wheel.computeVelocity2(pos, 0.03, Fs), ...
   fullfile(expPath, [namespace 'wheel.velocity.npy']));
 
-[moveOnsets, moveOffsets] = wheel.findWheelMoves3(data.inputs.wheelValues, ...
-  data.inputs.wheelTimes-expStartTime, Fs, []);
+[moveOnsets, moveOffsets] = wheel.findWheelMoves3(data.inputs.wheelValues, data.inputs.wheelTimes-expStartTime, Fs, []);
 
 hasTurn = response~=0;
 resp = response(hasTurn);
@@ -140,10 +150,32 @@ fid = fopen(fullfile(expPath, [namespace 'wheelMoves.type.csv']),'w');
 fprintf(fid, '%s', strjoin(txtMoveType,','));
 fclose(fid);
 
+% For IBL data, copy the matlab files in an ALF format under a _rigbox_ workspace
+if strcmp( namespace, '_ibl_')
+from_to =   {
+		[ expPath filesep data.expRef '_parameters.json' ], [expPath filesep '_rigbox_jsonParameters.raw.json'], ...
+		[ expPath filesep data.expRef '_parameters.mat' ], [expPath filesep '_rigbox_matParameters.raw.mat'], ...
+		[ expPath filesep data.expRef '_Block.mat' ], [expPath filesep '_rigbox_block.raw.mat'], ...
+		[ expPath filesep data.expRef '_expDef.m' ], [expPath filesep '_rigbox_code.raw.m'], ...
+		[ expPath filesep data.expRef '_Timeline.mat' ], [expPath filesep '_rigbox_timeLine.raw.mat'], ...
+		[ expPath filesep data.expRef '_hardwareInfo.json' ], [expPath filesep '_rigbox_hardwareInfo.raw.json'], ...
+		};
+    for m = 1:size(from_to)
+        try
+            copyfile(from_to{m,1}, from_to{m,2})
+        catch
+            warning([from_to{m,1} ' not found !'])
+        end
+    end
+    ALFnames = {'raw.json', 'raw.mat', 'raw.m'};
+else
+    ALFnames = {};
+end
+
 % Collate paths
 files = dir(expPath);
 % Contruct paths
-ALFnames = {...
+ALFnames = cat(2, ALFnames, {...
   'trials.feedbackType.npy',...
   'trials.feedback_times.npy',...
   'trials.rewardVolume.npy',...
@@ -161,11 +193,11 @@ ALFnames = {...
   'wheel.velocity.npy',...
   'wheel.timestamps.npy',...
   'wheelMoves.type.csv',...
-  'wheelMoves.intervals.npy'};
+  'wheelMoves.intervals.npy'});
 incl = cellfun(@(f)endsWith(f, ALFnames), {files.name});
 files = files(incl);
 fullpath = fullfile({files.folder}, {files.name})';
-filename = {files.name};
+filename = {files.name}';
 end
 
 function S = removeIncompleteTrials(S, completedTrials)

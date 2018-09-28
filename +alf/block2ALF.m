@@ -10,6 +10,11 @@ namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
 expStartTime = data.events.expStartTimes; % CW: data.experimentStartedTime
 evts = removeIncompleteTrials(data.events, length(data.events.endTrialTimes));
 data.outputs.rewardValues(data.outputs.rewardTimes>evts.endTrialTimes(end)) = [];
+if isempty(evts.endTrialTimes)
+    data.outputs.rewardValues =[];
+else
+    data.outputs.rewardValues(data.outputs.rewardTimes>evts.endTrialTimes(end)) = [];
+end
 
 % Write feedback
 feedback = getOr(evts, 'feedbackValues', NaN);
@@ -51,6 +56,7 @@ if ~isnan(response)
   alf.writeEventseries(expPath, [namespace 'trials.response'],...
     responseTimes, [], []);
 else
+  responseTimes = [];
   warning('No ''feedback'' events recorded, cannot register to Alyx')
 end
 

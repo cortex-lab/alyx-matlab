@@ -89,7 +89,7 @@ else
 end
 
 % Write probability left
-probLeft = getOr(evts, 'proportionLeft', ...
+probLeft = getOr(evts, 'proportionLeftValues', ...
   ones(length(data.events.endTrialTimes),1)*0.5);
 writeNPY(probLeft(:), fullfile(expPath, [namespace 'trials.probabilityLeft.npy']));
 

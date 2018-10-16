@@ -57,7 +57,7 @@ filePath = [filePath(~dirs); cellflat(cellfun(@dirPlus, filePath(dirs), 'uni', 0
 filePath = unique(filePath);
 
 % Get the DNS part of the file paths
-dns = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
+hostname = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
 
 % Retrieve information from Alyx for file validation
 [dataFormats, statusCode(1)] = obj.getData('data-formats');
@@ -71,7 +71,7 @@ if any(statusCode==000)||(any(statusCode==403)&&obj.Headless)
     'Unable to validate paths, some posts may fail')
 else %%% FURTHER VALIDATION %%%
   % Ensure there are DNS fields on the database
-  repo_dns = rmEmpty({repositories.dns});
+  repo_dns = rmEmpty({repositories.hostname});
   if isempty(repo_dns)
     warning('Alyx:registerFile:EmptyDNSField',...
     'No valid DNS returned by database data repositories.')
@@ -79,13 +79,13 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Identify which repository the filePath is in
-  valid = cellfun(@(p)any(strcmp(p,repo_dns)), dns);
+  valid = cellfun(@(p)any(strcmp(p,repo_dns)), hostname);
   if ~all(valid)
     warning('Alyx:registerFile:InvalidRepoPath',...
       ['The following file path(s) not valid repository path(s):\n%s\n',...
       'Check dns field of data repositories on Alyx'], strjoin(filePath(~valid), '\n'))
     filePath = filePath(valid);
-    dns = dns(valid);
+    hostname = hostname(valid);
   end
   
   % Validate dataset format
@@ -98,7 +98,7 @@ else %%% FURTHER VALIDATION %%%
     warning('Alyx:registerFile:InvalidFileType',...
       'File extention(s) ''%s'' not found on Alyx', strjoin(unique(ext(~valid)),''', '''))
     filePath = filePath(valid);
-    dns = dns(valid);
+    hostname = hostname(valid);
   end
   
   % Validate file name matching a dataset type
@@ -111,7 +111,7 @@ else %%% FURTHER VALIDATION %%%
       'The following input file path(s) have invalid file name pattern(s):\n%s ',...
       strjoin(filePath(~valid), '\n'))
     filePath = filePath(valid);
-    dns = dns(valid);
+    hostname = hostname(valid);
   end
 end
 
@@ -141,7 +141,7 @@ realtivePath = cellflat(regexp(filePath, expr, 'match'));
 % Register files
 D = struct('created_by', obj.User);
 for i = 1:length(filePath)
-  D.dns = dns{i};
+  D.hostname = hostname{i};
   D.path = realtivePath{i};
   D.filenames = filenames(ic==i);
   [record, statusCode] = obj.postData('register-file', D);

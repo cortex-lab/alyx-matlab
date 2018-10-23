@@ -55,6 +55,8 @@ if isempty(expSeq)
   expSeq = 1;
 end
 
+files = []; % List of files to register
+
 % Main repository is the reference location for which experiments exist
 [expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
 % ensure nothing went wrong in making a "unique" ref and path to hold
@@ -74,13 +76,7 @@ if isfield(expParams, 'defFunction')
     dat.expFilePath(expRef, 'expDefFun'))),...
     'Copying definition function to experiment folders failed');
   % Register the experiment definition file
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    try
-      obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
-    catch ex
-      warning(ex.identifier, 'Registration of experiment definition failed: %s', ex.message)
-    end
-  end
+  files = [files; {dat.expFilePath(expRef, 'expDefFun', 'master')}];
   % Generate a version tag for the defFunction
   [~, expDef] = fileparts(expParams.defFunction);
   modDate = datetime(getOr(dir(expParams.defFunction), 'date'));
@@ -88,7 +84,7 @@ if isfield(expParams, 'defFunction')
   expVersion = [expDef '_' ver];
 elseif isfield(expParams, 'type')
   % Generate version tag for old experiment types
-  if strcmp(type, 'ChoiceWorld')
+  if strcmp(expParams.type, 'ChoiceWorld')
     modDate = datetime(getOr(dir(which('exp.ChoiceWorld')), 'date'));
     ver = datestr(dateshift(modDate, 'start', 'minute', 'nearest'), 'yy.mm.dd.HH:MM');
     expVersion = ['ChoiceWorld_' ver];
@@ -169,13 +165,14 @@ try
       [expRef, '_parameters.json']);
   fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
   % Register our JSON parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(jsonPath);
-  end
+  files = [files; {jsonPath}];
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
+if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
+  obj.registerFile(files);
+end
 % If user not logged in and has suppressed prompts, print warning
 if ~strcmp(subject,'default') && (obj.Headless && ~obj.IsLoggedIn)
   warning('Alyx:HeadlessLoginFail', 'Failed to register files; must be logged in');

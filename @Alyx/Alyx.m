@@ -113,7 +113,7 @@ classdef Alyx
     % Register files contained within alfDir to Alyx
     registerALF(obj, alfDir, sessionURL)
     % Post a water value to a given subject in Alyx
-    wa = postWater(obj, mouseName, amount, thisDate, isHydrogel)
+    wa = postWater(obj, mouseName, amount, thisDate, type, session)
     % Post a subject's weight to Alyx
     w = postWeight(obj, weight, subject)
     % Create a new unique experiment in the database

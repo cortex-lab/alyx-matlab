@@ -55,6 +55,8 @@ if isempty(expSeq)
   expSeq = 1;
 end
 
+files = []; % List of files to register
+
 % Main repository is the reference location for which experiments exist
 [expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
 % ensure nothing went wrong in making a "unique" ref and path to hold
@@ -63,6 +65,31 @@ assert(~any(file.exists(expPath)), ...
 
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
+
+%%% If the parameters had an experiment definition function, save a copy in
+%%% the experiment's folder and register the file to Alyx
+expVersion = [];
+if isfield(expParams, 'defFunction')
+  assert(file.exists(expParams.defFunction),...
+    'Experiment definition function does not exist: %s', expParams.defFunction);
+  assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
+    dat.expFilePath(expRef, 'expDefFun'))),...
+    'Copying definition function to experiment folders failed');
+  % Register the experiment definition file
+  files = [files; {dat.expFilePath(expRef, 'expDefFun', 'master')}];
+  % Generate a version tag for the defFunction
+  [~, expDef] = fileparts(expParams.defFunction);
+  modDate = datetime(getOr(dir(expParams.defFunction), 'date'));
+  ver = datestr(dateshift(modDate, 'start', 'minute', 'nearest'), 'yy.mm.dd.HH:MM');
+  expVersion = [expDef '_' ver];
+elseif isfield(expParams, 'type')
+  % Generate version tag for old experiment types
+  if strcmp(expParams.type, 'ChoiceWorld')
+    modDate = datetime(getOr(dir(which('exp.ChoiceWorld')), 'date'));
+    ver = datestr(dateshift(modDate, 'start', 'minute', 'nearest'), 'yy.mm.dd.HH:MM');
+    expVersion = ['ChoiceWorld_' ver];
+  end
+end
 
 %%% Here we create a new base session on Alyx if it doesn't already exist
 %%% for this subject today.  Then we create a new subsession and save the
@@ -79,6 +106,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.procedures = {'Behavior training/tasks'};
     d.narrative = 'auto-generated session';
     d.start_time = expDate;
+    if ~isempty(expVersion); d.taskProtocol = expVersion; end
     d.type = 'Experiment';
     %d.parent_session = latest_base.url;
     d.number = expSeq;
@@ -96,24 +124,6 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     end
 end
 
-%%% If the parameters had an experiment definition function, save a copy in
-%%% the experiment's folder and register the file to Alyx
-if isfield(expParams, 'defFunction')
-  assert(file.exists(expParams.defFunction),...
-    'Experiment definition function does not exist: %s', expParams.defFunction);
-  assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
-    dat.expFilePath(expRef, 'expDefFun'))),...
-    'Copying definition function to experiment folders failed');
-  % Register the experiment definition file
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    try
-      obj.registerFile(dat.expFilePath(expRef, 'expDefFun', 'master'));
-    catch ex
-      warning(ex.identifier, 'Registration of experiment definition failed: %s', ex.message)
-    end
-  end
-end
-
 %%% Now save the experiment parameters variable both locally and in the
 %%% 'master' location
 %%%TODO Make expFilePath an Alyx query?
@@ -127,13 +137,14 @@ try
       [expRef, '_parameters.json']);
   fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
   % Register our JSON parameter set to Alyx
-  if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
-    obj.registerFile(jsonPath);
-  end
+  files = [files; {jsonPath}];
 catch ex
   warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
+if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)
+  obj.registerFile(files);
+end
 % If user not logged in and has suppressed prompts, print warning
 if ~strcmp(subject,'default') && (obj.Headless && ~obj.IsLoggedIn)
   warning('Alyx:HeadlessLoginFail', 'Failed to register files; must be logged in');

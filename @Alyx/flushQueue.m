@@ -65,7 +65,7 @@ for curr_file = 1:length(alyxQueueFiles)
           end
         else % User error - delete from queue
           delete(alyxQueueFiles{curr_file});
-          warning('Alyx:flushQueue:BadUploadCommand', '%s (%i): %s saved in queue',...
+          warning('Alyx:flushQueue:BadUploadCommand', '%s (%i): %s',...
             responseBody, statusCode(curr_file), alyxQueue(curr_file).name)
         end
       case 5

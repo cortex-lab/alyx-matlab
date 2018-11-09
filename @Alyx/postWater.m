@@ -21,7 +21,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %    user: 'miles'
 %    water_administered: 25
 %
-% See also ALYX, POSTDATA, POSTWEEKENDGEL
+% See also ALYX, POSTDATA, POSTWEEKENDWATER
 %
 % Part of Alyx
 
@@ -39,7 +39,7 @@ else % Already in the correct format
 end
 d.water_type = type;
 if nargin == 6 && ~isempty(session)
-  d.session = session; %TODO double check full url
+  d.session = obj.makeEndpoint(session);
 end
 if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = mouseName; % Subject name

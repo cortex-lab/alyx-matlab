@@ -22,6 +22,4 @@ else
 end
 
 % drop trailing slash
-if fullEndpoint(end) == '/'
-  fullEndpoint = fullEndpoint(1:end-1);
-end
+fullEndpoint = strip(fullEndpoint, '/');

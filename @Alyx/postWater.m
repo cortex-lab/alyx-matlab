@@ -8,8 +8,9 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %   thisDate (datestr|datenum): datetime of administration (default: now)
 %   type (char): water type, e.g. 'Water' (default), 'Hydrogel', '15%
 %                Sucrose', etc.
-%   isSupplement (logical): whether the water was given during an
-%   experiment or as a 'top-up' supplement (default)
+%   session (char): uuid (or url) of session during which it was
+%                   administered.  Empty (default) indicates 'top-up'
+%                   supplement.
 %
 %   On succsess, function returns a struct of the new water administration
 %   record:
@@ -17,7 +18,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %    type: 'Hydrogel'
 %    subject: 'test'
 %    url: 'https://alyx.cortexlab.net/water-administrations/245a5c9f-9807-44b3-b1d8-d038193859f9'
-%    session: 'https://alyx.cortexlab.net/water-administrations/95h55c9f-6532-46k8-c0d8-587g3g43bgghd'
+%    session: '95h55c9f-6532-46k8-c0d8-587g3g43bgghd'
 %    user: 'miles'
 %    water_administered: 25
 %
@@ -39,7 +40,11 @@ else % Already in the correct format
 end
 d.water_type = type;
 if nargin == 6 && ~isempty(session)
-  d.session = session; %TODO double check full url
+  % Extract session uuid from url
+  session = strip(session, '/');
+  slashIdx = find(session=='/', 1, 'last');
+  if slashIdx; session = session(slashIdx+1:end); end
+  d.session = session;
 end
 if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = mouseName; % Subject name

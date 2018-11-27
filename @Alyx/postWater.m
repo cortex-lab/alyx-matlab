@@ -6,7 +6,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %   mouseName (char): subject name
 %   amount (double): amount administered (ml)
 %   thisDate (datestr|datenum): datetime of administration (default: now)
-%   type (char): water type, e.g. 'Water' (default), 'Hydrogel', '15%
+%   type (char): water type, e.g. 'Water' (default), 'Hydrogel', 'Water 15%
 %                Sucrose', etc.
 %   session (char): uuid (or url) of session during which it was
 %                   administered.  Empty (default) indicates 'top-up'

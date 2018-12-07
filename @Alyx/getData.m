@@ -1,4 +1,4 @@
-function [data, statusCode] = getData(obj, endpoint)
+function [data, statusCode] = getData(obj, endpoint, varargin)
 %GETDATA Return a specific Alyx/REST read-only endpoint
 %   Makes a request to an Alyx endpoint; returns the data as a MATLAB struct.
 %
@@ -6,6 +6,7 @@ function [data, statusCode] = getData(obj, endpoint)
 %     sessions = obj.getData('sessions')
 %     sessions = obj.getData('https://alyx.cortexlab.net/sessions')
 %     sessions = obj.getData('sessions?type=Base')
+%     sessions = obj.getData('sessions', 'type', 'Base')
 %
 % See also ALYX, MAKEENDPOINT, REGISTERFILE
 %
@@ -17,9 +18,11 @@ function [data, statusCode] = getData(obj, endpoint)
 % extract them
 data = [];
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
+options = obj.WebOptions;
+options.MediaType = 'application/x-www-form-urlencoded';
 if ~obj.IsLoggedIn; obj = obj.login; end % Log in if necessary
 try
-  data = webread(fullEndpoint, obj.WebOptions);
+  data = webread(fullEndpoint, varargin{:}, options);
   statusCode = 200; % Success
   return
 catch ex

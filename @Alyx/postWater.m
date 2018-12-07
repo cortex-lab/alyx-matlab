@@ -6,7 +6,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %   mouseName (char): subject name
 %   amount (double): amount administered (ml)
 %   thisDate (datestr|datenum): datetime of administration (default: now)
-%   type (char): water type, e.g. 'Water' (default), 'Hydrogel', '15%
+%   type (char): water type, e.g. 'Water' (default), 'Hydrogel', 'Water 15%
 %                Sucrose', etc.
 %   session (char): uuid (or url) of session during which it was
 %                   administered.  Empty (default) indicates 'top-up'
@@ -21,6 +21,8 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %    session: '95h55c9f-6532-46k8-c0d8-587g3g43bgghd'
 %    user: 'miles'
 %    water_administered: 25
+%
+%  TODO Verify date format correct
 %
 % See also ALYX, POSTDATA, POSTWEEKENDWATER
 %

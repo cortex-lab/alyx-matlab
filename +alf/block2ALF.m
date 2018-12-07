@@ -1,15 +1,18 @@
 function [fullpath, filename] = block2ALF(data, overwrite)
 % ALF.BLOCK2ALF Extracts and saves ALF data from a block structure
-%  TODO: Cut down redundency in code
+%  If overwrite is true, any existing ALF files will be overwritten.
 %  For more info on the dataset type, visit
 %  https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM0
+%
+%  TODO: Cut down redundency in code
+%  TODO: Write extra rewards ALF when present
 
 if nargin < 2; overwrite = false; end
 
 expPath = dat.expPath(data.expRef, 'main', 'master');
 expDef = getOr(data, {'expDef' 'expType'});
 namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
-iff(strcmp(expRef, 'ChoiceWorld'), @()extractChoiceWorld(data), @()extractSignals(data));
+iff(strcmp(expDef, 'ChoiceWorld'), @()extractChoiceWorld(data), @()extractSignals(data));
 
 % Collate paths
 files = dir(expPath);
@@ -40,7 +43,7 @@ filename = {files.name};
 
   function extractSignals(data)
     % EXTRACTSIGNALS Extract ALF files from a Signals block file.
-    if ~isfield(data,'events')||length(block.events.newTrialValues)<20
+    if ~isfield(data,'events')||length(data.events.newTrialValues)<20||endsWith(expDef,'habituationWorld.m')
       return
     end
     
@@ -223,6 +226,7 @@ filename = {files.name};
     end
     
     %ANALYZE CHOCIEWORLD BLOCK
+    load(dat.expFilePath(data.expRef, 'parameters', 'master'), 'parameters')
     completedTrials = data.numCompletedTrials;
     expStartTime = data.experimentStartedTime;
     trials = data.trial(1:completedTrials);
@@ -263,7 +267,7 @@ filename = {files.name};
       alf.writeEventseries(expPath, [namespace 'trials.feedback'], feedbackTimes, [], []);
       % Reward
       rewardValues = feedbackType;
-      rewardValues(feedbackType==1) = rwds;
+      rewardValues(feedbackType==1) = rwds(rwds~=0);
       rewardValues(feedbackType==-1) = 0;
       writeNPY(rewardValues(:), fullfile(expPath, [namespace 'trials.rewardVolume.npy']));
     end

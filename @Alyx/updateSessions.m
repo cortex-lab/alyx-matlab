@@ -21,6 +21,7 @@ function updateSessions(varargin)
 %     the 'ai' Alyx object
 %     
 %   TODO: Integrate old ChoiceWorld ALF extraction
+%   TODO: Add exclude input to ignore particular experiments?
 
 w = warning('off', 'MATLAB:toeplitz:DiagonalConflict');
 if isa(varargin{1}, 'Alyx')
@@ -94,9 +95,9 @@ for s = 1:length(subjects)
             numCorrect = sum(block.events.feedbackValues == 1);
           end
         else
-          numTrials = obj.Data.numCompletedTrials;
-          if isfield(obj.Data, 'trial')&&isfield(obj.Data.trial, 'feedbackType')
-            numCorrect = sum([obj.Data.trial.feedbackType] == 1);
+          numTrials = block.numCompletedTrials;
+          if isfield(block, 'trial')&&isfield(block.trial, 'feedbackType')
+            numCorrect = sum([block.trial.feedbackType] == 1);
           else
             numCorrect = 0;
           end
@@ -110,13 +111,20 @@ for s = 1:length(subjects)
         [~,~,expSeq] = dat.parseExpRef(expRefs{b});
         registerSession(subject, block.startDateTime, expSeq, ai, ...
           block.endDateTime, numTrials, numCorrect);
-      elseif isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_correct_trials) || ...
-          isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_trials)
-        % If session exists but is missing trial data, post the data
-          clear('sessionData')
-          sessionData.n_correct_trials = numCorrect;
-          sessionData.n_trials = numTrials;
-          ai.postData(sessions(strcmp(expRefs{b}, alyxExpRefs)).url, sessionData, 'patch');
+      else
+        % If session exists but is missing trial data, patch the data
+          sessionData = struct.empty;
+          if ~isempty(numCorrect) && ...
+              isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_correct_trials)
+            sessionData(1).n_correct_trials = numCorrect;
+          end
+          if ~isempty(numTrials) && ...
+              isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_trials)
+            sessionData(1).n_trials = numTrials;
+          end
+          if ~isempty(sessionData)
+            ai.postData(sessions(strcmp(expRefs{b}, alyxExpRefs)).url, sessionData, 'patch');
+          end
       end
       
       % Check that all ALF files exist and have been registered to Alyx

@@ -91,7 +91,7 @@ classdef Alyx
   
   methods
     % UI for retrieving a token from Alyx
-    obj = login(obj, presetUsername)
+    obj = login(obj, presetUsername, presetPassword)
     % Returns a complete Alyx Rest API endpoint URL
     fullEndpoint = makeEndpoint(obj, endpoint)
     % Return a specific Alyx/REST read-only endpoint
@@ -102,7 +102,7 @@ classdef Alyx
     [data, statusCode] = flushQueue(obj)
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
-    % 
+    % Query the database for a list of sessions
     sessions = getSessions(obj, varargin)
     % Lists recorded subjects
     subjects = listSubjects(obj, stock, alive, sortByUser)
@@ -148,7 +148,7 @@ classdef Alyx
     outDatenum = datenum(date_time)
     % Converts input to string for UDP message and back
     [ref, AlyxInstance] = parseAlyxInstance(varargin)
-    %
+    % Extract ALF files and trial data then register them to Alyx
     updateSessions(obj, subjects, register)
     % Load an Alyx object from a struct
     obj = loadobj(s)

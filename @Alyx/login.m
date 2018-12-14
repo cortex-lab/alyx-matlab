@@ -1,8 +1,9 @@
-function obj = login(obj, presetUsername)
+function obj = login(obj, presetUsername, presetPassword)
 %LOGINWINDOW UI for retrieving a token from Alyx
-%   [alyxInstance, username] = obj.loginWindow(presetUsername)
-%   Opens a login window to get an alyx token. Returns empty if you click
-%   cancel.
+%   obj = obj.login(presetUsername, presetPassword) Opens a login window to
+%   get an alyx token. Returns empty if you click cancel.  When called
+%   without one or both input arguments a dialog is created for the user to
+%   input them.
 %
 % See also ALYX, GETTOKEN
 %
@@ -10,7 +11,7 @@ function obj = login(obj, presetUsername)
 
 % 2017 -- created
 
-if obj.Headless % Don't prompt user if headless flag set
+if nargin ~= 1 && obj.Headless % Don't prompt user if headless flag set
   warning('Alyx:HeadlessLoginFail','Unable to log in; dialogs supressed')
   return
 end
@@ -33,11 +34,14 @@ while ~obj.IsLoggedIn && ~obj.Headless
     username = presetUsername;
   end
   
-  pwd = passwordUI();
+  if nargin < 3
+    pwd = passwordUI();
+  else
+    pwd = presetPassword;
+  end
   
   try
     obj = obj.getToken(username, pwd);
-    %         alyxInstance = alyx.getToken('http://127.0.0.1:8000', username, pwd);
   catch ex
     products = ver;
     toolboxes = matlab.addons.toolbox.installedToolboxes;

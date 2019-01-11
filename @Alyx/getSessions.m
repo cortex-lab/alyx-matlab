@@ -1,4 +1,7 @@
 function sessions = getSessions(obj, varargin)
+% TODO Document
+% FIXME subject OR uuid as required; shouldn't need subject if uuid is
+% provided
 p = inputParser;
 addRequired(p, 'subject');
 addParameter(p, 'uuid', '');

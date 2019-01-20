@@ -56,6 +56,7 @@ if isempty(expSeq)
 end
 
 files = []; % List of files to register
+jsonParams = [];
 
 % Main repository is the reference location for which experiments exist
 [expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
@@ -89,6 +90,25 @@ elseif isfield(expParams, 'type')
     ver = datestr(dateshift(modDate, 'start', 'minute', 'nearest'), 'yy.mm.dd.HH:MM');
     expVersion = ['ChoiceWorld_' ver];
   end
+end
+
+%%% Now save the experiment parameters variable both locally and in the
+%%% 'master' location
+%%%TODO Make expFilePath an Alyx query?
+superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
+
+%%% Try to save a copy of the expParams as a JSON file, unpon failing that,
+%%% save as a mat file instead.  Register the parameters to Alyx
+try 
+  % Generate JSON path and save
+  jsonParams = obj2json(expParams);
+  jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
+      [expRef, '_parameters.json']);
+  fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', jsonParams); fclose(fid);
+  % Register our JSON parameter set to Alyx
+  files = [files; {jsonPath}];
+catch ex
+  warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
 %%% Here we create a new base session on Alyx if it doesn't already exist
@@ -139,6 +159,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.parent_session = latest_base.url;
     d.number = expSeq;
     d.users = {obj.User};
+    d.json = ['{"parameters": ', jsonParams, '}'];
     
     try
       [subsession, statusCode] = obj.postData('sessions', d);
@@ -150,24 +171,6 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
         rethrow(ex)
       end
     end
-end
-
-%%% Now save the experiment parameters variable both locally and in the
-%%% 'master' location
-%%%TODO Make expFilePath an Alyx query?
-superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
-
-%%% Try to save a copy of the expParams as a JSON file, unpon failing that,
-%%% save as a mat file instead.  Register the parameters to Alyx
-try 
-  % Generate JSON path and save
-  jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
-      [expRef, '_parameters.json']);
-  fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', obj2json(expParams)); fclose(fid);
-  % Register our JSON parameter set to Alyx
-  files = [files; {jsonPath}];
-catch ex
-  warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
 end
 
 if ~strcmp(subject,'default') && ~(obj.Headless && ~obj.IsLoggedIn)

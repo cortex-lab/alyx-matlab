@@ -22,6 +22,8 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %    user: 'miles'
 %    water_administered: 25
 %
+%  TODO Verify date format correct
+%
 % See also ALYX, POSTDATA, POSTWEEKENDWATER
 %
 % Part of Alyx
@@ -31,6 +33,8 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 if nargin < 4; thisDate = now; end
 if nargin < 5; type = 'Water'; end
 
+% Validate amount
+assert(amount > 0, 'Amount must be positive')
 % Validate date
 if ~ischar(thisDate) %Assume MATLAB datenum
   % Convert to string in Alyx format-spec
@@ -48,6 +52,6 @@ if nargin == 6 && ~isempty(session)
 end
 if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = mouseName; % Subject name
-d.water_administered = amount; % Units of mL
+d.water_administered = round(amount, 4, 'significant'); % Units of mL
 
 wa = obj.postData('water-administrations', d);

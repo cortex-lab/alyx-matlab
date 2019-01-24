@@ -67,7 +67,7 @@ else
   try
     session = obj.getData(endpoint); % Get subject name from endpoint (FIXME: subject is a required field)
     data = struct('subject', session.subject, 'narrative', narrative);
-    data = obj.postData(endpoint, data, 'put'); % Update the record
+    data = obj.postData(endpoint, data, 'patch'); % Update the record
     if ~isempty(data)
         narrative = strrep(data.narrative, '\n', newline);
     else

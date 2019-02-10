@@ -17,12 +17,26 @@ function [data, statusCode] = getData(obj, endpoint, varargin)
 % Validate input If the endpoint url contains query name-value pairs,
 % extract them
 data = [];
+hasNext = true;
+page = 1;
+isPaginated = @(r)all(isfield(r, {'count', 'next', 'previous', 'results'}));
 fullEndpoint = obj.makeEndpoint(endpoint); % Get complete URL
 options = obj.WebOptions;
 options.MediaType = 'application/x-www-form-urlencoded';
 if ~obj.IsLoggedIn; obj = obj.login; end % Log in if necessary
 try
-  data = webread(fullEndpoint, varargin{:}, options);
+  while hasNext
+    assert(page < obj.PageLimit, 'Maximum number of page requests reached')
+    result = webread(fullEndpoint, varargin{:}, options);
+    if ~isPaginated(result)
+      data = result;
+      break
+    end
+    data = [data, result.results']; %#ok<AGROW>
+    hasNext = ~isempty(result.next);
+    fullEndpoint = result.next;
+    page = page + 1;
+  end
   statusCode = 200; % Success
   return
 catch ex

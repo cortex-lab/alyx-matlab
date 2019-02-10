@@ -31,6 +31,8 @@ classdef Alyx
     Headless logical = false
     % A URL of the most-recent subsession created by newExp
     SessionURL
+    % Maximum number of pages to return from a single query
+    PageLimit = 100
   end
   
   properties (SetAccess = private)

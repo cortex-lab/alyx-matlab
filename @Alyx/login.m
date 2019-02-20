@@ -22,7 +22,7 @@ while ~obj.IsLoggedIn && ~obj.Headless
     dlg_title = 'Alyx login';
     num_lines = 1;
     defaultans = {'',''};
-    answer = inputdlg(prompt, dlg_title, num_lines, defaultans);
+    answer = newid(prompt, dlg_title, num_lines, defaultans);
     
     if isempty(answer)
       % this happens if you click cancel

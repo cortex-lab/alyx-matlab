@@ -43,6 +43,8 @@ if obj.IsLoggedIn
     data = data(end);
   end
 else
+  statusCode = 000;
+  data = [];
   warning('Alyx:flushQueue:NotConnected','Not connected to Alyx - saved in queue');
 end
 

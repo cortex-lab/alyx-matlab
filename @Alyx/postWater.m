@@ -12,7 +12,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %                   administered.  Empty (default) indicates 'top-up'
 %                   supplement.
 %
-%   On succsess, function returns a struct of the new water administration
+%   On success, function returns a struct of the new water administration
 %   record:
 %    date_time: '2018-02-07T11:18:31Z'
 %    type: 'Hydrogel'
@@ -34,7 +34,8 @@ if nargin < 4; thisDate = now; end
 if nargin < 5; type = 'Water'; end
 
 % Validate amount
-assert(amount > 0, 'Amount must be positive')
+assert(~isempty(amount) && amount > 0, ...
+  'Alyx:PostWeight:InvalidAmount', 'Amount must be positive')
 % Validate date
 if ~ischar(thisDate) %Assume MATLAB datenum
   % Convert to string in Alyx format-spec

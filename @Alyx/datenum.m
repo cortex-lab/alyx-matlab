@@ -10,6 +10,7 @@ function outDatenum = datenum(date_time)
 % Part of Alyx
 
 % 2017 -- created
+narginchk(1,1)
 date_time = strrep(date_time, 'T', ' ');
 date_time = strrep(date_time, 'Z', '');
 outDatenum = datenum(date_time);

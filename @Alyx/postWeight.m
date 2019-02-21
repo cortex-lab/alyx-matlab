@@ -15,7 +15,7 @@ function w = postWeight(obj, weight, subject)
 % See also ALYX, EUI.ALYXPANEL, POSTDATA
 
 % Validate amount
-assert(weight > 0, 'Weight must be positive')
+assert(weight > 0, 'Alyx:PostWeight:InvalidWeight', 'Weight must be positive')
 if obj.IsLoggedIn; d.user = obj.User; end
 d.subject = subject;
 d.weight = weight;

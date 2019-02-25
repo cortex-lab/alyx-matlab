@@ -1,4 +1,4 @@
-function w = postWeight(obj, weight, subject)
+function w = postWeight(obj, weight, subject, thisDate)
 %POSTWEIGHT Post a subject's weight to Alyx.  If no inputs are provided,
 % create an input dialog for the user to input a weight.  If no
 % subject is provided, use this object's currently selected
@@ -14,9 +14,20 @@ function w = postWeight(obj, weight, subject)
 %
 % See also ALYX, EUI.ALYXPANEL, POSTDATA
 
-% Validate amount
-assert(weight > 0, 'Alyx:PostWeight:InvalidWeight', 'Weight must be positive')
+% Validate weight
+assert(~isempty(weight) && weight > 0, ...
+  'Alyx:PostWeight:InvalidWeight', 'Weight must be positive')
 if obj.IsLoggedIn; d.user = obj.User; end
+
+% Validate date
+if nargin < 4; thisDate = now; end
+if ~ischar(thisDate) %Assume MATLAB datenum
+  % Convert to string in Alyx format-spec
+  d.date_time = obj.datestr(thisDate);
+else % Already in the correct format
+  d.date_time = thisDate;
+end
+
 d.subject = subject;
 d.weight = weight;
 w = postData(obj, 'weighings/', d);

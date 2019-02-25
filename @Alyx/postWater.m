@@ -34,7 +34,8 @@ if nargin < 4; thisDate = now; end
 if nargin < 5; type = 'Water'; end
 
 % Validate amount
-assert(amount > 0, 'Amount must be positive')
+assert(~isempty(amount) && amount > 0, ...
+  'Alyx:PostWeight:InvalidAmount', 'Amount must be positive')
 % Validate date
 if ~ischar(thisDate) %Assume MATLAB datenum
   % Convert to string in Alyx format-spec

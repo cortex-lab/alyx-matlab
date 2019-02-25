@@ -9,7 +9,7 @@ classdef AlyxTest < matlab.unittest.TestCase
     % Test queue directory
     queueDir
     % Base URLs for various tests
-    url = 'https://test.alyx.internationalbrainlab.org'
+    base = 'https://test.alyx.internationalbrainlab.org'
     % Login names for various tests
     uname = 'test_user'
     % Login passwords for various tests
@@ -17,9 +17,10 @@ classdef AlyxTest < matlab.unittest.TestCase
   end
   
   properties % Validation data
-    subjects = {'default'; 'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
+    subjects = {'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
-    eids = {'cf264653-2deb-44cb-aa84-89b82507028a'}
+    eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
+      '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
   end
   
   methods (TestClassSetup)
@@ -29,7 +30,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       AlyxTest.resetQueue(testCase.queueDir); % Ensure empty before logging in
       
       ai = Alyx('','');
-      ai.BaseURL = testCase.url;
+      ai.BaseURL = testCase.base;
       ai.QueueDir = testCase.queueDir;
       ai = ai.login(testCase.uname, testCase.pwd);
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
@@ -74,8 +75,8 @@ classdef AlyxTest < matlab.unittest.TestCase
       % Test that the subject list returned by the test database is
       % accurate
       ai = testCase.alyx(1);
-      testCase.verifyTrue(isequal(ai.listSubjects, testCase.subjects),...
-        'Subject list mismatch')
+      testCase.verifyTrue(isequal(ai.listSubjects, ...
+        [{'default'} testCase.subjects]), 'Subject list mismatch')
       
       % Test behaviour of empty list
       testCase.verifyTrue(strcmp('default', ai.listSubjects(1,1)),...
@@ -134,8 +135,8 @@ classdef AlyxTest < matlab.unittest.TestCase
       % tests automatic replacement of base_url or not
       % TODO
       ai = testCase.alyx(1);
-      sess1 = ai.getSessions('flowers', 'uuid', testCase.eids{1});
-      fullURL = ai.makeEndpoint(['sessions/' testCase.eids{1}]);
+      sess1 = ai.getSessions('flowers', 'uuid', testCase.eids{2});
+      fullURL = ai.makeEndpoint(['sessions/' testCase.eids{2}]);
       sess2 = ai.getSessions('flowers', 'uuid', fullURL);
       testCase.verifyEqual(sess1,sess2);
       
@@ -151,7 +152,7 @@ classdef AlyxTest < matlab.unittest.TestCase
     
     function test_postWater(testCase)
       % Test post while logged in
-      ai = testCase.alyx(2);
+      ai = testCase.alyx;
       subject = testCase.subjects{randi(length(testCase.subjects))};
       waterPost = @()ai.postWater(subject, pi, 7.3740e+05);
       
@@ -166,6 +167,15 @@ classdef AlyxTest < matlab.unittest.TestCase
       % Check queue flushed
       savedPost = dir([ai.QueueDir filesep '*.post']);
       testCase.verifyEmpty(savedPost, 'Post not deleted on success')
+      
+      % Check invalid volume error
+      testCase.verifyError(@()ai.postWater(subject, 0), 'Alyx:PostWeight:InvalidAmount');
+      
+      % Check session water post
+      url = testCase.eids{2};
+      wa = verifyWarningFree(testCase, @()ai.postWater('flowers', 2, now, 'Water', url),...
+        'Failed to post water with session');
+      testCase.verifyEqual(url, wa.session, 'Session mismatch');
       
       % Test behaviour when logged out
       % When headless or not connected, should save post as JSON and
@@ -185,30 +195,22 @@ classdef AlyxTest < matlab.unittest.TestCase
       
       % TODO Session post
     end
-    
-    function test_headless(testCase)
-      %TODO bad logins, etc.
-    end
-    
-    function test_timeouts(testCase)
-      %TODO Unknown urls and large requests
-    end
-    
+            
     function test_getFile(testCase)
       %TODO
     end
     
     function test_postWeight(testCase)
       % Test post while logged in
-      ai = testCase.alyx(1);
-      subject = testCase.subjects{end};
-      weightPost = @()ai.postWeight(25.1, subject);
+      ai = testCase.alyx;
+      subject = testCase.subjects{randi(length(testCase.subjects))};
+      weightPost = @()ai.postWeight(25.1, subject, 7.3740e+05);
       
       wa = assertWarningFree(testCase, weightPost,'Alyx:flushQueue:NotConnected');
       % Check water record
       expectedFields = {'date_time', 'weight', 'subject', 'user', 'url'};
       testCase.assertTrue(all(ismember(expectedFields,fieldnames(wa))), 'Field names missing')
-%       testCase.verifyEqual(wa.date_time, '2018-12-06T00:00:00', 'date_time incorrect')
+      testCase.verifyEqual(wa.date_time, '2018-12-06T00:00:00', 'date_time incorrect')
       testCase.verifyEqual(wa.weight, 25.1, 'weight incorrect')
       testCase.verifyEqual(wa.subject, subject, 'subject incorrect')
       testCase.verifyEqual(wa.user, ai.User, 'Unexpected water volume');
@@ -216,11 +218,14 @@ classdef AlyxTest < matlab.unittest.TestCase
       savedPost = dir([ai.QueueDir filesep '*.post']);
       testCase.verifyEmpty(savedPost, 'Post not deleted on success')
       
+      % Check invalid volume error
+      testCase.verifyError(@()ai.postWeight(0, subject), 'Alyx:PostWeight:InvalidWeight');
+
       % Test behaviour when logged out
       % When headless or not connected, should save post as JSON and
       % issue warning
       ai = ai.logout;
-      weightPost = @()ai.postWeight(25.1, 'test');
+      weightPost = @()ai.postWeight(25.1, subject, 7.3740e+05);
       verifyWarning(testCase, weightPost, 'Alyx:flushQueue:NotConnected');
       % Check post was saved
       savedPost = dir([ai.QueueDir filesep '*.post']);
@@ -228,7 +233,8 @@ classdef AlyxTest < matlab.unittest.TestCase
       fn = @()AlyxTest.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
       [jsonData, endpnt] = testCase.fatalAssertWarningFree(fn);
       testCase.verifyEqual(endpnt, 'weighings/', 'Incorrect endpoint')
-      expected = ['{"subject":"' subject '","weight":25.1}'];
+      expected = ['{"date_time":"2018-12-06T00:00:00","subject":"' ...
+        subject '","weight":25.1}'];
       testCase.verifyMatches(jsonData, expected, 'JSON data incorrect')
     end
     
@@ -274,11 +280,7 @@ classdef AlyxTest < matlab.unittest.TestCase
         'Alyx:flushQueue:NotConnected');
       testCase.verifyEqual(status, 000, 'Unexpected status code');
     end
-    
-    function test_view_subject_history(testCase)
-      % FIXME should be in EUI.TESTALYXPANEL
-    end
-    
+        
     function test_updateNarrative(testCase)
       ai = testCase.alyx(1);
       url = ['sessions/' testCase.eids{1}];

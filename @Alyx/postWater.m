@@ -12,7 +12,7 @@ function wa = postWater(obj, mouseName, amount, thisDate, type, session)
 %                   administered.  Empty (default) indicates 'top-up'
 %                   supplement.
 %
-%   On succsess, function returns a struct of the new water administration
+%   On success, function returns a struct of the new water administration
 %   record:
 %    date_time: '2018-02-07T11:18:31Z'
 %    type: 'Hydrogel'

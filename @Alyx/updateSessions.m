@@ -66,6 +66,7 @@ for s = 1:length(subjects)
   subject = subjects{s};
   disp(['<strong>Processing ' subject '</strong>'])
   expRefs = dat.listExps(subject);
+  if isempty(expRefs); continue; end
   expRefs = expRefs(cellfun(@(f)exist(f, 'file')~=0,...
     dat.expFilePath(expRefs, 'block', 'master')));
   if register

@@ -11,7 +11,7 @@ if nargin < 2; overwrite = false; end
 
 expPath = dat.expPath(data.expRef, 'main', 'master');
 expDef = getOr(data, {'expDef' 'expType'});
-namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
+namespace = iff(endsWith(expDef, 'ibl.m'), '_ibl_', '_misc_');
 iff(strcmp(expDef, 'ChoiceWorld'), @()extractChoiceWorld(data), @()extractSignals(data));
 
 % Collate paths

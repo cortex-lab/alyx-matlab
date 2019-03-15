@@ -125,6 +125,9 @@ for s = 1:length(subjects)
               isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_trials)
             sessionData(1).n_trials = numTrials;
           end
+          if isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).end_time)
+            sessionData(1).end_time = ai.datestr(block.endDateTime);
+          end
           if ~isempty(sessionData)
             ai.postData(sessions(strcmp(expRefs{b}, alyxExpRefs)).url, sessionData, 'patch');
           end

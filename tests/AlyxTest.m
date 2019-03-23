@@ -24,6 +24,16 @@ classdef AlyxTest < matlab.unittest.TestCase
   end
   
   methods (TestClassSetup)
+    function checkFixtures(~)
+      % Check we're using test paths file
+      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
+      % Check temp mainRepo folder is empty.  An extra safe measure as we
+      % don't won't to delete important folders by accident!
+      mainRepo = getOr(dat.paths, 'mainRepository');
+      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+        'Test experiment repo not empty.  Please set another path or manual empty folder');
+    end
+    
     function createObject(testCase)
       % Create a number of Alyx instances and log them in
       testCase.queueDir = [fileparts(mfilename('fullpath')) filesep 'data'];

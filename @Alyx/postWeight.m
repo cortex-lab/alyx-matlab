@@ -29,5 +29,5 @@ else % Already in the correct format
 end
 
 d.subject = subject;
-d.weight = weight;
+d.weight = round(weight, 4, 'significant');
 w = postData(obj, 'weighings/', d);

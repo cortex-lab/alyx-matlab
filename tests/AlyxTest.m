@@ -1,7 +1,5 @@
 classdef AlyxTest < matlab.unittest.TestCase
-  % Test adapted from Oliver Winter's <a
-  % href="https://github.com/int-brain-lab/ibllib/blob/master/matlab/tests/ibllib/test_AlyxClient.m">AlyxClient
-  % test</a>
+  % Test adapted from Oliver Winter's AlyxClient test
   %
   properties % Test objects
     % Alyx Instance
@@ -38,6 +36,10 @@ classdef AlyxTest < matlab.unittest.TestCase
       % Create a number of Alyx instances and log them in
       testCase.queueDir = [fileparts(mfilename('fullpath')) filesep 'data'];
       AlyxTest.resetQueue(testCase.queueDir); % Ensure empty before logging in
+      
+      testCase.water_types = {'Water', 'Water 15% Sucrose', ...
+        'Citric Acid Water 2%', 'Hydrogel 5% Citric Acid', ...
+        'Water 10% Sucrose', 'Water 2% Citric Acid', 'Hydrogel'};
       
       ai = Alyx('','');
       ai.BaseURL = testCase.base;
@@ -86,7 +88,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       % accurate
       ai = testCase.alyx(1);
       testCase.verifyTrue(isequal(ai.listSubjects, ...
-        [{'default'} testCase.subjects]), 'Subject list mismatch')
+        [{'default'}; testCase.subjects]), 'Subject list mismatch')
       
       % Test behaviour of empty list
       testCase.verifyTrue(strcmp('default', ai.listSubjects(1,1)),...
@@ -129,13 +131,13 @@ classdef AlyxTest < matlab.unittest.TestCase
         'MATLAB:webservices:HTTP404StatusCodeError');
       
       % Test invalid token
-      ai = Alyx('miles', 'bAdT0k3N');
+      ai = Alyx('test_user', 'bAdT0k3N');
       ai.Headless = true;
       testCase.verifyWarning(@()ai.getData('water-type'),...
         'Alyx:getData:InvalidToken');
       
       % Test timeout
-      % TODO
+      % TODO create webread mock for timeout test
       % Test incorrect URL
       % ai.BaseURL = 'https://notaurl';
       % FIXME what should be behaviour here?
@@ -143,7 +145,6 @@ classdef AlyxTest < matlab.unittest.TestCase
     
     function test_getSessions(testCase)
       % tests automatic replacement of base_url or not
-      % TODO
       ai = testCase.alyx(1);
       sess1 = ai.getSessions('flowers', 'uuid', testCase.eids{2});
       fullURL = ai.makeEndpoint(['sessions/' testCase.eids{2}]);
@@ -202,12 +203,10 @@ classdef AlyxTest < matlab.unittest.TestCase
       expected = ['{"date_time":"2018-12-06T00:00:00","water_type":"Hydrogel","subject":"'...
         subject '","water_administered":3.142}'];
       testCase.verifyMatches(jsonData, expected, 'JSON data incorrect')
-      
-      % TODO Session post
     end
             
     function test_getFile(testCase)
-      %TODO
+      %TODO Add test for getFile method
     end
     
     function test_postWeight(testCase)
@@ -267,7 +266,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       testCase.verifyEqual(seq, 2, 'Experiment sequence mismatch');
       testCase.verifyMatches(url, [ai.BaseURL '/sessions'], 'Incorrect URL');
       
-      % TODO test headless
+      % TODO test newExp when headless
     end
     
     function test_patch(testCase)
@@ -312,7 +311,7 @@ classdef AlyxTest < matlab.unittest.TestCase
     end
     
     function test_registerFile(testCase)
-      %TODO
+      %TODO Write test for file registration
     end
     
     function test_datestr_datenum(testCase)

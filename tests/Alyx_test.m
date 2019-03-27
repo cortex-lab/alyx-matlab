@@ -1,6 +1,8 @@
-classdef AlyxTest < matlab.unittest.TestCase
+classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
+    [fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture
+    Alyx_test < matlab.unittest.TestCase
   % Test adapted from Oliver Winter's AlyxClient test
-  %
+
   properties % Test objects
     % Alyx Instance
     alyx
@@ -24,7 +26,7 @@ classdef AlyxTest < matlab.unittest.TestCase
   methods (TestClassSetup)
     function checkFixtures(~)
       % Check we're using test paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
+      assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
       mainRepo = getOr(dat.paths, 'mainRepository');
@@ -34,8 +36,8 @@ classdef AlyxTest < matlab.unittest.TestCase
     
     function createObject(testCase)
       % Create a number of Alyx instances and log them in
-      testCase.queueDir = [fileparts(mfilename('fullpath')) filesep 'data'];
-      AlyxTest.resetQueue(testCase.queueDir); % Ensure empty before logging in
+      testCase.queueDir = fullfile(fileparts(mfilename('fullpath')),'fixtures','data');
+      Alyx_test.resetQueue(testCase.queueDir); % Ensure empty before logging in
       
       testCase.water_types = {'Water', 'Water 15% Sucrose', ...
         'Citric Acid Water 2%', 'Hydrogel 5% Citric Acid', ...
@@ -48,13 +50,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
         sprintf('Failed to log into %s', ai.BaseURL))
       testCase.alyx = ai;
-      
-      % Set up subject experiment tree
-      import matlab.unittest.fixtures.PathFixture
-      f = testCase.applyFixture(PathFixture(fileparts(mfilename('fullpath'))));
-      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
-      disp(['Added to path: ' f.Folder])
-      
+            
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(exist(dataRepo, 'file') == 0 && exist(dataRepo, 'dir') == 0,...
         'Test data direcotry already exists.  Please remove and rerun tests')
@@ -75,7 +71,7 @@ classdef AlyxTest < matlab.unittest.TestCase
   
   methods(TestMethodTeardown)
     function methodTaredown(testCase)
-      AlyxTest.resetQueue(testCase.queueDir);
+      Alyx_test.resetQueue(testCase.queueDir);
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
     end
@@ -152,13 +148,13 @@ classdef AlyxTest < matlab.unittest.TestCase
       testCase.verifyEqual(sess1,sess2);
       
       % TODO Other inputs and features!
-%       'start_date', datestr(now, 'yyyy-mm-dd'));
-%       addParameter(p, 'end_date', datestr(now, 'yyyy-mm-dd'));
-%       addParameter(p, 'starts_after', '2016-01-01', 'PartialMatchPriority', 2);
-%       addParameter(p, 'starts_before', datestr(now, 'yyyy-mm-dd'), 'PartialMatchPriority', 3);
-%       addParameter(p, 'ends_before', datestr(now+1, 'yyyy-mm-dd'), 'PartialMatchPriority', 2);
-%       addParameter(p, 'ends_after', '2016-01-01', 'PartialMatchPriority', 3);
-%       addParameter(p, 'dataset_types', '')
+      %       'start_date', datestr(now, 'yyyy-mm-dd'));
+      %       addParameter(p, 'end_date', datestr(now, 'yyyy-mm-dd'));
+      %       addParameter(p, 'starts_after', '2016-01-01', 'PartialMatchPriority', 2);
+      %       addParameter(p, 'starts_before', datestr(now, 'yyyy-mm-dd'), 'PartialMatchPriority', 3);
+      %       addParameter(p, 'ends_before', datestr(now+1, 'yyyy-mm-dd'), 'PartialMatchPriority', 2);
+      %       addParameter(p, 'ends_after', '2016-01-01', 'PartialMatchPriority', 3);
+      %       addParameter(p, 'dataset_types', '')
     end
     
     function test_postWater(testCase)
@@ -197,14 +193,14 @@ classdef AlyxTest < matlab.unittest.TestCase
       % Check post was saved
       savedPost = dir([ai.QueueDir filesep '*.post']);
       testCase.assertNotEmpty(savedPost, 'Post not saved')
-      fn = @()AlyxTest.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
+      fn = @()Alyx_test.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
       [jsonData, endpnt] = testCase.fatalAssertWarningFree(fn);
       testCase.verifyMatches(endpnt, 'water-administrations', 'Incorrect endpoint')
       expected = ['{"date_time":"2018-12-06T00:00:00","water_type":"Hydrogel","subject":"'...
         subject '","water_administered":3.142}'];
       testCase.verifyMatches(jsonData, expected, 'JSON data incorrect')
     end
-            
+    
     function test_getFile(testCase)
       %TODO Add test for getFile method
     end
@@ -229,7 +225,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       
       % Check invalid volume error
       testCase.verifyError(@()ai.postWeight(0, subject), 'Alyx:PostWeight:InvalidWeight');
-
+      
       % Test behaviour when logged out
       % When headless or not connected, should save post as JSON and
       % issue warning
@@ -239,7 +235,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       % Check post was saved
       savedPost = dir([ai.QueueDir filesep '*.post']);
       testCase.assertNotEmpty(savedPost, 'Post not saved')
-      fn = @()AlyxTest.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
+      fn = @()Alyx_test.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
       [jsonData, endpnt] = testCase.fatalAssertWarningFree(fn);
       testCase.verifyEqual(endpnt, 'weighings/', 'Incorrect endpoint')
       expected = ['{"date_time":"2018-12-06T00:00:00","subject":"' ...
@@ -259,7 +255,7 @@ classdef AlyxTest < matlab.unittest.TestCase
       testCase.verifyMatches(url, [ai.BaseURL '/sessions'],  'Incorrect URL');
       paramsSaved = exist(dat.expFilePath(ref1, 'parameters', 'master'), 'file');
       testCase.verifyTrue(paramsSaved == 2)
-
+      
       [ref1, seq, url] = testCase.verifyWarning(newExp_fn, wrnID);
       ref2 = strjoin({datestr(now, 'yyyy-mm-dd'),'2',subject},'_');
       testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch');
@@ -289,7 +285,7 @@ classdef AlyxTest < matlab.unittest.TestCase
         'Alyx:flushQueue:NotConnected');
       testCase.verifyEqual(status, 000, 'Unexpected status code');
     end
-        
+    
     function test_updateNarrative(testCase)
       ai = testCase.alyx(1);
       url = ['sessions/' testCase.eids{1}];

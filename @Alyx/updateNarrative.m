@@ -65,9 +65,8 @@ else
   narrative = deblank(strrep(mat2DStrTo1D(comments), newline, '\n'));
   if iscell(narrative); narrative = narrative{:}; end % Make sure not a cell
   try
-    session = obj.getData(endpoint); % Get subject name from endpoint (FIXME: subject is a required field)
-    data = struct('subject', session.subject, 'narrative', narrative);
-    data = obj.postData(endpoint, data, 'patch'); % Update the record
+    % Update the record
+    data = obj.postData(endpoint, struct('narrative', narrative), 'patch');
     if ~isempty(data)
         narrative = strrep(data.narrative, '\n', newline);
     else

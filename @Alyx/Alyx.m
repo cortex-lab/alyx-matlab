@@ -119,7 +119,7 @@ classdef Alyx
     % Post a water value to a given subject in Alyx
     wa = postWater(obj, mouseName, amount, thisDate, type, session)
     % Post a subject's weight to Alyx
-    w = postWeight(obj, weight, subject)
+    w = postWeight(obj, weight, subject, thisDate)
     % Create a new unique experiment in the database
     [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
     % Update an Alyx session or subject narrative

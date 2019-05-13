@@ -154,7 +154,7 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
     d.procedures = {'Behavior training/tasks'};
     d.narrative = 'auto-generated session';
     d.start_time = expDate;
-    if ~isempty(expVersion); d.taskProtocol = expVersion; end
+    if ~isempty(expVersion); d.task_protocol = expVersion; end
     d.type = 'Experiment';
     d.parent_session = latest_base.url;
     d.number = expSeq;

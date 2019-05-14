@@ -13,6 +13,7 @@ function [sessions, eids] = getSessions(obj, varargin)
 %     sessions = ai.getSessions('lab', 'cortexlab', ...
 %                 'date_range', datenum([2018 8 28 ; 2018 8 31]))
 %     sessions = ai.getSessions('data', {'clusters.probes', 'eye.blink'})
+%     [~, eids] = ai.getSessions(expRefs)
 %
 % See also ALYX.UPDATESESSIONS, ALYX.GETDATA
 

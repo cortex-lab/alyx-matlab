@@ -2,7 +2,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     [fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture
     Alyx_test < matlab.unittest.TestCase
   % Test adapted from Oliver Winter's AlyxClient test
-
+  
   properties % Test objects
     % Alyx Instance
     alyx
@@ -17,7 +17,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   end
   
   properties % Validation data
-    subjects = {'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
+    subjects = {'IBL_46'; 'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
     eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
       '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
@@ -50,7 +50,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
         sprintf('Failed to log into %s', ai.BaseURL))
       testCase.alyx = ai;
-            
+      
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(exist(dataRepo, 'file') == 0 && exist(dataRepo, 'dir') == 0,...
         'Test data direcotry already exists.  Please remove and rerun tests')
@@ -79,7 +79,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   
   methods(Test)
     
-    function test_listsubjects(testCase)
+    function test_listSubjects(testCase)
       % Test that the subject list returned by the test database is
       % accurate
       ai = testCase.alyx(1);
@@ -140,21 +140,95 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_getSessions(testCase)
-      % tests automatic replacement of base_url or not
       ai = testCase.alyx(1);
-      sess1 = ai.getSessions('flowers', 'uuid', testCase.eids{2});
-      fullURL = ai.makeEndpoint(['sessions/' testCase.eids{2}]);
-      sess2 = ai.getSessions('flowers', 'uuid', fullURL);
-      testCase.verifyEqual(sess1,sess2);
+      % Test subject search
+      sess = ai.getSessions('subject', 'flowers');
+      testCase.assertTrue(~isempty(sess), 'No sessions returned');
+      testCase.verifyTrue(strcmp({sess.subject},'flowers'), 'Failed to filter by subject')
       
-      % TODO Other inputs and features!
-      %       'start_date', datestr(now, 'yyyy-mm-dd'));
-      %       addParameter(p, 'end_date', datestr(now, 'yyyy-mm-dd'));
-      %       addParameter(p, 'starts_after', '2016-01-01', 'PartialMatchPriority', 2);
-      %       addParameter(p, 'starts_before', datestr(now, 'yyyy-mm-dd'), 'PartialMatchPriority', 3);
-      %       addParameter(p, 'ends_before', datestr(now+1, 'yyyy-mm-dd'), 'PartialMatchPriority', 2);
-      %       addParameter(p, 'ends_after', '2016-01-01', 'PartialMatchPriority', 3);
-      %       addParameter(p, 'dataset_types', '')
+      % Test eid search
+      [sess, eid] = ai.getSessions(testCase.eids);
+      testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
+      testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
+      
+      % Test lab search
+      sess = ai.getSessions('lab', 'cortexlab');
+      testCase.verifyTrue(all(strcmp({sess.lab},'cortexlab')), 'Failed to filter by lab')
+      
+      % Test user search
+      sess = ai.getSessions('user', 'olivier');
+      correct = cellfun(@(usr)any(strcmp(usr,'olivier')), {sess.users});
+      testCase.verifyTrue(all(correct), 'Failed to filter by users')
+      
+      % Test dataset search
+      sess = ai.getSessions('data', {'clusters.probes', 'eye.blink'});
+      correct = cellfun(...
+        @(s)any(strcmp({s.dataset_type},'clusters.probes')) && ...
+        any(strcmp({s.dataset_type},'eye.blink')), ...
+        {sess.data_dataset_session_related});
+      testCase.verifyTrue(all(correct), 'Failed to filter by dataset_type')
+      
+      % Test eid and search combo
+      [sess, eid] = ai.getSessions(testCase.eids{1}, ...
+        'lab', 'zadorlab', 'end_date', '2018-07-13');
+      testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
+      testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
+
+      % Test date_range search
+      testRange = datenum([2019 1 1 ; 2019 5 31]);
+      sess = ai.getSessions('date_range', testRange);
+      dates = ai.datenum({sess.start_time});
+      testCase.verifyTrue(all(dates > testRange(1) & dates < testRange(2)), ...
+        'Failed to filter by date_range')
+      
+      % Test number search
+      sess = ai.getSessions('number', 2);
+      testCase.verifyTrue(all([sess.number]==2), 'Failed to filter by number')
+      
+      % Test expRef search
+      refs = dat.constructExpRef({'clns0730','flowers'}, {'2018-08-24','2018-07-13'}, {1,1});
+      [sess, eid] = ai.getSessions(refs);
+      testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
+      testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
+      
+      % Test start_date search
+      testDate = datenum('2018-07-13');
+      sess = ai.getSessions('start_date', testDate);
+      correct = floor(ai.datenum({sess.start_time})) == testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by start_date')
+      
+      % Test end_date search
+      testDate = datenum('2018-07-13');
+      sess = ai.getSessions('end_date', testDate);
+      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by end_date')
+      correct = floor(ai.datenum({sess.end_time})) == testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by end_date')
+      
+      % Test starts_before search
+      testDate = datenum('2019-01-01');
+      sess = ai.getSessions('starts_before', testDate);
+      correct = ai.datenum({sess.start_time}) < testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by starts_before')
+      
+      % Test ends_before search
+      testDate = datenum('2018-07-13');
+      sess = ai.getSessions('ends_before', testDate);
+      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by ends_before')
+      correct = ai.datenum({sess.end_time}) < testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by ends_before')
+      
+      % Test starts_after search
+      testDate = datenum('2019-01-01');
+      sess = ai.getSessions('starts_after', testDate);
+      correct = ai.datenum({sess.start_time}) > testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by starts_after')
+      
+      % Test ends_after search
+      testDate = datenum('2018-07-13');
+      sess = ai.getSessions('ends_after', testDate);
+      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by ends_after')
+      correct = ai.datenum({sess.end_time}) > testDate;
+      testCase.verifyTrue(all(correct), 'Failed to filter by ends_after')
     end
     
     function test_postWater(testCase)

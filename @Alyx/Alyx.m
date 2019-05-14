@@ -111,7 +111,7 @@ classdef Alyx
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
     % Query the database for a list of sessions
-    sessions = getSessions(obj, varargin)
+    [sessions, eids] = getSessions(obj, varargin)
     % Lists recorded subjects
     subjects = listSubjects(obj, stock, alive, sortByUser)
     % Returns the file path where you can find a specified file

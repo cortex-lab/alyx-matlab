@@ -15,10 +15,14 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   end
   
   properties % Validation data
-    subjects = {'IBL_46'; 'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
+    subjects = {'IBL_46'; 'ZM_1085'; 'ZM_1087'; ...
+      'ZM_1094'; 'ZM_1098'; 'ZM_1150'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
     eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
       '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
+    dataset_id = 'c41dd877-d511-42cb-90a3-01bb19297117'
+    file_record_ids = {'00c3df4f-99ab-4cc0-b305-b508bcfb07ab',...
+      '0b747a70-1309-4f84-98f6-5f3aa9815b4c'}
   end
   
   methods (TestClassSetup)
@@ -27,8 +31,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
-      mainRepo = getOr(dat.paths, 'mainRepository');
-      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+      mainRepo = dat.reposPath('main','master');
+      assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
     end
     
@@ -48,7 +52,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         sprintf('Failed to log into %s', ai.BaseURL))
       testCase.alyx = ai;
       
-      dataRepo = getOr(dat.paths, 'mainRepository');
+      dataRepo = dat.reposPath('main','master');
       assert(exist(dataRepo, 'file') == 0 && exist(dataRepo, 'dir') == 0,...
         'Test data direcotry already exists.  Please remove and rerun tests')
       assert(mkdir(dataRepo), 'Failed to create test data directory');
@@ -60,7 +64,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.fatalAssertTrue(all([testCase.alyx.Headless]==0) && ...
         all([testCase.alyx.IsLoggedIn]==1),...
         'Not all test instances connected')
-      dataRepo = getOr(dat.paths, 'mainRepository');
+      dataRepo = dat.reposPath('main','master');
       success = cellfun(@(d)mkdir(d), fullfile(dataRepo, testCase.subjects));
       assert(all(success), 'Failed to create tesst subject folders')
     end
@@ -69,8 +73,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   methods(TestMethodTeardown)
     function methodTaredown(testCase)
       Alyx_test.resetQueue(testCase.queueDir);
-      dataRepo = getOr(dat.paths, 'mainRepository');
-      assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
+      rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), dat.reposPath('main'));
     end
   end
   
@@ -86,6 +90,17 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test behaviour of empty list
       testCase.verifyTrue(strcmp('default', ai.listSubjects(1,1)),...
         'Subject list mismatch')
+      
+      % Test functionality when logged out
+      ai = ai.logout;
+      testCase.assertTrue(~ai.IsLoggedIn, 'Failed to logout')
+      testCase.verifyTrue(isequal(ai.listSubjects, ...
+        testCase.subjects), 'Subject list mismatch')
+      % Add new subject to repository to be sure
+      status = mkdir(fullfile(dat.reposPath('main','m'), 'newSubject'));
+      testCase.assertTrue(status, 'Failed to create new subject folder')
+      testCase.verifyTrue(isequal(ai.listSubjects, ...
+        [testCase.subjects; {'newSubject'}]), 'Subject list mismatch');
     end
     
     function test_makeEndPoint(testCase)
@@ -246,7 +261,34 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_getFile(testCase)
-      %TODO Add test for getFile method
+      ai = testCase.alyx;
+      % Test paths from dataset eid
+      [fullPath, exist] = ai.getFile(testCase.dataset_id);
+      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
+        'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
+      testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
+      testCase.verifyEqual(numel(fullPath), numel(exist));
+      
+      % Test using full URL
+      url = ai.makeEndpoint(['datasets/', testCase.dataset_id]);
+      fullPath = ai.getFile(url);
+      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
+        'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
+      testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
+      
+      % Test file record
+      [fullPath, exist] = ai.getFile(testCase.file_record_ids{1}, 'file');
+      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
+        'clns0730/2018-08-24/1/clusters.probes.npy'];
+      testCase.verifyEqual(fullPath, expected, 'Unexpected path returned')
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      
+      % Test cell array
+      [fullPath, exist] = ai.getFile(testCase.file_record_ids, 'file');
+      expected = {'clusters.probes.npy', 'clusters.depths.npy'};
+      testCase.verifyTrue(all(cellfun(@endsWith, fullPath, expected)), ...
+        'Unexpected paths returned')
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
     end
     
     function test_postWeight(testCase)

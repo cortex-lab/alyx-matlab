@@ -48,11 +48,8 @@ if obj.IsLoggedIn % user provided an alyx instance
     subjects = [{'default'}, subjNames]';
   end
 else
-  % The master 'main' repository is the reference for the existence of
+  % The remote 'main' repositories are the reference for the existence of
   % experiments, as given by the folder structure
-  mainPath = dat.reposPath('main', 'master');
-  
-  dirs = file.list(mainPath, 'dirs');
-  subjects = setdiff(dirs, {'@Recently-Snapshot', '@Recycle'}); %exclude the trash directories
+  subjects = dat.listSubjects;
 end
 end

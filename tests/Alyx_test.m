@@ -8,8 +8,6 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     alyx
     % Test queue directory
     queueDir
-    % Base URLs for various tests
-    base = 'https://test.alyx.internationalbrainlab.org'
     % Login names for various tests
     uname = 'test_user'
     % Login passwords for various tests
@@ -44,7 +42,6 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Water 10% Sucrose', 'Water 2% Citric Acid', 'Hydrogel'};
       
       ai = Alyx('','');
-      ai.BaseURL = testCase.base;
       ai.QueueDir = testCase.queueDir;
       ai = ai.login(testCase.uname, testCase.pwd);
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
@@ -116,7 +113,16 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(base1, base2, 'BaseURL sanitizer test failed');
     end
     
+    function test_login(testCase)
+      ai = testCase.alyx(1);
+      ai = ai.logout;
+      ai.Headless = true;
+      testCase.verifyWarning(@()ai.login('test_user', 'bAdT0k3N'), ...
+        'Alyx:LoginFail:BadCredentials')
+    end
+    
     function test_getData(testCase)
+      % TODO create webread mock for timeout test
       % Test retrieval from water-type endpoint
       ai = testCase.alyx(1);
       testCase.verifyTrue(isequal(testCase.water_types, ...
@@ -132,11 +138,11 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyWarning(@()ai.getData('water-type'),...
         'Alyx:getData:InvalidToken');
       
-      % Test timeout
-      % TODO create webread mock for timeout test
       % Test incorrect URL
-      % ai.BaseURL = 'https://notaurl';
-      % FIXME what should be behaviour here?
+      ai = testCase.alyx(1);
+      ai.BaseURL = 'https://notaurl';
+      testCase.verifyWarning(@()ai.getData('water-type'),...
+        'MATLAB:webservices:UnknownHost');
     end
     
     function test_getSessions(testCase)
@@ -170,7 +176,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       % Test eid and search combo
       [sess, eid] = ai.getSessions(testCase.eids{1}, ...
-        'lab', 'zadorlab', 'end_date', '2018-07-13');
+        'lab', 'zadorlab', 'date', '2018-07-13');
       testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
       testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
 
@@ -181,54 +187,18 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyTrue(all(dates > testRange(1) & dates < testRange(2)), ...
         'Failed to filter by date_range')
       
+      % Ensure there's a session with number 2
+      d.number = 2;
+      ai.postData(['sessions/' testCase.eids{1}], d, 'patch');
       % Test number search
       sess = ai.getSessions('number', 2);
       testCase.verifyTrue(all([sess.number]==2), 'Failed to filter by number')
       
       % Test expRef search
-      refs = dat.constructExpRef({'clns0730','flowers'}, {'2018-08-24','2018-07-13'}, {1,1});
+      refs = dat.constructExpRef({'clns0730','flowers'}, {'2018-08-24','2018-07-13'}, {2,1});
       [sess, eid] = ai.getSessions(refs);
       testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
       testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
-      
-      % Test start_date search
-      testDate = datenum('2018-07-13');
-      sess = ai.getSessions('start_date', testDate);
-      correct = floor(ai.datenum({sess.start_time})) == testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by start_date')
-      
-      % Test end_date search
-      testDate = datenum('2018-07-13');
-      sess = ai.getSessions('end_date', testDate);
-      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by end_date')
-      correct = floor(ai.datenum({sess.end_time})) == testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by end_date')
-      
-      % Test starts_before search
-      testDate = datenum('2019-01-01');
-      sess = ai.getSessions('starts_before', testDate);
-      correct = ai.datenum({sess.start_time}) < testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by starts_before')
-      
-      % Test ends_before search
-      testDate = datenum('2018-07-13');
-      sess = ai.getSessions('ends_before', testDate);
-      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by ends_before')
-      correct = ai.datenum({sess.end_time}) < testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by ends_before')
-      
-      % Test starts_after search
-      testDate = datenum('2019-01-01');
-      sess = ai.getSessions('starts_after', testDate);
-      correct = ai.datenum({sess.start_time}) > testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by starts_after')
-      
-      % Test ends_after search
-      testDate = datenum('2018-07-13');
-      sess = ai.getSessions('ends_after', testDate);
-      testCase.assertTrue(~any(emptyElems({sess.end_time})), 'Failed to filter by ends_after')
-      correct = ai.datenum({sess.end_time}) > testDate;
-      testCase.verifyTrue(all(correct), 'Failed to filter by ends_after')
     end
     
     function test_postWater(testCase)
@@ -339,7 +309,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % TODO test newExp when headless
     end
     
-    function test_patch(testCase)
+    function test_postData(testCase)
+      % NB: Standard post tested in other test methods.  DELETE and PUT
+      % cannot be tested as these are no longer not allowed by the API.
       % Test PATCH method for sessions endpoint
       ai = testCase.alyx(1);
       url = ['sessions/' testCase.eids{1}];
@@ -353,6 +325,13 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(d.n_trials, d2.n_trials, 'n_trials not set');
       testCase.verifyEqual(d.n_correct_trials, d2.n_correct_trials, ...
         'n_correct_trials not set');
+
+      % Test warnings
+      [d2, status] = testCase.verifyWarning(@()ai.postData(url, d), ...
+        'Alyx:flushQueue:BadUploadCommand');
+      testCase.verifyEqual(status, 405, 'Unexpected status code')
+      testCase.verifyEmpty(d2, 'Unexpected data returned on error')
+      
       % Test behaviour when not connected
       ai = ai.logout;
       [~, status] = testCase.verifyWarning(@()ai.postData(url, d, 'patch'), ...

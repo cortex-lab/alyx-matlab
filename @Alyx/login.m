@@ -11,13 +11,13 @@ function obj = login(obj, presetUsername, presetPassword)
 
 % 2017 -- created
 
-if nargin ~= 1 && obj.Headless % Don't prompt user if headless flag set
+if nargin ~= 3 && obj.Headless % Don't prompt user if headless flag set
   warning('Alyx:HeadlessLoginFail','Unable to log in; dialogs supressed')
   return
 end
 
-while ~obj.IsLoggedIn && ~obj.Headless
-  if nargin < 2 % No preset username
+while ~obj.IsLoggedIn
+  if nargin < 2 || isempty(presetUsername) % no preset user
     prompt = {'Alyx username:'};
     dlg_title = 'Alyx login';
     num_lines = 1;
@@ -34,7 +34,7 @@ while ~obj.IsLoggedIn && ~obj.Headless
     username = presetUsername;
   end
   
-  if nargin < 3
+  if nargin < 3 || isempty(presetPassword)
     pwd = passwordUI();
   else
     pwd = presetPassword;
@@ -51,21 +51,14 @@ while ~obj.IsLoggedIn && ~obj.Headless
       % JSONlab not installed
       error(ex.identifier, 'JSONLab Toolbox required.  Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.',...
         'https://uk.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files')
-    elseif ~any(strcmp({products.Name}, 'missing-http'))
-      % missing-http not installed
-      error(ex.identifier, 'missing-http required.  Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.',...
-        'https://github.com/psexton/missing-http/releases')
-    elseif contains(ex.message, 'psexton')
-      % onLoad not run
-      if ~isempty(which('onLoad'))
-        onLoad
-        warning('Alyx:MissingPath','Please add ''onLoad'' to MATLAB''s <a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file')
-      else % onLoad not in path
-        error(ex.identifier, ['Please locate ''onLoad'' (missing-http) function and add to MATLAB''s '...
-          '<a href="matlab: opentoline(which(''startup.m''),1,1)">startup.m</a> file'])
-      end
     elseif contains(ex.message, 'credentials')||strcmpi(ex.message, 'Bad Request')
-      disp('Unable to log in with provided credentials.')
+      if obj.Headless == true
+        warning('Alyx:LoginFail:BadCredentials', 'Unable to log in with provided credentials.')
+        return
+      else
+        disp('Unable to log in with provided credentials.')
+        presetPassword = [];
+      end
     elseif contains(ex.message, 'password')&&contains(ex.message, 'blank')
       disp('Password may not be left blank')
     else % Another error altogether

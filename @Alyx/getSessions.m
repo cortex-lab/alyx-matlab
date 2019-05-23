@@ -12,27 +12,22 @@ function [sessions, eids] = getSessions(obj, varargin)
 %                 'subject', {'flowers', 'ZM_307'})
 %     sessions = ai.getSessions('lab', 'cortexlab', ...
 %                 'date_range', datenum([2018 8 28 ; 2018 8 31]))
+%     sessions = ai.getSessions('date', now)
 %     sessions = ai.getSessions('data', {'clusters.probes', 'eye.blink'})
 %     [~, eids] = ai.getSessions(expRefs)
 %
 % See also ALYX.UPDATESESSIONS, ALYX.GETDATA
 
 p = inputParser;
-validationFcn = @(x)(iscellstr(x) || isstring(x) || ischar(x)) ...
-  && mod(length(varargin),2); % Uneven num args when eid is first input
-addOptional(p, 'ref', [], validationFcn);
+if mod(length(varargin),2) % Uneven num args when ref is first input
+  validationFcn = @(x)(iscellstr(x) || isstring(x) || ischar(x));
+  addOptional(p, 'ref', [], validationFcn);
+end
 % Parse Name-Value paired args
 addParameter(p, 'subject', '');
 addParameter(p, 'users', '');
 addParameter(p, 'lab', '');
-addParameter(p, 'date_range', '', ...
-  @(x)ischar(x) || isstring(x) || numel(x)==2, 'PartialMatchPriority', 2);
-addParameter(p, 'start_date', datestr(now, 'yyyy-mm-dd'));
-addParameter(p, 'end_date', datestr(now, 'yyyy-mm-dd'));
-addParameter(p, 'starts_after', '2016-01-01', 'PartialMatchPriority', 2);
-addParameter(p, 'starts_before', datestr(now, 'yyyy-mm-dd'), 'PartialMatchPriority', 3);
-addParameter(p, 'ends_before', datestr(now+1, 'yyyy-mm-dd'), 'PartialMatchPriority', 2);
-addParameter(p, 'ends_after', '2016-01-01', 'PartialMatchPriority', 3);
+addParameter(p, 'date_range', '', 'PartialMatchPriority', 2);
 addParameter(p, 'dataset_types', '');
 addParameter(p, 'number', 1);
 
@@ -49,14 +44,15 @@ queries(1:2:end) = names;
 queries(2:2:end) = values;
 
 % Get sessions for specified refs
-if ~isempty(p.Results.ref)
+if isfield(p.Results, 'ref') && ~isempty(p.Results.ref)
   refs = ensureCell(p.Results.ref);
   parsedRef = regexp(refs, dat.expRefRegExp, 'names');
   sessFromRef = @(ref)obj.getData('sessions/', ...
-    'subject', ref.subject, 'start_date', ref.date, 'number', ref.seq);
+    'subject', ref.subject, 'date_range', [ref.date ',' ref.date], 'number', ref.seq);
   isRef = ~emptyElems(parsedRef);
   sessions = [mapToCell(@(eid)obj.getData(['sessions/' eid]), refs(~isRef))...
     mapToCell(sessFromRef, parsedRef(isRef))];
+  sessions = rmEmpty(sessions);
 end
 
 % Do search for other queries
@@ -70,8 +66,16 @@ end
 
   function value = processValue(name)
     % If the value is a datenum, convert to string
-    if any(contains(name,{'start', 'end', 'date'})) && isnumeric(p.Results.(name))
-      value = string(datestr(p.Results.(name), 'yyyy-mm-dd'));
+    if contains(name,'date')
+      % Ensure date range
+      if isnumeric(p.Results.(name))
+        value = iff(numel(p.Results.(name))==1, repmat(p.Results.(name),1,2), p.Results.(name));
+        value = string(datestr(value, 'yyyy-mm-dd'));
+      elseif isscalar(string(p.Results.(name))) && ~any(p.Results.(name)==',')
+        value = repmat(string(p.Results.(name)),2,1);
+      else
+        error('Alyx:getSessions:InvalidInput', 'The value of ''date_range'' is invalid')
+      end
     else
       value = p.Results.(name);
     end

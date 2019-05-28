@@ -11,7 +11,7 @@ if nargin < 2; overwrite = false; end
 
 expPath = dat.expPath(data.expRef, 'main', 'master');
 expDef = getOr(data, {'expDef' 'expType'});
-namespace = iff(endsWith(expDef, 'choiceWorld.m'), '_ibl_', '_misc_');
+namespace = iff(endsWith(expDef, 'ibl.m'), '_ibl_', '_misc_');
 iff(strcmp(expDef, 'ChoiceWorld'), @()extractChoiceWorld(data), @()extractSignals(data));
 
 % Collate paths
@@ -267,7 +267,7 @@ filename = {files.name};
       alf.writeEventseries(expPath, [namespace 'trials.feedback'], feedbackTimes, [], []);
       % Reward
       rewardValues = feedbackType;
-      rewardValues(feedbackType==1) = rwds(rwds~=0);
+      rewardValues(feedbackType==1) = rwds(rwds~=0); %FIXME: Fails with extra rewards given e.g. 2018-10-15_1_SF180613 
       rewardValues(feedbackType==-1) = 0;
       writeNPY(rewardValues(:), fullfile(expPath, [namespace 'trials.rewardVolume.npy']));
     end

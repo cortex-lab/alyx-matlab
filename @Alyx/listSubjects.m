@@ -26,6 +26,9 @@ if obj.IsLoggedIn % user provided an alyx instance
   % get list of all living, non-stock mice from alyx
   s = obj.getData(sprintf('subjects?stock=%s&alive=%s', stock, alive));
   
+  % return on empty
+  if isempty(s); subjects = {'default'}; return; end
+  
   % get cell array of subject names
   subjNames = {s.nickname};
   

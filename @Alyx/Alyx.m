@@ -89,9 +89,15 @@ classdef Alyx
       if ~exist(qDir, 'dir'); mkdir(qDir); end
       obj.QueueDir = qDir;
     end
+    
+    function obj = set.BaseURL(obj, value)
+      % Drop trailing slash and ensure protocol defined
+      value = iff(value(1:4)~='http', ['https://' value], value);
+      obj.BaseURL = iff(value(end)=='/', value(1:end-1), value);
+    end
   end
   
-  methods
+  methods % define in the '@Alyx' folder
     % UI for retrieving a token from Alyx
     obj = login(obj, presetUsername, presetPassword)
     % Returns a complete Alyx Rest API endpoint URL
@@ -105,7 +111,7 @@ classdef Alyx
     % Recovers the full filepath of a file on the repository, given the datasetURL
     fullPath = getFile(obj, datasetURL)
     % Query the database for a list of sessions
-    sessions = getSessions(obj, varargin)
+    [sessions, eids] = getSessions(obj, varargin)
     % Lists recorded subjects
     subjects = listSubjects(obj, stock, alive, sortByUser)
     % Returns the file path where you can find a specified file
@@ -119,7 +125,7 @@ classdef Alyx
     % Post a water value to a given subject in Alyx
     wa = postWater(obj, mouseName, amount, thisDate, type, session)
     % Post a subject's weight to Alyx
-    w = postWeight(obj, weight, subject)
+    w = postWeight(obj, weight, subject, thisDate)
     % Create a new unique experiment in the database
     [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
     % Update an Alyx session or subject narrative
@@ -127,11 +133,6 @@ classdef Alyx
     % Return the instance of Alyx as a struct
     s = saveobj(obj)
     % Validate Base URL string
-    function obj = set.BaseURL(obj, value)
-      % Drop trailing slash and ensure protocol defined
-      value = iff(value(1:4)~='http', ['https://' value], value);
-      obj.BaseURL = iff(value(end)=='/', value(1:end-1), value);
-    end
   end
   
   methods (Access = private)

@@ -66,6 +66,7 @@ for s = 1:length(subjects)
   subject = subjects{s};
   disp(['<strong>Processing ' subject '</strong>'])
   expRefs = dat.listExps(subject);
+  if isempty(expRefs); continue; end
   expRefs = expRefs(cellfun(@(f)exist(f, 'file')~=0,...
     dat.expFilePath(expRefs, 'block', 'master')));
   if register
@@ -75,6 +76,8 @@ for s = 1:length(subjects)
     else
       alyxExpRefs = cellfun(@(a,b,c)dat.constructExpRef(a,ai.datenum(b),c), ...
         {sessions.subject}, {sessions.start_time}, {sessions.number}, 'uni', 0);
+      assert(length(unique(alyxExpRefs))==length(alyxExpRefs), ...
+        'Alyx:UpdateSessions:MultipleSessions', 'Multiple identical sessions found');
     end
   end
   for b = 1:length(expRefs)
@@ -122,6 +125,9 @@ for s = 1:length(subjects)
               isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).n_trials)
             sessionData(1).n_trials = numTrials;
           end
+          if isempty(sessions(strcmp(expRefs{b}, alyxExpRefs)).end_time)
+            sessionData(1).end_time = ai.datestr(block.endDateTime);
+          end
           if ~isempty(sessionData)
             ai.postData(sessions(strcmp(expRefs{b}, alyxExpRefs)).url, sessionData, 'patch');
           end
@@ -130,7 +136,8 @@ for s = 1:length(subjects)
       % Check that all ALF files exist and have been registered to Alyx
       files = dir(dat.expPath(expRefs{b},'main', 'master'));
       filenames = {files(cellfun(@alf.isvalid, {files.name})).name};
-      sessionFiles = {sessions(strcmp(expRefs{b}, alyxExpRefs)).data_dataset_session_related.name};
+      sessionFiles = [sessions(strcmp(expRefs{b}, alyxExpRefs)).data_dataset_session_related];
+      sessionFiles = iff(isempty(sessionFiles), '', @(){sessionFiles.name});
       toRegister = filenames(~ismember(filenames,sessionFiles));
       if ~isempty(toRegister)
         ai.registerFile(fullfile(files(1).folder, toRegister));

@@ -56,7 +56,7 @@ dirs = cellfun(@(p)exist(p,'dir')~=0, filePath); % For 2017b and later, we can u
 filePath = [filePath(~dirs); cellflat(cellfun(@dirPlus, filePath(dirs), 'uni', 0))];
 filePath = unique(filePath);
 
-% Get the DNS part of the file paths
+% Get the DNS part of the file paths  FIXME: Generalize expression
 hostname = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
 
 % Retrieve information from Alyx for file validation
@@ -79,7 +79,7 @@ else %%% FURTHER VALIDATION %%%
   end
   
   % Identify which repository the filePath is in
-  valid = cellfun(@(p)any(strcmp(p,repo_dns)), hostname);
+  valid = cellfun(@(p)~isempty(p)&&any(strcmp(p,repo_dns)), hostname);
   if ~all(valid)
     warning('Alyx:registerFile:InvalidRepoPath',...
       ['The following file path(s) not valid repository path(s):\n%s\n',...

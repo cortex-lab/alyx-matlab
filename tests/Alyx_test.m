@@ -86,6 +86,17 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test behaviour of empty list
       testCase.verifyTrue(strcmp('default', ai.listSubjects(1,1)),...
         'Subject list mismatch')
+      
+      % Test functionality when logged out
+      ai = ai.logout;
+      testCase.assertTrue(~ai.IsLoggedIn, 'Failed to logout')
+      testCase.verifyTrue(isequal(ai.listSubjects, ...
+        testCase.subjects), 'Subject list mismatch')
+      % Add new subject to repository to be sure
+      status = mkdir(fullfile(dat.reposPath('main','m'), 'newSubject'));
+      testCase.assertTrue(status, 'Failed to create new subject folder')
+      testCase.verifyTrue(isequal(ai.listSubjects, ...
+        [testCase.subjects; {'newSubject'}]), 'Subject list mismatch');
     end
     
     function test_makeEndPoint(testCase)

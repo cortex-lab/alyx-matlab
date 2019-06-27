@@ -102,8 +102,7 @@ superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams)
 try 
   % Generate JSON path and save
   jsonParams = obj2json(expParams);
-  jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
-      [expRef, '_parameters.json']);
+  jsonPath = dat.expFilePath(expRef, 'parameters', 'master', 'json');
   fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', jsonParams); fclose(fid);
   % Register our JSON parameter set to Alyx
   files = [files; {jsonPath}];

@@ -174,20 +174,21 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       % Test lab search
       sess = ai.getSessions('lab', 'cortexlab');
-      testCase.verifyTrue(all(strcmp({sess.lab},'cortexlab')), 'Failed to filter by lab')
+      expected = {'9fce256a5e3a', '929c3b11bccb', '3aae34df2191', ...
+        'b1e9ad1a2472', '9f193d8e59fd', '08f02a8a7f83', '8593e7c29b90', ...
+        'e6c03f217317', '1a718679ceeb', '1cbc013f355e', '368ab5503eff', 'f25b062938d5'};
+      actual = @(s)mapToCell(@(url)url(end-11:end),{s.url});
+      testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
       % Test user search
       sess = ai.getSessions('user', 'olivier');
-      correct = cellfun(@(usr)any(strcmp(usr,'olivier')), {sess.users});
-      testCase.verifyTrue(all(correct), 'Failed to filter by users')
+      expected = {'9f193d8e59fd', '08f02a8a7f83', ...
+        '8593e7c29b90', '89b82507028a', 'c34dc9004cf8'};
+      testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
       sess = ai.getSessions('data', {'clusters.probes', 'eye.blink'});
-      correct = cellfun(...
-        @(s)any(strcmp({s.dataset_type},'clusters.probes')) && ...
-        any(strcmp({s.dataset_type},'eye.blink')), ...
-        {sess.data_dataset_session_related});
-      testCase.verifyTrue(all(correct), 'Failed to filter by dataset_type')
+      testCase.verifyEqual(actual(sess), {'89b82507028a'}, 'Failed to filter by dataset_type')
       
       % Test eid and search combo
       [sess, eid] = ai.getSessions(testCase.eids{1}, ...

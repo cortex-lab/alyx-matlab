@@ -3,6 +3,12 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     Alyx_test < matlab.unittest.TestCase
   % Test adapted from Oliver Winter's AlyxClient test
   
+  properties (ClassSetupParameter)
+    % Alyx base URL.  test is for the main branch, testDev is for the dev
+    % code
+    url = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+  end
+  
   properties % Test objects
     % Alyx Instance
     alyx
@@ -36,7 +42,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
     end
     
-    function createObject(testCase)
+    function createObject(testCase, url)
       % Create a number of Alyx instances and log them in
       testCase.queueDir = fullfile(fileparts(mfilename('fullpath')),'fixtures','data');
       Alyx_test.resetQueue(testCase.queueDir); % Ensure empty before logging in
@@ -46,10 +52,12 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Water 10% Sucrose', 'Water 2% Citric Acid', 'Hydrogel'};
       
       ai = Alyx('','');
+      ai.BaseURL = url;
       ai.QueueDir = testCase.queueDir;
       ai = ai.login(testCase.uname, testCase.pwd);
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
         sprintf('Failed to log into %s', ai.BaseURL))
+      fprintf('Logged into %s\n', url);
       testCase.alyx = ai;
       
       dataRepo = dat.reposPath('main','master');

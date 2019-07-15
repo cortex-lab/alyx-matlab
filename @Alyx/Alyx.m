@@ -92,6 +92,7 @@ classdef Alyx
     
     function obj = set.BaseURL(obj, value)
       % Drop trailing slash and ensure protocol defined
+      if isempty(value); obj.BaseURL = ''; return; end % return on empty
       value = iff(value(1:4)~='http', ['https://' value], value);
       obj.BaseURL = iff(value(end)=='/', value(1:end-1), value);
     end

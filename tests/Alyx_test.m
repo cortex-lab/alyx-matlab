@@ -6,7 +6,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   properties (ClassSetupParameter)
     % Alyx base URL.  test is for the main branch, testDev is for the dev
     % code
-    url = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+    base_url = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
   end
   
   properties % Test objects
@@ -42,7 +42,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
     end
     
-    function createObject(testCase, url)
+    function createObject(testCase, base_url)
       % Create a number of Alyx instances and log them in
       testCase.queueDir = fullfile(fileparts(mfilename('fullpath')),'fixtures','data');
       Alyx_test.resetQueue(testCase.queueDir); % Ensure empty before logging in
@@ -52,12 +52,12 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Water 10% Sucrose', 'Water 2% Citric Acid', 'Hydrogel'};
       
       ai = Alyx('','');
-      ai.BaseURL = url;
+      ai.BaseURL = base_url;
       ai.QueueDir = testCase.queueDir;
       ai = ai.login(testCase.uname, testCase.pwd);
       testCase.fatalAssertTrue(ai.IsLoggedIn, ...
         sprintf('Failed to log into %s', ai.BaseURL))
-      fprintf('Logged into %s\n', url);
+      fprintf('Logged into %s\n', base_url);
       testCase.alyx = ai;
       
       dataRepo = dat.reposPath('main','master');
@@ -181,17 +181,14 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
       
       % Test lab search
-      sess = ai.getSessions('lab', 'cortexlab');
-      expected = {'9fce256a5e3a', '929c3b11bccb', '3aae34df2191', ...
-        'b1e9ad1a2472', '9f193d8e59fd', '08f02a8a7f83', '8593e7c29b90', ...
-        'e6c03f217317', '1a718679ceeb', '1cbc013f355e', '368ab5503eff', 'f25b062938d5'};
+      sess = ai.getSessions('lab', 'mainenlab');
+      expected = {'89b82507028a'};
       actual = @(s)mapToCell(@(url)url(end-11:end),{s.url});
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
       % Test user search
       sess = ai.getSessions('user', 'olivier');
-      expected = {'9f193d8e59fd', '08f02a8a7f83', ...
-        '8593e7c29b90', '89b82507028a', 'c34dc9004cf8'};
+      expected = {'89b82507028a', 'c34dc9004cf8'};
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
@@ -229,13 +226,13 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test post while logged in
       ai = testCase.alyx;
       subject = testCase.subjects{randi(length(testCase.subjects))};
-      waterPost = @()ai.postWater(subject, pi, 7.3740e+05);
+      waterPost = @()ai.postWater(subject, pi, 7.3760e+05);
       
       wa = assertWarningFree(testCase, waterPost,'Alyx:flushQueue:NotConnected');
       % Check water record
       expectedFields = {'date_time', 'water_type', 'subject', 'water_administered'};
       testCase.assertTrue(all(ismember(expectedFields,fieldnames(wa))), 'Field names missing')
-      testCase.verifyEqual(wa.date_time, '2018-12-06T00:00:00', 'date_time incorrect')
+      testCase.verifyEqual(wa.date_time, '2019-06-24T00:00:00', 'date_time incorrect')
       testCase.verifyEqual(wa.water_type, 'Water', 'water_type incorrect')
       testCase.verifyEqual(wa.subject, subject, 'subject incorrect')
       testCase.verifyTrue(wa.water_administered == 3.142, 'Unexpected water volume');
@@ -256,7 +253,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % When headless or not connected, should save post as JSON and
       % issue warning
       ai = ai.logout;
-      waterPost = @()ai.postWater(subject, pi, 7.3740e+05, 'Hydrogel');
+      waterPost = @()ai.postWater(subject, pi, 7.3760e+05, 'Hydrogel');
       verifyWarning(testCase, waterPost, 'Alyx:flushQueue:NotConnected');
       % Check post was saved
       savedPost = dir([ai.QueueDir filesep '*.post']);
@@ -264,7 +261,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       fn = @()Alyx_test.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
       [jsonData, endpnt] = testCase.fatalAssertWarningFree(fn);
       testCase.verifyMatches(endpnt, 'water-administrations', 'Incorrect endpoint')
-      expected = ['{"date_time":"2018-12-06T00:00:00","water_type":"Hydrogel","subject":"'...
+      expected = ['{"date_time":"2019-06-24T00:00:00","water_type":"Hydrogel","subject":"'...
         subject '","water_administered":3.142}'];
       testCase.verifyMatches(jsonData, expected, 'JSON data incorrect')
     end
@@ -304,13 +301,13 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test post while logged in
       ai = testCase.alyx;
       subject = testCase.subjects{randi(length(testCase.subjects))};
-      weightPost = @()ai.postWeight(25.1, subject, 7.3740e+05);
+      weightPost = @()ai.postWeight(25.1, subject, 7.3760e+05);
       
       wa = assertWarningFree(testCase, weightPost,'Alyx:flushQueue:NotConnected');
       % Check water record
       expectedFields = {'date_time', 'weight', 'subject', 'user', 'url'};
       testCase.assertTrue(all(ismember(expectedFields,fieldnames(wa))), 'Field names missing')
-      testCase.verifyEqual(wa.date_time, '2018-12-06T00:00:00', 'date_time incorrect')
+      testCase.verifyEqual(wa.date_time, '2019-06-24T00:00:00', 'date_time incorrect')
       testCase.verifyEqual(wa.weight, 25.1, 'weight incorrect')
       testCase.verifyEqual(wa.subject, subject, 'subject incorrect')
       testCase.verifyEqual(wa.user, ai.User, 'Unexpected water volume');
@@ -325,7 +322,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % When headless or not connected, should save post as JSON and
       % issue warning
       ai = ai.logout;
-      weightPost = @()ai.postWeight(25.1, subject, 7.3740e+05);
+      weightPost = @()ai.postWeight(25.1, subject, 7.3760e+05);
       verifyWarning(testCase, weightPost, 'Alyx:flushQueue:NotConnected');
       % Check post was saved
       savedPost = dir([ai.QueueDir filesep '*.post']);
@@ -333,7 +330,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       fn = @()Alyx_test.loadPost(fullfile(savedPost(1).folder, savedPost(1).name));
       [jsonData, endpnt] = testCase.fatalAssertWarningFree(fn);
       testCase.verifyEqual(endpnt, 'weighings/', 'Incorrect endpoint')
-      expected = ['{"date_time":"2018-12-06T00:00:00","subject":"' ...
+      expected = ['{"date_time":"2019-06-24T00:00:00","subject":"' ...
         subject '","weight":25.1}'];
       testCase.verifyMatches(jsonData, expected, 'JSON data incorrect')
     end

@@ -21,8 +21,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   end
   
   properties % Validation data
-    subjects = {'IBL_46'; 'ZM_1085'; 'ZM_1087'; ...
-      'ZM_1094'; 'ZM_1098'; 'ZM_1150'; 'ZM_335'}
+    subjects = {'KS005'; 'ZM_1743'; 'IBL_46'; ...
+      'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; ...
+      'ZM_1150'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
     eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
       '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
@@ -91,29 +92,29 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_listSubjects(testCase)
       % Test that the subject list returned by the test database is
       % accurate
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       testCase.verifyTrue(isequal(ai.listSubjects, ...
         [{'default'}; testCase.subjects]), 'Subject list mismatch')
       
       % Test behaviour of empty list
-      testCase.verifyTrue(strcmp('default', ai.listSubjects(1,1)),...
+      testCase.verifyTrue(strcmp('default', ai.listSubjects{1,1}),...
         'Subject list mismatch')
       
       % Test functionality when logged out
       ai = ai.logout;
       testCase.assertTrue(~ai.IsLoggedIn, 'Failed to logout')
       testCase.verifyTrue(isequal(ai.listSubjects, ...
-        testCase.subjects), 'Subject list mismatch')
+        sort(testCase.subjects)), 'Subject list mismatch')
       % Add new subject to repository to be sure
       status = mkdir(fullfile(dat.reposPath('main','m'), 'newSubject'));
       testCase.assertTrue(status, 'Failed to create new subject folder')
       testCase.verifyTrue(isequal(ai.listSubjects, ...
-        [testCase.subjects; {'newSubject'}]), 'Subject list mismatch');
+        sort([testCase.subjects; {'newSubject'}])), 'Subject list mismatch');
     end
     
     function test_makeEndPoint(testCase)
       % Test validation of base url and endpoints
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       sub = ai.getData('subjects/flowers');
       
       % Preceding slash
@@ -137,7 +138,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_login(testCase)
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       ai = ai.logout;
       ai.Headless = true;
       testCase.verifyWarning(@()ai.login('test_user', 'bAdT0k3N'), ...
@@ -147,7 +148,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_getData(testCase)
       % TODO create webread mock for timeout test
       % Test retrieval from water-type endpoint
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       testCase.verifyTrue(isequal(testCase.water_types, ...
         {ai.getData('water-type').name}))
       
@@ -162,14 +163,14 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         'Alyx:getData:InvalidToken');
       
       % Test incorrect URL
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       ai.BaseURL = 'https://notaurl';
       testCase.verifyWarning(@()ai.getData('water-type'),...
         'MATLAB:webservices:UnknownHost');
     end
     
     function test_getSessions(testCase)
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       % Test subject search
       sess = ai.getSessions('subject', 'flowers');
       testCase.assertTrue(~isempty(sess), 'No sessions returned');
@@ -181,8 +182,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
       
       % Test lab search
-      sess = ai.getSessions('lab', 'mainenlab');
-      expected = {'89b82507028a'};
+      sess = ai.getSessions('lab', 'zadorlab');
+      expected = {'c34dc9004cf8'};
       actual = @(s)mapToCell(@(url)url(end-11:end),{s.url});
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
@@ -336,7 +337,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_newExp(testCase)
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       subject = testCase.subjects{end};
       newExp_fn = @()newExp(ai, subject);
       wrnID = 'Alyx:registerFile:InvalidRepoPath';
@@ -361,7 +362,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % NB: Standard post tested in other test methods.  DELETE and PUT
       % cannot be tested as these are no longer not allowed by the API.
       % Test PATCH method for sessions endpoint
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       url = ['sessions/' testCase.eids{1}];
       d = struct(...
         'end_time', ai.datestr(now),...
@@ -388,7 +389,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_updateNarrative(testCase)
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       url = ['sessions/' testCase.eids{1}];
       comments = '   this is \r a test\n comment\t...';
       data = testCase.verifyWarningFree(@()ai.updateNarrative(comments, url));
@@ -396,7 +397,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_save_loadobj(testCase)
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       s = saveobj(ai);
       % Test options were removed
       testCase.verifyEmpty(s.WebOptions, 'WebOptions not removed');
@@ -421,7 +422,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     
     function test_parseAlyxInstance(testCase)
       ref = '2019-01-01_1_fake';
-      ai = testCase.alyx(1);
+      ai = testCase.alyx;
       json = testCase.assertWarningFree(@()Alyx.parseAlyxInstance(ref, ai));
       
       [ref2, ai2] = testCase.assertWarningFree(@()Alyx.parseAlyxInstance(json));

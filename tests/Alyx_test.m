@@ -226,7 +226,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_postWater(testCase)
       % Test post while logged in
       ai = testCase.alyx;
-      subject = testCase.subjects{randi(length(testCase.subjects))};
+      subject = testCase.subjects{randi(length(testCase.subjects)-2)};
       waterPost = @()ai.postWater(subject, pi, 7.3760e+05);
       
       wa = assertWarningFree(testCase, waterPost,'Alyx:flushQueue:NotConnected');

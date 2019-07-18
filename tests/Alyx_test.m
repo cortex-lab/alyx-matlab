@@ -301,7 +301,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_postWeight(testCase)
       % Test post while logged in
       ai = testCase.alyx;
-      subject = testCase.subjects{randi(length(testCase.subjects))};
+      subject = testCase.subjects{randi(length(testCase.subjects)-2)};
       weightPost = @()ai.postWeight(25.1, subject, 7.3760e+05);
       
       wa = assertWarningFree(testCase, weightPost,'Alyx:flushQueue:NotConnected');

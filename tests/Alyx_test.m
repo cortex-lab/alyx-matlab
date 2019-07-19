@@ -22,8 +22,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   
   properties % Validation data
     subjects = {'KS005'; 'ZM_1743'; 'IBL_46'; ...
-      'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; ...
-      'ZM_1150'; 'ZM_335'}
+      'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
     eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
       '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
@@ -226,7 +225,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_postWater(testCase)
       % Test post while logged in
       ai = testCase.alyx;
-      subject = testCase.subjects{randi(length(testCase.subjects)-2)};
+      subject = testCase.subjects{randi(length(testCase.subjects))};
       waterPost = @()ai.postWater(subject, pi, 7.3760e+05);
       
       wa = assertWarningFree(testCase, waterPost,'Alyx:flushQueue:NotConnected');
@@ -301,7 +300,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_postWeight(testCase)
       % Test post while logged in
       ai = testCase.alyx;
-      subject = testCase.subjects{randi(length(testCase.subjects)-2)};
+      subject = testCase.subjects{randi(length(testCase.subjects))};
       weightPost = @()ai.postWeight(25.1, subject, 7.3760e+05);
       
       wa = assertWarningFree(testCase, weightPost,'Alyx:flushQueue:NotConnected');

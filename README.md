@@ -1,4 +1,7 @@
 # Alyx-MATLAB
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Falyx-matlab%2Fdev)
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Falyx-matlab%2Fdev)
+
 This repository contains a MATLAB class called Alyx, that facilitates RESTful POST and GET requests to an instance of the [Alyx database](http://alyx.readthedocs.io/en/latest/). 
 
 ## Getting started

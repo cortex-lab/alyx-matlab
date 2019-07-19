@@ -92,6 +92,7 @@ classdef Alyx
     
     function obj = set.BaseURL(obj, value)
       % Drop trailing slash and ensure protocol defined
+      if isempty(value); obj.BaseURL = ''; return; end % return on empty
       value = iff(value(1:4)~='http', ['https://' value], value);
       obj.BaseURL = iff(value(end)=='/', value(1:end-1), value);
     end
@@ -109,7 +110,7 @@ classdef Alyx
     % Checks for and uploads queued data to Alyx
     [data, statusCode] = flushQueue(obj)
     % Recovers the full filepath of a file on the repository, given the datasetURL
-    fullPath = getFile(obj, datasetURL)
+    [fullPath, exists] = getFile(obj, eid, type)
     % Query the database for a list of sessions
     [sessions, eids] = getSessions(obj, varargin)
     % Lists recorded subjects

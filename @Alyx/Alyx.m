@@ -55,16 +55,19 @@ classdef Alyx
   methods
     function obj = Alyx(user, token)
       %ALYX Class constructor
+      
+      % Set the directory and URL paths
+      p = dat.paths;
+      obj.BaseURL = getOr(p, 'databaseURL', obj.BaseURL);
+      obj.QueueDir = getOr(p, 'localAlyxQueue', obj.QueueDir);
+      
       if nargin
         obj.User = user;
         obj.Token = token;
       else
         obj = obj.login;
       end
-      % Set the directory and URL paths
-      p = dat.paths;
-      obj.BaseURL = getOr(p, 'databaseURL', obj.BaseURL);
-      obj.QueueDir = getOr(p, 'localAlyxQueue', obj.QueueDir);
+      
     end
     
     function obj = logout(obj)

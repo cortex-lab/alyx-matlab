@@ -273,7 +273,15 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
         'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(fullPath), numel(exist));
+      testCase.verifyEqual(numel(fullPath), numel(exist), 2)
+      testCase.verifyTrue(startsWith(fullPath{2}, '\\'), 'Unexpected path returned')
+      
+      % Test remoteOnly flag
+      [fullPath, exist] = ai.getFile(testCase.dataset_id, 'dataset', true);
+      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
+        'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
+      testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
+      testCase.verifyEqual(numel(fullPath), numel(exist))
       
       % Test using full URL
       url = ai.makeEndpoint(['datasets/', testCase.dataset_id]);
@@ -295,6 +303,10 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyTrue(all(cellfun(@endsWith, fullPath, expected)), ...
         'Unexpected paths returned')
       testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      
+      % FIXME array for datasets not supported
+%       datasets = repmat(string(testCase.dataset_id),1,2); % Try as string
+%       [fullPath, exist] = ai.getFile(datasets);
     end
     
     function test_postWeight(testCase)

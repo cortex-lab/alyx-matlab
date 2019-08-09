@@ -1,26 +1,26 @@
 classdef Alyx
-  %ALYX An class for interating with the Alyx database
-  %   Creates an object that allows the user to log in, GET, PUT and POST
-  %   data to the Alyx database primarily via the REST API.  For a tutorial
-  %   on how to use see the README and Examples files.
-  % 
-  %   All public methods such as POSTWATER, etc. should call the private
-  %   methods that actually post data and set the token. 
-  %
-  %   Example:
-  %     ai = Alyx();
-  %     ai.login;
-  %     subjects = ai.getData('subjects');
-  %     ai.postWater('test', 0.25);
-  %     ai.logout;
-  %
-  %   Dependencies: missing-http
-  %
-  %   See also EUI.ALYXPANEL
-  %
-  % Part of Alyx
-  
-  % 2017 -- created
+%ALYX A MATLAB client that transfers data to/from an Alyx database
+%
+% An `Alyx` object allows the user to log in, GET, PUT and POST data to an
+% Alyx database primarily via the database's REST API. For tutorials on
+% how to use this class, see the root folder's `README` and `docs` folder.
+%
+% All public methods (such as `postWater`, etc.) should call the
+% private methods that actually post data and set the Alyx token. 
+%
+% Example: Log in to an Alyx database and record administration of 0.25 mL
+% of water to 'test' subject:
+%   ai = Alyx();
+%   ai.login;
+%   subjects = ai.getData('subjects');
+%   ai.postWater('test', 0.25);
+%   ai.logout;
+%
+% See also EUI.ALYXPANEL
+%
+% Part of alyx-matlab
+
+% 2017 -- created
   
   properties
     % URL to the Alyx database

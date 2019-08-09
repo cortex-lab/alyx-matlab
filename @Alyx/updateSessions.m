@@ -46,7 +46,7 @@ if register && ~ai.IsLoggedIn
 end
 
 % Check for wheel function
-if isempty(which('myGaussWin')) || isempty(which('wheel.computeVelocity'))
+if ~exist('myGaussWin','file') || ~exist('+wheel/computeVelocity', 'file')
   errordlg('Please ensure rigbox is fully updated and add wheelAnalysis folders to paths')
   return
 end

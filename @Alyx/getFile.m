@@ -18,6 +18,10 @@ function [fullPath, exists] = getFile(obj, eid, type, remoteOnly)
 %   `exists`: a logical array indicating whether files exist for each eid
 %   in the `eid` array
 %
+% FIXME with > 1 datasets output not the same size as input array 
+% @body Should package into cell array the size of eid array.  The user the
+% option to cellflat the output if the want
+%
 % See also ALYX, GETDATA, GETSESSIONS
 %
 % Part of Alyx

@@ -269,19 +269,19 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_getFile(testCase)
       ai = testCase.alyx;
       % Test paths from dataset eid
-      [fullPath, exist] = ai.getFile(testCase.dataset_id);
+      [fullPath, exists] = ai.getFile(testCase.dataset_id);
       expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
         'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(fullPath), numel(exist), 2)
+      testCase.verifyEqual(numel(fullPath), numel(exists), 2)
       testCase.verifyTrue(startsWith(fullPath{2}, '\\'), 'Unexpected path returned')
       
       % Test remoteOnly flag
-      [fullPath, exist] = ai.getFile(testCase.dataset_id, 'dataset', true);
+      [fullPath, exists] = ai.getFile(testCase.dataset_id, 'dataset', true);
       expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
         'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(fullPath), numel(exist))
+      testCase.verifyEqual(numel(fullPath), numel(exists))
       
       % Test using full URL
       url = ai.makeEndpoint(['datasets/', testCase.dataset_id]);
@@ -291,22 +291,29 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
       
       % Test file record
-      [fullPath, exist] = ai.getFile(testCase.file_record_ids{1}, 'file');
+      [fullPath, exists] = ai.getFile(testCase.file_record_ids{1}, 'file');
       expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
         'clns0730/2018-08-24/1/clusters.probes.npy'];
       testCase.verifyEqual(fullPath, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exists));
       
       % Test cell array
-      [fullPath, exist] = ai.getFile(testCase.file_record_ids, 'file');
+      [fullPath, exists] = ai.getFile(testCase.file_record_ids, 'file');
       expected = {'clusters.probes.npy', 'clusters.depths.npy'};
       testCase.verifyTrue(all(cellfun(@endsWith, fullPath, expected)), ...
         'Unexpected paths returned')
-      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exists));
       
-      % FIXME array for datasets not supported
-%       datasets = repmat(string(testCase.dataset_id),1,2); % Try as string
-%       [fullPath, exist] = ai.getFile(datasets);
+      % FIXME output not the same size as input array 
+      n = 2; % Number of eids to pass in
+      datasets = repmat(string(testCase.dataset_id),1,n); % Try as string
+      [fullPath, exists] = ai.getFile(datasets);
+      uniqueOut = unique(ensureCell(fullPath));
+      correctOutput = ...
+        n == sum(strcmp(uniqueOut{1}, fullPath)) && ... % because eid was repeated
+        numel(fullPath) == numel(exists) && ...
+        numel(fullPath) == numel(uniqueOut) * n;
+      testCase.verifyTrue(correctOutput, 'Unexpected number of outputs');
     end
     
     function test_postWeight(testCase)

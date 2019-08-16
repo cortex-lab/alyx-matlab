@@ -45,7 +45,7 @@ queries(2:2:end) = values;
 
 % Get sessions for specified refs
 if isfield(p.Results, 'ref') && ~isempty(p.Results.ref)
-  refs = ensureCell(p.Results.ref);
+  refs = cellstr(p.Results.ref);
   parsedRef = regexp(refs, dat.expRefRegExp, 'names');
   sessFromRef = @(ref)obj.getData('sessions/', ...
     'subject', ref.subject, 'date_range', [ref.date ',' ref.date], 'number', ref.seq);

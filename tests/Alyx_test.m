@@ -21,6 +21,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   end
   
   properties % Validation data
+    % Currently this list is expected to be identical to the subject list
+    % on the test database
     subjects = {'KS005'; 'ZM_1743'; 'IBL_46'; ...
       'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
     water_types = {'Water', 'Hydrogel'}
@@ -79,7 +81,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   end
   
   methods(TestMethodTeardown)
-    function methodTaredown(testCase)
+    function methodTeardown(testCase)
       Alyx_test.resetQueue(testCase.queueDir);
       rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
       cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), ...

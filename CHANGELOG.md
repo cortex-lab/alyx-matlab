@@ -6,6 +6,8 @@
 
 - Removed various outdated functions (`bf923a0`)
 - Improvements to changelog
+- Added test for newExp with multiple remote repos (`e6df58`)
+- Fix for file exist checks on new MATLAB versions (`29aea9`)
 
 ## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.1.1]
 

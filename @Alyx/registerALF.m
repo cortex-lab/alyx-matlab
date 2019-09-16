@@ -27,7 +27,7 @@ if nargin < 3
   end
 end
 
-assert(~isempty(which('dirPlus')),...
+assert(exist('dirPlus','file') == 2,...
   'Function ''dirPlus'' not found, make sure alyx helpers folder is added to path')
 
 %%INPUT VALIDATION

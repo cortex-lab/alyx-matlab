@@ -66,10 +66,10 @@ else % Ref, not subject
 end
 
 % Check date
-if ~ischar(expDate)||(ischar(expDate)&&length(expDate)==8)
+if ~ischar(expDate)
   expDate = datestr(expDate, 'yyyy-mm-dd');
-elseif ischar(expDate)&&length(expDate)==19
-  expDate = datestr(expDate, 'yyyy-mm-ddTHH:MM:SS');
+elseif ischar(expDate) && length(expDate) > 10
+  expDate = expDate(1:10);
 end
 
 if length(varargin) > 1 % Repository location defined
@@ -97,11 +97,11 @@ assert(any(idx), 'Alyx:expFilePath:InvalidType', ...
 type = dataSets(idx).name; % Ensures correct case
 
 % Construct the endpoint
-% FIXME: Alyx can't filter by session date, only datetime
+% FIXME: datasets endpoint filters no longer work
 % @body because of this we must make a seperate query to obtain the
 % datetime.  Querying the sessions takes around 3 seconds.  Otherwise we
 % filter by created time under the assumption that the dataset was created
-% on the same day as the session.
+% on the same day as the session.  See https://github.com/cortex-lab/alyx/issues/601
 if strictSearch
   endpoint = sprintf(['/datasets?'...
     'subject=%s&'...
@@ -125,6 +125,10 @@ else
     subject, num2str(seq), type, user, expDate);
   records = obj.getData(endpoint);
 end
+% Construct the endpoint
+% endpoint = sprintf('/datasets?subject=%s&date=%s&experiment_number=%s&dataset_type=%s&created_by=%s',...
+%   subject, expDate, num2str(seq), type, user);
+% records = obj.getData(endpoint);
 
 if ~isempty(records)
   data = catStructs(records);

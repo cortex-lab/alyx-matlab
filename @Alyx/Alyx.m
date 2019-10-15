@@ -113,6 +113,8 @@ classdef Alyx
     [fullPath, exists] = getFile(obj, eid, type, remoteOnly)
     % Query the database for a list of sessions
     [sessions, eids] = getSessions(obj, varargin)
+    % Return an experiment reference string, given a session url/eid
+    ref = getExpRef(obj, eid)
     % Lists recorded subjects
     subjects = listSubjects(obj, stock, alive, sortByUser)
     % Returns the file path where you can find a specified file
@@ -133,7 +135,6 @@ classdef Alyx
     narrative = updateNarrative(obj, subject, comments, endpoint)
     % Return the instance of Alyx as a struct
     s = saveobj(obj)
-    % Validate Base URL string
   end
   
   methods (Access = private)
@@ -156,6 +157,8 @@ classdef Alyx
     updateSessions(obj, subjects, register)
     % Load an Alyx object from a struct
     obj = loadobj(s)
+    % Return eid part of url
+    eid = url2eid(url)
   end
   
 end

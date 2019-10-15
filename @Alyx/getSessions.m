@@ -61,7 +61,7 @@ if ~isempty(queries); results = obj.getData('sessions', queries{:}); end
 if isempty(sessions) && isempty(results); return; end
 sessions = catStructs([sessions, ensureCell(results)]);
 if nargout > 1
-  eids = cellfun(@(url)url(end-35:end),{sessions.url},'uni',0);
+  eids = obj.url2eid({sessions.url});
 end
 
   function value = processValue(name)

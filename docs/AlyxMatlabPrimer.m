@@ -205,6 +205,9 @@ sessions = ai.getSessions('2018-07-13_1_flowers') % expRef
 refs = ["2018-07-13_1_flowers" "2019-08-16_2_ZM_335"];
 [~, eids] = ai.getSessions(refs)
 
+% To convert the other way, use getExpRef:
+refs = ai.getExpRef(eids);
+
 % Sessions can be filtered based on subject, date, or associated dataset
 % types:
 sessions = ai.getSessions('cf264653-2deb-44cb-aa84-89b82507028a', ...
@@ -237,6 +240,19 @@ fullPath = ai.getFile(eids, 'file', true) % remoteOnly = true
 
 % Note: Inputs may be cellstr, char or string.  The first output will be
 % either a char or cellstr.
+
+% File paths may also be retrieved using `Alyx.expFilePath`.  This method
+% allows one to get file paths for a given experiment reference and dataset
+% type:
+help Alyx.expFilePath
+
+ref = '2019-04-11_1_KS005';
+type = 'trials.itiDuration';
+[fullpath, filename] = ai.expFilePath(ref, type);
+
+% As with `dat.expFilePath` a specific repository location may be specified
+% and the method also accepts subject, date and sequence number as separate
+% inputs, instead of an expRef.
 
 %% Saving files
 % Saving files in a standard way can be easily achieved by using

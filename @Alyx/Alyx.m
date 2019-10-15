@@ -24,7 +24,7 @@ classdef Alyx
   
   properties
     % URL to the Alyx database
-    BaseURL char = 'https://alyx.cortexlab.net'
+    BaseURL char = 'https://test.alyx.internationalbrainlab.org'
     % Set the local directory for saving queued Alyx commands, create if needed
     QueueDir char = 'C:\localAlyxQueue'
     % Set whether input dialogs should appear, e.g. login window

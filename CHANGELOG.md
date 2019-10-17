@@ -2,7 +2,12 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.2.0]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.2.1]
+
+- Fix in getSessions test reflecting filter bug fix in database ()
+
+## [2.2.0]
+
 - Removed various outdated functions (`bf923a0`)
 - Improvements to changelog
 - Added test for newExp with multiple remote repos (`e6df58`)

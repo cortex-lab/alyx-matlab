@@ -186,7 +186,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test lab search
       sess = ai.getSessions('lab', 'zadorlab');
       expected = {'c34dc9004cf8'};
-      actual = @(s)mapToCell(@(url)url(end-11:end),{s.url});
+      % Get last 12 chars of url/eid for comparison, return empty on error
+      actual = @(s)cellfun(@(url)url(end-11:end),{s.url}, ...
+        'UniformOutput', false, 'ErrorHandler', @(~,~)[]);
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
       % Test user search
@@ -195,7 +197,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
-      sess = ai.getSessions('data', {'clusters.probes', 'eye.blink'});
+      sess = ai.getSessions('data', {'spikes.clusters', 'channels.probe'});
       testCase.verifyEqual(actual(sess), {'89b82507028a'}, 'Failed to filter by dataset_type')
       
       % Test eid and search combo

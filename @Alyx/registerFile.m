@@ -150,10 +150,7 @@ for i = 1:length(filePath)
   datasets{i} = record(end);
 end
 
+if statusCode~=000 % Cannot reach server
 datasets = catStructs(datasets);
-if statusCode==000
-% Cannot reach server
-  return
-end
 filerecords = [datasets(:).file_records];
 end

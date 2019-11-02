@@ -45,7 +45,7 @@ queries(2:2:end) = values;
 
 % Get sessions for specified refs
 if isfield(p.Results, 'ref') && ~isempty(p.Results.ref)
-  refs = ensureCell(p.Results.ref);
+  refs = cellstr(p.Results.ref);
   parsedRef = regexp(refs, dat.expRefRegExp, 'names');
   sessFromRef = @(ref)obj.getData('sessions/', ...
     'subject', ref.subject, 'date_range', [ref.date ',' ref.date], 'number', ref.seq);
@@ -61,7 +61,7 @@ if ~isempty(queries); results = obj.getData('sessions', queries{:}); end
 if isempty(sessions) && isempty(results); return; end
 sessions = catStructs([sessions, ensureCell(results)]);
 if nargout > 1
-  eids = cellfun(@(url)url(end-35:end),{sessions.url},'uni',0);
+  eids = obj.url2eid({sessions.url});
 end
 
   function value = processValue(name)

@@ -2,9 +2,17 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.2.1]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master)
 
-- Fix in getSessions test reflecting filter bug fix in database ()
+## [2.3.0]
+
+- Better support for local network repos (`913ac18`)
+- Updated docs; added more string support (`23b0719`)
+- Bug fix for error when registering file while not logged in (`9486be3`)
+- Fixes for getFile, incl. workaround for db bug; test for getFilePath (`02ddd3c`, `d15f5f0`)
+- Added 2 convenience functions, `url2eid` and `getExpRef` (`02ddd3c`)
+- Changed default database to public test database (`b2081cb`)
+- Fix for converting datetime str input to date (`3b19315`)
 
 ## [2.2.0]
 

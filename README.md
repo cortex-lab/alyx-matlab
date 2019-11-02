@@ -6,7 +6,7 @@ This repository contains a MATLAB class called Alyx, that facilitates RESTful PO
 
 ## Getting started
 
-These instructions are for installing the package and interating with the database from MATLAB.  See deployment for notes on how to deploy the project on a live system.
+Extensive instructions for using this package can be found in `docs/AlyxMatlabPrimer.m`.  See "deployment" for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 Alyx-MALTAB requires MATLAB 2016a or later.  The code and instructions for installing the actual database can be found on the [cortex-lab/Alyx](https://github.com/cortex-lab/Alyx) repository.
@@ -19,6 +19,8 @@ To install the package simply clone the master branch on your computer, then in 
 cd alyx-matlab
 savepath(pwd, fullfile(pwd, helpers));
 ```
+
+To customise the database URL create a file called `+dat\paths.m`.  This file should a function with that returns a structure with a field called `databaseURL`.  The value of this field will be the default when a new Alyx object is instantiated.  A template of this paths file can be found [here](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).
 
 Once the paths are added you can read the help pages:
 ```

@@ -28,7 +28,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     water_types = {'Water', 'Hydrogel'}
     eids = {'cf264653-2deb-44cb-aa84-89b82507028a', ...
       '4e0b3320-47b7-416e-b842-c34dc9004cf8'}
-    dataset_id = 'c41dd877-d511-42cb-90a3-01bb19297117'
+    dataset_id = 'e84cfbc9-20f6-4e85-b221-aae3c18b2fd9'
     file_record_ids = {'00c3df4f-99ab-4cc0-b305-b508bcfb07ab',...
       '0b747a70-1309-4f84-98f6-5f3aa9815b4c'}
   end
@@ -186,7 +186,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test lab search
       sess = ai.getSessions('lab', 'zadorlab');
       expected = {'c34dc9004cf8'};
-      actual = @(s)mapToCell(@(url)url(end-11:end),{s.url});
+      % Get last 12 chars of url/eid for comparison, return empty on error
+      actual = @(s)cellfun(@(url)url(end-11:end),{s.url}, ...
+        'UniformOutput', false, 'ErrorHandler', @(~,~)[]);
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
       % Test user search
@@ -195,7 +197,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
-      sess = ai.getSessions('data', {'clusters.probes', 'eye.blink'});
+      sess = ai.getSessions('data', {'spikes.clusters', 'channels.probe'});
       testCase.verifyEqual(actual(sess), {'89b82507028a'}, 'Failed to filter by dataset_type')
       
       % Test eid and search combo
@@ -223,6 +225,34 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       [sess, eid] = ai.getSessions(refs);
       testCase.verifyEqual(numel(sess), 2, 'Incorrect number of sessions returned');
       testCase.verifyEqual(eid, testCase.eids, 'Inconsistent eids')
+    end
+    
+    function test_getExpRef(testCase)
+      % Test getExpRef method
+      ai = testCase.alyx;
+      % Test single input
+      ref = ai.getExpRef(testCase.eids{1});
+      testCase.verifyEqual(ref, '2018-08-24_2_clns0730')
+      % Test list and full url inputs
+      url = ai.makeEndpoint(['sessions/' testCase.eids{2}]);
+      refs = ai.getExpRef([testCase.eids{1}, {url}]);
+      expected = {'2018-08-24_2_clns0730' '2018-07-13_1_flowers'};
+      testCase.verifyEqual(refs, expected, ...
+        'Failed to return correct list of expRefs')
+    end
+    
+    function test_url2eid(testCase)
+      % Test url2eid method
+      ai = testCase.alyx;
+      urls = strcat(ai.BaseURL, '/sessions/', testCase.eids);
+      
+      % Test single input with trailing slash
+      eid = Alyx.url2eid([urls{1}, '/']);
+      testCase.verifyEqual(eid, testCase.eids{1})
+
+      % Test multiple urls and mixed list
+      eid = Alyx.url2eid([urls, testCase.dataset_id]);
+      testCase.verifyEqual(eid, [testCase.eids, testCase.dataset_id])
     end
     
     function test_postWater(testCase)
@@ -272,32 +302,75 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_getFile(testCase)
       ai = testCase.alyx;
       % Test paths from dataset eid
-      [fullPath, exist] = ai.getFile(testCase.dataset_id);
-      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
-        'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
+      [fullPath, exists] = ai.getFile(testCase.dataset_id);
+      expected = ['http://ibl.flatironinstitute.org/cortexlab/Subjects/'...
+        'KS005/2019-04-11/001/alf/_ibl_trials.itiDuration.e84cfbc9-20f6-4e85-b221-aae3c18b2fd9.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(fullPath), numel(exist));
+      testCase.verifyEqual(exists, [true false false])
+      testCase.verifyTrue(all(endsWith(fullPath(2:end), ...
+        '_ibl_trials.itiDuration.npy')), 'Unexpected path returned')
+      
+      % Test remoteOnly flag
+      [fullPath, exists] = ai.getFile(testCase.dataset_id, 'dataset', true);
+      testCase.verifyEqual(fullPath, {expected}, 'Unexpected path returned')
+      testCase.verifyEqual(numel(fullPath), numel(exists))
       
       % Test using full URL
       url = ai.makeEndpoint(['datasets/', testCase.dataset_id]);
       fullPath = ai.getFile(url);
-      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
-        'clns0730/2018-08-24/1/clusters.probes.c41dd877-d511-42cb-90a3-01bb19297117.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
       
       % Test file record
-      [fullPath, exist] = ai.getFile(testCase.file_record_ids{1}, 'file');
+      [fullPath, exists] = ai.getFile(testCase.file_record_ids{1}, 'file');
       expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
         'clns0730/2018-08-24/1/clusters.probes.npy'];
       testCase.verifyEqual(fullPath, expected, 'Unexpected path returned')
-      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exists));
       
       % Test cell array
-      [fullPath, exist] = ai.getFile(testCase.file_record_ids, 'file');
+      [fullPath, exists] = ai.getFile(testCase.file_record_ids, 'file');
       expected = {'clusters.probes.npy', 'clusters.depths.npy'};
       testCase.verifyTrue(all(cellfun(@endsWith, fullPath, expected)), ...
         'Unexpected paths returned')
-      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exist));
+      testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exists));
+      
+      % FIXME output not the same size as input array 
+      n = 2; % Number of eids to pass in
+      datasets = repmat(string(testCase.dataset_id),1,n); % Try as string
+      [fullPath, exists] = ai.getFile(datasets);
+      uniqueOut = unique(ensureCell(fullPath));
+      correctOutput = ...
+        n == sum(strcmp(uniqueOut{1}, fullPath)) && ... % because eid was repeated
+        numel(fullPath) == numel(exists) && ...
+        numel(fullPath) == numel(uniqueOut) * n;
+      testCase.verifyTrue(correctOutput, 'Unexpected number of outputs');
+    end
+    
+    function test_expFilePath(testCase)
+      ai = testCase.alyx;
+      % Retrieve some info for validation
+      dataset = ai.getData(['datasets/' testCase.dataset_id]);
+      ref = ai.getExpRef(dataset.session);
+      type = dataset.dataset_type;
+      
+      % Test search by expRef
+      [fullpath, filename, fileID, records] = ai.expFilePath(ref, type);
+      % Check output
+      equal = isequal(numel(fullpath), numel(fileID), numel(records.file_records));
+      testCase.verifyTrue(equal, 'Unexpected number of records returned')
+      testCase.verifyMatches(filename{1}, type, 'Unexpected filename')
+      testCase.verifyTrue(all(contains(fullpath, type)), 'Unexpected paths')
+      
+      % Test search by subject, date, number + specific location
+      [subj, expDate, seq] = dat.parseExpRef(ref);
+      location = dataset.file_records(1).data_repository;
+      [fullpath, filename, fileID] = ai.expFilePath(...
+        subj, expDate, seq, type, 'test_user', location);
+      % Check output
+      testCase.verifyTrue(ischar(fullpath), 'Unexpected number of paths returned')
+      testCase.verifyMatches(dataset.file_records(1).data_url, fullpath, 'Unexpected path')
+      testCase.verifyMatches(filename, type, 'Unexpected filename')
+      testCase.verifyEqual(fileID, dataset.file_records(1).id, 'Unexpected fileID')
     end
     
     function test_postWeight(testCase)

@@ -40,7 +40,9 @@ end
 
 % check the subject exists in the database
 subjectExists = any(strcmp(dat.listSubjects, subject));
-assert(subjectExists, sprintf('"%" does not exist', subject));
+errMsg = sprintf('subject "%s" does not exist', subject);
+assert(subjectExists, 'Alyx:newExp:subjectNotFound', errMsg);
+
 
 % retrieve list of experiments for subject
 [~, dateList, seqList] = dat.listExps(subject);

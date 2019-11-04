@@ -2,7 +2,9 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master)
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.3.1]
+
+- Patch fix for assertion bug in newExp
 
 ## [2.3.0]
 

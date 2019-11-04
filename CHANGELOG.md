@@ -4,7 +4,7 @@
 
 ## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.3.1]
 
-- Patch fix for assertion bug in newExp
+- Patch fix for assertion bug in newExp (`827d8a9`)
 
 ## [2.3.0]
 

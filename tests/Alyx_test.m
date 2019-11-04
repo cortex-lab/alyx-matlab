@@ -444,6 +444,10 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       expected = dat.expParams(ref1);
       testCase.verifyTrue(isstruct(expected) && isequal(fieldnames(expected), fieldnames(params)))
       
+      % Test behaviour when subject doesn't exist
+      testCase.verifyError(@()ai.newExp('fake'), ...
+        'Alyx:newExp:subjectNotFound', 'Failed to throw error on non-existent subject')
+      
       % TODO test newExp when headless
     end
     

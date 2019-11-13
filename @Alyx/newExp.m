@@ -62,27 +62,12 @@ jsonParams = [];
 
 % Main repository is the reference location for which experiments exist
 [expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
-% ensure a unique `expRef` and `expPath` can be made
+% ensure nothing went wrong in making a "unique" ref and path to hold
 assert(~any(file.exists(expPath)), ...
-  sprintf(['Something went wrong as experiment folders already exist for'...
-  '\n"%s" in \n%s or \n%s. \nIf these folders are empty, delete them and '...
-  'try again.'], expRef, expPath{:}));
+  sprintf('Something went wrong as experiment folders already exist for "%s".', expRef));
 
-% Try making new directories. If this fails, remove empty directories that
-% may have been created, and throw error.
-mkdirFailed.message = sprintf(['Creating experiment directories failed.'...
-    '\nCheck access/credentials for the servers \n%s and \n%s'],... 
-    expPath{:});
-mkdirFailed.identifier = 'Rigbox:alyxmatlab:newExp:mkdirFailed';
-try 
-  all(cellfun(@(p) mkdir(p), expPath)); % make new exp directories
-catch
-  try 
-    all(cellfun(@(p) rmdir(p), expPath)); % remove empty directory
-  catch
-  end
-  error(mkdirFailed);
-end
+% now make the folder(s) to hold the new experiment
+assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
 
 %%% If the parameters had an experiment definition function, save a copy in
 %%% the experiment's folder and register the file to Alyx

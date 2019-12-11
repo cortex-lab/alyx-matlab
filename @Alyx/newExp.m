@@ -66,7 +66,7 @@ jsonParams = [];
 present = file.exists(expPath);
 assert(~any(present), 'Alyx:newExp:expFoldersAlreadyExist', ...
   'The following experiment folder(s) already exist(s) for "%s":\r\t%s', ...
-  expRef, strjoin(expPath(present), '\n\t'));
+  expRef, strjoin(expPath(present), '\n\t'))
 
 try
   % now make the folder(s) to hold the new experiment

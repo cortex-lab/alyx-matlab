@@ -147,8 +147,9 @@ if ~isempty(location)
 end
 
 % Get the full paths
+seprep = @(p) strrep(p, iff(filesep == '\', '/', '\'), filesep);
 mkPath = @(x) iff(isempty(x.data_url), ... % If data url not present
-  [x.data_repository_path x.relative_path], ... % make path from repo path and relative path
+  seprep([x.data_repository_path x.relative_path]), ... % make path from repo path and relative path
   x.data_url); % otherwise use data_url field
 % Make paths
 fullpath = arrayfun(mkPath, fileRecords, 'uni', 0);

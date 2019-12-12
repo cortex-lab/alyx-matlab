@@ -1,4 +1,4 @@
-function parts = split(fileName)
+function parts = split(fileName, outkey)
 %     Return the object, type and extention for a given ALF file name
 %
 %     Example:
@@ -16,5 +16,6 @@ function parts = split(fileName)
 %         typ (str): The ALF attribute
 %         ext (str): The file extension
 
+if nargin < 2; outkey = 'tokens'; end
 pattern = '((?:_)(?<nsp>.+)(?:_))?(?<obj>.+)\.(?<typ>.+)\.(?<ext>.+)';
-parts = regexp(fileName, pattern, 'tokens');
+parts = regexp(fileName, pattern, outkey);

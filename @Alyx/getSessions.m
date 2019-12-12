@@ -30,6 +30,7 @@ addParameter(p, 'lab', '');
 addParameter(p, 'date_range', '', 'PartialMatchPriority', 2);
 addParameter(p, 'dataset_types', '');
 addParameter(p, 'number', 1);
+addParameter(p, 'type', '');
 
 [sessions, results, eids] = deal({}); % Initialize as empty
 parse(p, varargin{:})

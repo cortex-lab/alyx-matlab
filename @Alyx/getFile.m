@@ -2,7 +2,7 @@ function [fullPath, exists] = getFile(obj, eid, type, remoteOnly)
 %GETFILE Returns the full filepath for a given eid.
 %	Returns the full path of associated data files given a dataset or file
 %	record URL or eid (experiment ID). Also returns a logical array 
-% indicating whether files exist for each element in the `eid` array.
+%   indicating whether files exist for each element in the `eid` array.
 %
 % Inputs:
 %   `eid`: a string or char array containing the full URL(s) or eid(s) of 
@@ -72,8 +72,9 @@ switch lower(type)
     filerecords = catStructs(mapToCell(@(url)getOr(obj.getData(['datasets/', url]), 'file_records'), eid));
     exists = [filerecords.exists];
     % Generate full paths
+    seprep = @(p) strrep(p, iff(filesep == '\', '/', '\'), filesep);
     makePath = @(s) iff(isempty(s.data_url), ... % If the data url is empty...
-      fullfile(s.data_repository_path, s.relative_path), ... % mount access
+      seprep(fullfile(s.data_repository_path, s.relative_path)), ... % mount access
       s.data_url); % URL access (http(s)).  This is already a full path
     fullPath = mapToCell(makePath, filerecords);
     % Remove records with empty url field

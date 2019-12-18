@@ -167,7 +167,8 @@ filename = {files.name};
       pos = pos - pos(1); % Position relative to beginning of session
       
       try % Load encoder resolution from hw info file
-        rig = loadjson(dat.expFilePath(data.expRef, 'hw-info', 'master')); %FIXME: This takes ages to load
+        hwPath = dat.expFilePath(data.expRef, 'hw-info', 'master', 'json');
+        rig = jsondecode(fileread(hwPath));
         encRes = rig.mouseInput.EncoderResolution;
       catch % Use most common resoultion instead
         encRes = 1024;
@@ -315,7 +316,8 @@ filename = {files.name};
       pos = interp1(data.inputSensorPositionTimes-expStartTime, rawPos, t, 'linear');
       pos = pos - pos(1); % Position relative to beginning of session
       try % Load encoder resolution from hw info file
-        rig = loadjson(dat.expFilePath(data.expRef, 'hw-info', 'master')); %FIXME: This takes ages to load
+        hwPath = dat.expFilePath(data.expRef, 'hw-info', 'master', 'json');
+        rig = jsondecode(fileread(hwPath));
         encRes = rig.mouseInput.EncoderResolution;
       catch % Use most common resoultion instead
         encRes = 1024;

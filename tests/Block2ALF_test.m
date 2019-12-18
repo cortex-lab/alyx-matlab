@@ -25,7 +25,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
       rmAll = @() cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), ...
-              [dat.reposPath('main', 'remote'); {dat.reposPath('main', 'local')}]);
+        [dat.reposPath('main', 'remote'); {dat.reposPath('main', 'local')}]);
       testCase.addTeardown(rmAll)
     end
     
@@ -71,7 +71,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       [t.feedbackStartedTime] = distribute(startTimes + testCase.sample(1, N));
       endTimes = startTimes + [diff(startTimes)-0.1 startTimes(end)+2+rand];
       [t.trialEndedTime] = distribute(endTimes);
-%       [t.trialEndedTime] = distribute(startTimes + testCase.sample(1.5, N));
+      %       [t.trialEndedTime] = distribute(startTimes + testCase.sample(1.5, N));
       
       [t.responseMadeID] = distribute(randi(3, N, 1));
       [t.feedbackType] = distribute(randsample([-1 1], N, 1));
@@ -136,6 +136,177 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     function test_signalsExtraction(testCase)
       data = testCase.SignalsBlock;
       [fullpath, filename] = alf.block2ALF(data);
+      testCase.verifyTrue(all(startsWith(filename, '_misc_')), ...
+        'Incorrect namespace given')
+      testCase.assertTrue(all(file.exists(fullpath)), 'Failed to write files')
+      
+      % Choice / Response ALF
+      choice = readNPY(fullpath{1});
+      choiceTimes = readNPY(fullpath{11});
+      testCase.verifyTrue(isa(choice, 'int8'), 'Wrong datatype for choice ALF')
+      % Verify that signs switch: CW -ve
+      testCase.verifyTrue(all(choice == -data.events.responseValues(:)), ...
+        'Unexpected choice values')
+      expected = data.events.responseTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(choiceTimes, expected, 'Unexpected response times')
+      
+      % ContrastLeft, ContrastRight ALF
+      expected = [data.events.contrastLeftValues(:) data.events.contrastRightValues(:)];
+      contrast = [readNPY(fullpath{2}), readNPY(fullpath{3})];
+      testCase.verifyEqual(contrast, expected, 'Unexpected contrast values')
+      
+      % Feedback ALF
+      feedback = readNPY(fullpath{4});
+      testCase.verifyTrue(isa(feedback, 'int8'), 'Wrong datatype for feedback ALF')
+      testCase.verifyTrue(all(feedback == data.events.feedbackValues(:)), ...
+        'Unexpected feedback values')
+      feedbackTimes = readNPY(fullpath{5});
+      expected = data.events.feedbackTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(feedbackTimes, expected, ...
+        'Unexpected feedback times')
+      
+      % GoCue / InteractiveOn ALF
+      goCue = readNPY(fullpath{6});
+      expected = data.events.interactiveOnTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(goCue, expected, 'Unexpected goCue times')
+      
+      % Included & RepNum ALFs
+      incl = readNPY(fullpath{7});
+      repNum = readNPY(fullpath{10});
+      testCase.verifyTrue(isa(incl, 'logical'), 'Wrong datatype for included ALF')
+      testCase.verifyTrue(isa(repNum, 'uint8'), 'Wrong datatype for repNum ALF')
+      % Check the values
+      testCase.verifyEqual(incl, (data.events.repeatNumValues == 1)', ...
+        'Unexpected included values')
+      testCase.verifyTrue(all(repNum == data.events.repeatNumValues(:)), ...
+        'Unexpected repNum values')
+      
+      % Intervals
+      ints = readNPY(fullpath{8});
+      expected = [data.events.newTrialTimes(:) data.events.endTrialTimes(:)];
+      expected = expected - data.events.expStartTimes;
+      testCase.verifyEqual(ints, expected, 'Unexpected interval values')
+      
+      % ProbabilityLeft
+      pL = readNPY(fullpath{9});
+      testCase.verifyEqual(pL, data.events.proportionLeftValues(:), ...
+        'Unexpected probabilityLeft values')
+      
+      % Reward volume
+      rwd = readNPY(fullpath{12});
+      testCase.verifyEqual(sum(rwd), sum(data.outputs.rewardValues), ...
+        'Unexpected rewardVolume values')
+      
+      % StimOn
+      stimOn = readNPY(fullpath{13});
+      expected = data.events.stimulusOnTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(stimOn, expected, 'Unexpected stimOn times')
+      
+      % TODO Wheel ALFs
+      pos = readNPY(fullpath{14});
+      t = readNPY(fullpath{15});
+      v = readNPY(fullpath{16});
+      
+      
+      % WheelMoves ALFs
+      whInts = readNPY(fullpath{17});
+      type = strsplit(fileread(fullpath{18}),',');
+      testCase.verifyEqual(size(whInts,1), numel(type))
+      testCase.verifyEqual(size(whInts,2), 2)
+    end
+    
+    function test_choiceWorldExtraction(testCase)
+      data = testCase.ChoiceWorldBlock;
+      expStartTime = data.experimentStartedTime;
+      t = [data.trial];
+      
+      [fullpath, filename] = alf.block2ALF(data);
+      
+      testCase.verifyTrue(all(startsWith(filename, '_misc_')), ...
+        'Incorrect namespace given')
+      testCase.assertTrue(all(file.exists(fullpath)), 'Failed to write files')
+      
+      % Choice / Response ALF
+      choice = readNPY(fullpath{1});
+      choiceTimes = readNPY(fullpath{11});
+      testCase.verifyTrue(isa(choice, 'int8'), 'Wrong datatype for choice ALF')
+      % Verify that signs switch: CW -ve
+      correct = ...
+        t.responseMadeID(choice==0) == 3 & ...
+        t.responseMadeID(choice==1) == 1 & ...
+        t.responseMadeID(choice==2) == -1;
+        
+      testCase.verifyTrue(all(correct), 'Unexpected choice values')
+      expected = [t.responseMadeTime] - expStartTime;
+      testCase.verifyEqual(choiceTimes, expected, 'Unexpected response times')
+      
+      % ContrastLeft, ContrastRight ALF
+      expected = [data.events.contrastLeftValues(:) data.events.contrastRightValues(:)];
+      contrast = [readNPY(fullpath{2}), readNPY(fullpath{3})];
+      testCase.verifyEqual(contrast, expected, 'Unexpected contrast values')
+      
+      % Feedback ALF
+      feedback = readNPY(fullpath{4});
+      testCase.verifyTrue(isa(feedback, 'int8'), 'Wrong datatype for feedback ALF')
+      testCase.verifyTrue(all(feedback == data.events.feedbackValues(:)), ...
+        'Unexpected feedback values')
+      feedbackTimes = readNPY(fullpath{5});
+      expected = data.events.feedbackTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(feedbackTimes, expected, ...
+        'Unexpected feedback times')
+      
+      % GoCue / InteractiveOn ALF
+      goCue = readNPY(fullpath{6});
+      expected = data.events.interactiveOnTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(goCue, expected, 'Unexpected goCue times')
+      
+      % Included & RepNum ALFs
+      incl = readNPY(fullpath{7});
+      repNum = readNPY(fullpath{10});
+      testCase.verifyTrue(isa(incl, 'logical'), 'Wrong datatype for included ALF')
+      testCase.verifyTrue(isa(repNum, 'uint8'), 'Wrong datatype for repNum ALF')
+      % Check the values
+      testCase.verifyEqual(incl, (data.events.repeatNumValues == 1)', ...
+        'Unexpected included values')
+      testCase.verifyTrue(all(repNum == data.events.repeatNumValues(:)), ...
+        'Unexpected repNum values')
+      
+      % Intervals
+      ints = readNPY(fullpath{8});
+      expected = [data.events.newTrialTimes(:) data.events.endTrialTimes(:)];
+      expected = expected - data.events.expStartTimes;
+      testCase.verifyEqual(ints, expected, 'Unexpected interval values')
+      
+      % ProbabilityLeft
+      pL = readNPY(fullpath{9});
+      testCase.verifyEqual(pL, data.events.proportionLeftValues(:), ...
+        'Unexpected probabilityLeft values')
+      
+      % Reward volume
+      rwd = readNPY(fullpath{12});
+      testCase.verifyEqual(sum(rwd), sum(data.outputs.rewardValues), ...
+        'Unexpected rewardVolume values')
+      
+      % StimOn
+      stimOn = readNPY(fullpath{13});
+      expected = data.events.stimulusOnTimes(:) - data.events.expStartTimes;
+      testCase.verifyEqual(stimOn, expected, 'Unexpected stimOn times')
+      
+      % TODO Wheel ALFs
+      pos = readNPY(fullpath{14});
+      t = readNPY(fullpath{15});
+      v = readNPY(fullpath{16});
+      
+      
+      % WheelMoves ALFs
+      whInts = readNPY(fullpath{17});
+      type = strsplit(fileread(fullpath{18}),',');
+      testCase.verifyEqual(size(whInts,1), numel(type))
+      testCase.verifyEqual(size(whInts,2), 2)
+    end
+    
+    function test_incomplete(testCase)
+      % TODO
     end
   end
   

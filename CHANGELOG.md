@@ -5,6 +5,7 @@
 ## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.3.1]
 
 - Patch fix for assertion bug in newExp (`827d8a9`)
+- Folders removed in newExp when mkdir fails (`173b6fc`)
 
 ## [2.3.0]
 

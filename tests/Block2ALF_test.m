@@ -69,7 +69,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       [t.onsetToneSoundPlayedTime] = distribute(startTimes + testCase.sample(2e-3, N));
       [t.stimulusCueStartedTime] = distribute(startTimes + testCase.sample(1e-3, N));
       [t.feedbackStartedTime] = distribute(startTimes + testCase.sample(1, N));
-      [t.trialEndedTime] = distribute(startTimes + testCase.sample(1.5, N));
+      endTimes = startTimes + [diff(startTimes)-0.1 startTimes(end)+2+rand];
+      [t.trialEndedTime] = distribute(endTimes);
+%       [t.trialEndedTime] = distribute(startTimes + testCase.sample(1.5, N));
       
       [t.responseMadeID] = distribute(randi(3, N, 1));
       [t.feedbackType] = distribute(randsample([-1 1], N, 1));
@@ -100,7 +102,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       e.interactiveOnTimes = startTimes + testCase.sample(2e-3, N);
       e.responseTimes = startTimes + testCase.sample(1, N);
       e.feedbackTimes = e.responseTimes + .1;
-      e.endTrialTimes = startTimes + testCase.sample(1.5, N);
+      e.endTrialTimes = endTimes;
       
       e.feedbackValues = randsample([-1 1], N, 1);
       e.repeatNumValues = randi(3,1,N);

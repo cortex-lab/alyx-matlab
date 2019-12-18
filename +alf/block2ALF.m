@@ -317,15 +317,10 @@ filename = {files.name};
       try % Load encoder resolution from hw info file
         rig = loadjson(dat.expFilePath(data.expRef, 'hw-info', 'master')); %FIXME: This takes ages to load
         encRes = rig.mouseInput.EncoderResolution;
-      catch % Use lookup table instead
-        switch lower(data.rigName) % TODO: add to rig hardware
-          case {'zym1', 'zym2', 'zym3'}
-            encRes = 360;
-          case {'zurprise', 'zym4'}
-            encRes = 100;
-          otherwise
-            encRes = 1024;
-        end
+      catch % Use most common resoultion instead
+        encRes = 1024;
+        warning('Alyx:alf:block2Alf:loadRigInfoFailed', ...
+          'Failed to load hardware JSON, assuming encoder resolution to be %i', encRes)
       end
       pos = pos./(4*encRes)*2*pi*3.1; % convert to cm
       alf.writeTimeseries(expPath, [namespace 'wheel'], t(:), [], []);

@@ -8,6 +8,8 @@ function [fullpath, filename] = block2ALF(data, overwrite)
 %  TODO: Write extra rewards ALF when present
 
 if nargin < 2; overwrite = false; end
+% Function for constructing a full ID for warnings and errors
+fullID = @(id) strjoin([{'Alyx:alf:block2ALF'}, ensureCell(id)],':');
 
 expPath = dat.expPath(data.expRef, 'main', 'master');
 expDef = getOr(data, {'expDef' 'expType'});
@@ -43,7 +45,9 @@ filename = {files.name};
 
   function extractSignals(data)
     % EXTRACTSIGNALS Extract ALF files from a Signals block file.
-    if ~isfield(data,'events')||length(data.events.newTrialValues)<20||endsWith(expDef,'habituationWorld.m')
+    if ~isfield(data,'events') || ...
+        length(data.events.newTrialValues) < 20 || ...
+        endsWith(expDef, 'habituationWorld.m')
       return
     end
     
@@ -68,7 +72,8 @@ filename = {files.name};
         writeNPY(rewardValues(:), ...
           fullfile(expPath, [namespace 'trials.rewardVolume.npy']));
       else
-        warning('No ''feedback'' events recorded, cannot register to Alyx')
+        warning(fullID('feedbackValuesNotFound'), ....
+          'No ''feedback'' events recorded, cannot register to Alyx')
       end
     end
     
@@ -79,7 +84,8 @@ filename = {files.name};
       if ~isnan(interactiveOn)
         alf.writeEventseries(expPath, [namespace 'trials.goCue'], interactiveOn, [], []);
       else
-        warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
+        warning(fullID('interactiveOnValuesNotFound'),...
+          'No ''interactiveOn'' events recorded, cannot register to Alyx')
       end
     end
     
@@ -99,7 +105,8 @@ filename = {files.name};
         alf.writeEventseries(expPath, [namespace 'trials.response'],...
           responseTimes, [], []);
       else
-        warning('No ''feedback'' events recorded, cannot register to Alyx')
+        warning(fullID('responseValuesNotFound'),...
+          'No ''feedback'' events recorded, cannot register to Alyx')
       end
     end
     
@@ -110,7 +117,8 @@ filename = {files.name};
         stimOnTimes = stimOnTimes - expStartTime;
         alf.writeEventseries(expPath, [namespace 'trials.stimOn'], stimOnTimes, [], []);
       else
-        warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
+        warning(fullID('stimulusOnValuesNotFound'), ...
+          'No ''stimulusOn'' events recorded, cannot register to Alyx')
       end
     end
     
@@ -124,7 +132,8 @@ filename = {files.name};
         writeNPY(contL(:), fullfile(expPath, [namespace 'trials.contrastLeft.npy']));
         writeNPY(contR(:), fullfile(expPath, [namespace 'trials.contrastRight.npy']));
       else
-        warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
+        warning(fullID('contrastLeftValuesNotFound'), ...
+          'No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
       end
     end
     
@@ -172,7 +181,7 @@ filename = {files.name};
         encRes = rig.mouseInput.EncoderResolution;
       catch % Use most common resoultion instead
         encRes = 1024;
-        warning('Alyx:alf:block2Alf:loadRigInfoFailed', ...
+        warning(fullID('loadRigInfoFailed'), ...
           'Failed to load hardware JSON, assuming encoder resolution to be %i', encRes)
       end
       pos = pos./(4*encRes)*2*pi*3.1; % convert to cm
@@ -222,15 +231,28 @@ filename = {files.name};
     end
     
     %ANALYZE CHOCIEWORLD BLOCK
+    configFcn = func2str(data.parameters.experimentFun);
+    if ~contains(configFcn, 'exp.configureChoiceExperiment')
+      % If the experiment event handlers were configured in a different way
+      % to the defaults, our extracted files may not accurately reflect the
+      % experiment.
+      warning(fullID('unknownConfig'), ...
+        ['Precise experiment configuration unknown, '...
+        'extracted files may be inaccurate'])
+    end
+    
     load(dat.expFilePath(data.expRef, 'parameters', 'master'), 'parameters')
     completedTrials = data.numCompletedTrials;
     expStartTime = data.experimentStartedTime;
     trials = data.trial(1:completedTrials);
-    choice = [trials.responseMadeID];
-    if max(choice) == 2
-      choice(choice == 3) = 0; % No go
-      choice(choice == 2) = -1; % CCW
-    end
+    response = [trials.responseMadeID];
+    % Mapping determined by experimentFun, i.e. exp.configureChoiceExperiment
+    % Typically, 1 -> 1 (CW), 2 -> -1 (CCW) & 3 -> 0 (No go)
+    p = data.parameters;
+    keys = [p.responseForThreshold; getOr(p, 'responseForNoGo')];
+    map = containers.Map(keys, [1 -1 0], 'UniformValues', true);
+    choice = arrayfun(@(c)map(c), response);
+    
     responseTimes = [trials.responseMadeTime] - expStartTime;
     feedbackType = [trials.feedbackType];
     feedbackTimes = [trials.feedbackStartedTime] - expStartTime;
@@ -245,7 +267,7 @@ filename = {files.name};
     included = repNum==1;
     trialStartTime = [trials.trialStartedTime]' - expStartTime;
     trialEndTime = [trials.trialEndedTime]' - expStartTime;
-    goCueTimes = vertcat(trials.onsetToneSoundPlayedTime);
+    goCueTimes = vertcat(trials.stimulusCueStartedTime);
     goCueTimes = goCueTimes(:,1) - expStartTime;
     stimOnTimes = [trials.stimulusCueStartedTime]' - expStartTime;
     % responseWindow = repmat(data.parameters.responseWindow,completedTrials,1);
@@ -321,7 +343,7 @@ filename = {files.name};
         encRes = rig.mouseInput.EncoderResolution;
       catch % Use most common resoultion instead
         encRes = 1024;
-        warning('Alyx:alf:block2Alf:loadRigInfoFailed', ...
+        warning(fullID('loadRigInfoFailed'), ...
           'Failed to load hardware JSON, assuming encoder resolution to be %i', encRes)
       end
       pos = pos./(4*encRes)*2*pi*3.1; % convert to cm

@@ -2,10 +2,11 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.3.1]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.4.0]
 
 - Patch fix for assertion bug in newExp (`827d8a9`)
 - Folders removed in newExp when mkdir fails (`173b6fc`)
+- Bug fixes and tests for alf.block2ALF (`750de92`)
 
 ## [2.3.0]
 

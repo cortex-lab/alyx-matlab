@@ -1,25 +1,34 @@
-function [datasets, filerecords] = registerFile(obj, filePath)
-%REGISTERFILE Registers filepath(s) to Alyx. The file being registered should already be on the target server.
+function [datasets, filerecords] = registerFile(obj, filePath, varargin)
+%REGISTERFILE Registers filepath(s) to Alyx
+%   [DATASETS, FILERECORDS] = REGISTERFILE(OBJ, FILEPATH, VERSION, HASH)
 %   The repository being registered to will be automatically determined
 %   from the filePath. Registration work first by creating a dataset (a
 %   record of the dataset type, creation date), and then a filerecord (a
 %   record of the relative path within the repository). The dataset is
 %   associated with a session and a subject, which is inferred from the
-%   path provided. 
-%
-%   The input filePath must be a full path to a directory or file, or a
-%   cell array thereof.  For any directory paths provided, registerFile
-%   attempts to register all files contained.  All file paths must include
-%   an extension (if exists).  In order to be registered all files must
-%   have an associated dataset type on Alyx.
+%   path provided.  The file being registered should already be on the
+%   target server.
 %
 %   All paths must conform to the following structure:
 %   <dns>\<subject>\<yyyy-mm-dd>\<seq>\ where <dns> matches a valid data
 %   repository domain name server entry on Alyx.
 %
+%   Inputs:
+%     filePath (char|cellstr): A full path to a directory or file, or a
+%       cell array thereof.  For any directory paths provided, registerFile
+%       attempts to register all files contained.  All file paths must
+%       include an extension (if exists).  In order to be registered all
+%       files must have an associated dataset type on Alyx.
+%     version (char|cellstr): The version of the algorithm used to
+%       generate the files being registered.  If more than one provided,
+%       must be the same number of elements as filePath.  Optional.
+%     hash (char|cellstr): A hash checksum of the files being registered.  
+%       If provided, the filePath(s) cannot be a dir and must be the same
+%       number of elements as filePath.
+%
 %   Examples:
 %     datasets = obj.registerFile({...
-%       '\\zubjects.cortexlab.net\Subjects\ALK055\2017-07-17\1\2017-07-17_1_ALK055_Block.mat',...
+%       '\\znas.cortexlab.net\Subjects\ALK055\2017-07-17\1\2017-07-17_1_ALK055_Block.mat',...
 %       '\\zubjects.cortexlab.net\Subjects\ALK055\2017-07-17\2'});
 %
 %   NB: The returned datasets may not be in the same order as the filePaths
@@ -37,10 +46,21 @@ function [datasets, filerecords] = registerFile(obj, filePath)
 % 2018 MW updated
 
 %%INPUT VALIDATION
+p = inputParser;
+validator = @(x) ischar(x) || iscellstr(x); %#ok<ISCLSTR>
+p.addRequired('filePath', validator)
+p.addOptional('version', '', validator) 
+p.addOptional('hash', '', validator)
+p.parse(filePath, varargin{:});
+
 filePath = ensureCell(filePath);
 if size(filePath,1) < size(filePath,2)
   filePath = filePath';
 end
+
+% Validate parameter input sizes
+[filePath, version, hash, singleArg] = ...
+  tabulateArgs(filePath, p.Results.version, p.Results.hash);
 
 % Validate files/directories exist
 exists = cellfun(@(p) exist(p,'file') || exist(p,'dir'), filePath);
@@ -55,6 +75,10 @@ end
 dirs = cellfun(@(p)exist(p,'dir')~=0, filePath); % For 2017b and later, we can use @isfolder
 filePath = [filePath(~dirs); cellflat(cellfun(@dirPlus, filePath(dirs), 'uni', 0))];
 filePath = unique(filePath);
+if any(dirs)
+  assert(isempty(hash), 'Alyx:registerFile:HashForDirGiven', ...
+    'Cannot register hash for a directory, please provide full paths to files instead')
+end
 
 % Get the DNS part of the file paths  FIXME: Generalize expression
 hostname = cellflat(regexp(filePath,'.*(?:\\{2}|\/)(.[^\\|\/]*)', 'tokens'));
@@ -124,6 +148,7 @@ end
 [filePath, filenames, ext] = cellfun(@fileparts, filePath, 'uni', 0);
 filenames = strcat(filenames, ext);
 [filePath,~,ic] = unique(filePath);
+
 % Initialize datasets array
 datasets = cell(1, numel(filePath));
 filerecords = []; % Initialize in case unable to access server
@@ -142,6 +167,8 @@ realtivePath = cellflat(regexp(filePath, expr, 'match'));
 D = struct('created_by', obj.User);
 for i = 1:length(filePath)
   D.hostname = hostname{i};
+  D.version = iff(singleArg, version, version{i});
+  D.hash = iff(singleArg, hash, hash{i});
   D.path = realtivePath{i};
   D.filenames = filenames(ic==i);
   [record, statusCode] = obj.postData('register-file', D);

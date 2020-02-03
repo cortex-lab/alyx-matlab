@@ -12,5 +12,5 @@ function outDatenum = datenum(date_time)
 % 2017 -- created
 narginchk(1,1)
 date_time = strrep(date_time, 'T', ' ');
-date_time = strrep(date_time, 'Z', '');
+date_time = erase(date_time, 'Z');
 outDatenum = datenum(date_time);

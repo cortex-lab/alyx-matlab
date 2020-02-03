@@ -4,8 +4,8 @@ function [fullpath, filename] = block2ALF(data, overwrite)
 %  For more info on the dataset type, visit
 %  https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM0
 %
-%  TODO: Cut down redundency in code
-%  TODO: Write extra rewards ALF when present
+%  TODO Write extra rewards ALF when present
+%  TODO Add hash and version
 
 if nargin < 2; overwrite = false; end
 

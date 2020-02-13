@@ -122,8 +122,6 @@ classdef Alyx
     subjects = listSubjects(obj, stock, alive, sortByUser)
     % Returns the file path where you can find a specified file
     [fullpath, filename, fileID, records] = expFilePath(obj, varargin)
-    % Returns experiment meta-data, given an experiment URL
-    expMetaData = getExpMeta(obj, sessionURL)
     % Register a filepath to Alyx. The file being registered should already be on the target server.
     [dataset, filerecord] = registerFile(obj, filePath, dataFormatName, sessionURL, datasetTypeName, parentDatasetURL)
     % Register files contained within alfDir to Alyx

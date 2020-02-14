@@ -46,7 +46,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     
     function createObject(testCase, base_url)
       % Create a number of Alyx instances and log them in
-      testCase.queueDir = fullfile(fileparts(mfilename('fullpath')),'fixtures','data');
+      testCase.queueDir = fullfile(fileparts(mfilename('fullpath')),'fixtures','queue');
+      rmQ = @(d) iff(exist(d,'dir') == 7, @()rmdir(d, 's'), @()nop);
+      testCase.addTeardown(rmQ, testCase.queueDir) % Delete queue directory on teardown
       Alyx_test.resetQueue(testCase.queueDir); % Ensure empty before logging in
       
       testCase.water_types = {'Water', 'Water 15% Sucrose', ...
@@ -74,9 +76,13 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.fatalAssertTrue(all([testCase.alyx.Headless]==0) && ...
         all([testCase.alyx.IsLoggedIn]==1),...
         'Not all test instances connected')
+      % Create main test repo
       dataRepo = dat.reposPath('main','master');
       success = cellfun(@(d)mkdir(d), fullfile(dataRepo, testCase.subjects));
-      assert(all(success), 'Failed to create tesst subject folders')
+      assert(all(success), 'Failed to create test subject folders')
+      % Create local test repo
+      localRepo = dat.reposPath('main','local');
+      assert(mkdir(localRepo), 'Failed to create local subject test folder')
     end
   end
   
@@ -85,7 +91,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       Alyx_test.resetQueue(testCase.queueDir);
       rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
       cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), ...
-        dat.reposPath('main', 'remote'));
+        [dat.reposPath('main', 'remote'); {dat.reposPath('main', 'local')}]);
+      clear('paths') % Clear any custom paths set
     end
   end
   
@@ -444,6 +451,25 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       expected = dat.expParams(ref1);
       testCase.verifyTrue(isstruct(expected) && isequal(fieldnames(expected), fieldnames(params)))
       
+      % Test behaviour when subject doesn't exist
+      testCase.verifyError(@()ai.newExp('fake'), ...
+        'Alyx:newExp:subjectNotFound', 'Failed to throw error on non-existent subject')
+      % Test behaviour when local folder contains experiment
+      nextExp = {testCase.subjects{1}, now, 3};
+      assert(mkdir(dat.expPath(nextExp{:}, 'main', 'local')), ...
+      'Failed to create directory in %s for testing', dat.reposPath('main', 'local'))
+      testCase.verifyError(@()newExp(ai, testCase.subjects{1}, now, params), ...
+        'Alyx:newExp:expFoldersAlreadyExist', 'Failed to throw error on folders present')
+      % Test behaviour when creating experiment folder fails
+      dat.paths(struct('localRepository', '*;')); % Set invalid local repo
+      testCase.addTeardown(@clear, 'paths')
+      testCase.assertEmpty(dat.listExps(testCase.subjects{2}), ...
+        sprintf('Test requires no experiment folders for subject %s', testCase.subjects{2}))
+      testCase.verifyError(@()newExp(ai, testCase.subjects{2}, now, params), ...
+        'Alyx:newExp:mkdirFailed', 'Failed to throw error on folders present')
+      expFolderCreated = file.exists(dat.expPath(testCase.subjects{2}, now, 1, 'main'));
+      testCase.verifyFalse(any(expFolderCreated))
+
       % TODO test newExp when headless
     end
     

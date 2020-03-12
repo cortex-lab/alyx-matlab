@@ -17,7 +17,7 @@ MATLAB's built-in functions urlread and urlwrite are not particularly informativ
 To install the package simply clone the master branch on your computer, then in MATLAB add the main folder to the paths, along with the helpers subfolder:
 ```
 cd alyx-matlab
-savepath(pwd, fullfile(pwd, helpers));
+addpath(pwd, fullfile(pwd, 'helpers'));
 ```
 
 To customise the database URL create a file called `+dat\paths.m`.  This file should a function with that returns a structure with a field called `databaseURL`.  The value of this field will be the default when a new Alyx object is instantiated.  A template of this paths file can be found [here](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).

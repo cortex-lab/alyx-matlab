@@ -1,3 +1,10 @@
+%% Introduction 
+% <https://github.com/cortex-lab/alyx Alyx> is a light-weight meta-database
+% for colony management and experimental logging.  Its purpose is to
+% facilitate the recording and sharing of experimental data within the
+% neuroscience community.  It is currently adopted by the
+% <https://www.internationalbrainlab.com/ International Brain Lab> (IBL).
+
 %% Example dataset creation & file registration on Alyx
 % The simplst way to interface with Alyx via MATLAB is through the RESTful
 % interface.  The Alyx class (found in Rigbox/alyx-matlab/@Alyx) creates an
@@ -153,12 +160,12 @@ clear d subsession statusCode url comments expSeq
 % One of the purposes of Alyx is to make sharing data to a wider group
 % simple and accessible.  In order to do this effectively there are a few
 % things imposed on the user in terms of how data and meta-data are stored:
-
+%
 % 1. Files must be stored in a directory by mouse name, then experiment
 % date (corresponding to the base session on Alyx), then
 % experiment/sequence number (corresponding to subsessions on Alyx). Alyx
 % infers information about the files based on this directory structure.
-
+%
 % 2. Where the files are saved must correspond to a data repository that
 % has been created on Alyx.  One such example is zubjects.  For the IBL
 % collaboration, the data repository records are used by Globus to map the
@@ -168,7 +175,7 @@ clear d subsession statusCode url comments expSeq
 % <https://alyx.readthedocs.io/en/latest/models.html#data alyx database
 % documentation>: 
 web('https://alyx.readthedocs.io/en/latest/models.html#data')
-
+%%%
 % 3. The files must have a corresponding dataset type.  This is a record on
 % Alyx that includes a human readable description of what the data are and
 % a filename pattern for identifying the file.  It is suggested that the
@@ -180,11 +187,12 @@ web('https://alyx.readthedocs.io/en/latest/models.html#data')
 % '*_2P_ROI.*') and raw frames (e.g. '*_2P_ROI.*'). More info:
 % https://alyx.internationalbrainlab.net/admin/data/datasettype/
 web('https://github.com/cortex-lab/ALF')
+%%%
 % The list of current and proposed ALFs may be found
 % <https://docs.google.com/spreadsheets/d/1DqyQ-Ho4eObR0B4nZMQz397TAUReaef-9dRWKwIa3JM/edit#gid=0
 % here>
 % 
-
+%
 % 4. The files must have a valid format, defined on Alyx by the data format
 % records.  These records include a description of the file format, the
 % filename pattern (e.g. '*.mat' or '*.*.npy' for ALF files), and the
@@ -257,10 +265,10 @@ type = 'trials.itiDuration';
 %% Saving files
 % Saving files in a standard way can be easily achieved by using
 % dat.expFilePath to return the path and file name for your data.  The main
-% data repository is defined in dat.paths, the folder tree by
-% dat.canstructExpRef (used by dat.newExp), and the file name is
-% constructed from the expRef + '_filetype'.  The list of file types are
-% found here:
+% data repository is defined in <./using_dat_package.html dat.paths>, the
+% folder tree by dat.canstructExpRef (used by dat.newExp), and the file
+% name is constructed from the expRef + '_filetype'.  The list of file
+% types are found here:
 opentoline(which('dat.expFilePath'),45,1)
 doc dat % further info
 open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'using_dat_package.m'))
@@ -279,6 +287,7 @@ clear fullpaths
 % dataset type, repository and format records are created on the database
 % first.  To register a file, you can use the registerFile method:
 [datasets, filerecords] = ai.registerFile(fullpath) % Register a specific file
+%%%
 % The returned dataset records should contain the associated session URL
 % and the dataset type, as well as a list of filerecords.  The filerecords
 % contain the path to the files and what repository they're found on.
@@ -306,7 +315,7 @@ ai.flushQueue
 % message bodies, and the full reponse of the server is usually not
 % returned.  In order to debug your Alyx posts, you can use the missing
 % http package's jsonPost function instead.  See line 47 of
-% Alyx.flushQueue:
+% |Alyx.flushQueue|:
 opentoline(which('flushQueue'),47,1)
 web('https://github.com/psexton/missing-http/releases') % To download toolbox
 
@@ -314,7 +323,7 @@ web('https://github.com/psexton/missing-http/releases') % To download toolbox
 % Alys can be used with Rigbox.  In this way subject information such as
 % weight can be posted to Alyx through MC or the AlyxPanel GUI, and files
 % and reward volumes can be posted automatically at the end of the session.
-
+%
 % To activate Alyx simply set the databaseURL field in |dat.paths| to a
 % non-empty string (should be a valid database url).
 getOr(dat.paths, 'databaseURL')
@@ -336,19 +345,21 @@ opentoline(hw_setup, 497, 1)
 
 %% Sending Alyx around
 % An Alyx instance can be sent between rigs in one of two ways:
-% 1. Via Java Websockets using the io.WSJCommunicator.server/client object.
-%   This object uses the hlp_serialize/deserialize functions to send the
+%
+% # Via Java Websockets using the |io.WSJCommunicator.server/client| object.
+%   This object uses the |hlp_serialize/deserialize| functions to send the
 %   object.
-% 2. Via UDP using Rigbox services objects (using udp and pnet functions).
-%   The Alyx.parseAlyxInstance method can be used to convert the object
+% # Via UDP using Rigbox services objects (using udp and pnet functions).
+%   The |Alyx.parseAlyxInstance| method can be used to convert the object
 %   into a JSON string and back again.
+%
 % Both methods ultimately use saveobj and loadobj methods to convert the
 % Alyx object.  This isn't really important to know.
-% More info: 
+% More info on <./using_services.html services>: 
 doc Alyx.parseAlyxInstance % Used by srv.BasicUDPService and tl.mpepListener
 doc io.WSJCommunicator.server % Used by expServer to communicate with mc
 doc srv.StimulusControl % Used by mc to communicate with expServer
-open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'setup', 'services_config.m'))
+open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'setup', 'using_services.m'))
 
 %% Headless Alyx
 % Before sending an instance of Alyx to a stimulus computer, consider
@@ -374,6 +385,7 @@ open(fullfile(alyxPath, '..', 'docs', 'sql', 'expFilePath.m'))
 
 %% Etc.
 % Author: Miles Wells
-% v1.1.0
+%
+% v1.1.1
 
 %#ok<*NASGU,*ASGLU,*NOPTS>

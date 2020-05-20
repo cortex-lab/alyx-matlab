@@ -197,7 +197,7 @@ filename = {files.name};
         ~exist(fullfile(expPath, [namespace 'wheelMoves.intervals.npy']), 'file') || ...
         overwrite == true
       [moveOnsets, moveOffsets] = wheel.findWheelMoves3(data.inputs.wheelValues, ...
-        data.inputs.wheelTimes-expStartTime, Fs, []);
+        data.inputs.wheelTimes-expStartTime, Fs, []);  % FIXME pos thresholds
       
       hasTurn = response~=0;
       resp = response(hasTurn);

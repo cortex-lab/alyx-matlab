@@ -78,16 +78,17 @@ sessions = ai.getData('sessions?type=Experiment&subject=ZM_335')
 % For more info:
 doc webread
 
+%%%
 % The query options are set on the server side.  You can find which options
 % are availible for each endpoint by vising the alyx documentation (see
 % above).  This information is also availiable on the DJANGO API page but
 % be warned it is slow to load as you are running a GET within the browser:
-
-% Example: https://test.alyx.internationalbrainlab.org/sessions
-% HTTP 200 OK % HTTP version
-% Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS % Methods allowed
-% Content-Type: application/json % Post using Alyx.jsonPost
-% Vary: Accept
+%
+%   Example: https://test.alyx.internationalbrainlab.org/sessions
+%   HTTP 200 OK % HTTP version
+%   Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS % Methods allowed
+%   Content-Type: application/json % Post using Alyx.jsonPost
+%   Vary: Accept
 
 %% Posting data
 % POST requests (those that create new records on Alyx) can be made with

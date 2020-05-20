@@ -11,14 +11,18 @@ function fullEndpoint = makeEndpoint(obj, endpoint)
 
 % validate endpoint
 assert(~isempty(endpoint)...
-    &&ischar(endpoint)...
-    &&length(endpoint) > 3, 'Invalid endpoint');
+       && (ischar(endpoint) || isStringScalar(endpoint))...
+       && endpoint ~= "", ...
+       'Alyx:makeEndpoint:invalidInput', 'Invalid endpoint');
 
-if strcmp(endpoint(1:4), 'http')
+if startsWith(endpoint, 'http')
   % this is a full url already
   fullEndpoint = endpoint;
 else
-  fullEndpoint = [obj.BaseURL, '/', endpoint];
+  fullEndpoint = [obj.BaseURL, '/', char(endpoint)];
+  if isstring(endpoint)
+    fullEndpoint = string(fullEndpoint);
+  end
 end
 
 % drop trailing slash

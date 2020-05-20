@@ -144,6 +144,17 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       ai.BaseURL = 'https://test.alyx.internationalbrainlab.org/';
       base2 = ai.BaseURL;
       testCase.verifyEqual(base1, base2, 'BaseURL sanitizer test failed');
+      
+      % Test string input
+      expected = string([ai.BaseURL '/sessions']);
+      testCase.verifyEqual(expected, ai.makeEndpoint(expected), ...
+        'unexpected handle of full string input')
+      
+      in = "sessions";
+      testCase.verifyEqual(expected, ai.makeEndpoint(in), ...
+        'unexpected handle of partial endpoint as string')
+      
+      testCase.verifyError(@() ai.makeEndpoint(""), 'Alyx:makeEndpoint:invalidInput')
     end
     
     function test_login(testCase)
@@ -204,8 +215,14 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
-      sess = ai.getSessions('data', {'spikes.clusters', 'channels.probe'});
+      datasets = {'spikes.clusters', 'channels.probe'};
+      sess = ai.getSessions('data', datasets);
       testCase.verifyEqual(actual(sess), {'89b82507028a'}, 'Failed to filter by dataset_type')
+      
+      % Test string input
+      sess = ai.getSessions('data', string(datasets));
+      testCase.verifyEqual(actual(sess), {'89b82507028a'}, ...
+        'Failed to filter by string input')
       
       % Test eid and search combo
       [sess, eid] = ai.getSessions(testCase.eids{1}, ...

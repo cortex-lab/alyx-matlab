@@ -14,7 +14,7 @@ assert(~isempty(endpoint)...
     &&ischar(endpoint)...
     &&length(endpoint) > 3, 'Invalid endpoint');
 
-if strcmp(endpoint(1:4), 'http')
+if startsWith(endpoint, 'http')
   % this is a full url already
   fullEndpoint = endpoint;
 else

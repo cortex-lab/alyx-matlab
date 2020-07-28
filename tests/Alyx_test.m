@@ -4,9 +4,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
   % Test adapted from Oliver Winter's AlyxClient test
   
   properties (ClassSetupParameter)
-    % Alyx base URL.  test is for the main branch, testDev is for the dev
-    % code
-    base_url = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+    % Alyx base URL.  'test' is for the main branch, 'testDev' is for the 
+    % dev code
+    base_url = {'https://test.alyx.internationalbrainlab.org'}
   end
   
   properties % Test objects
@@ -210,8 +210,9 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by lab')
       
       % Test user search
-      sess = ai.getSessions('user', 'olivier');
-      expected = {'89b82507028a', 'c34dc9004cf8'};
+      sess = ai.getSessions('user', 'ines');
+      expected = {'2ea989cd5143', '8aec34753ad0', ...
+        '4d2628b52ec0', 'ab26823ec5a4', '910203f65589'};
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
@@ -436,23 +437,39 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
     end
     
     function test_newExp(testCase)
+      % Tests creating new experiment sessions on Alyx, registering and
+      % saving parameters.
       ai = testCase.alyx;
       subject = testCase.subjects{end};
       newExp_fn = @()newExp(ai, subject);
+      
+      % A 'Base' session type is first created, if it doesn't already
+      % exist, then an 'Experiment' sub-session.  
+      % First query the current number of base sessions
+      nowstr = datestr(now, 'yyyy-mm-dd');
+      nToday = nBaseSessions(nowstr);
+      expected = iff(nToday > 0, nToday, 1);
+      
       wrnID = 'Alyx:registerFile:InvalidRepoPath';
       [ref1, seq, url] = testCase.verifyWarning(newExp_fn, wrnID);
       ref2 = strjoin({datestr(now, 'yyyy-mm-dd'),'1',subject},'_');
-      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch');
-      testCase.verifyEqual(seq, 1, 'Experiment sequence mismatch');
-      testCase.verifyMatches(url, [ai.BaseURL '/sessions'],  'Incorrect URL');
+      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch')
+      testCase.verifyEqual(seq, 1, 'Experiment sequence mismatch')
+      testCase.verifyMatches(url, [ai.BaseURL '/sessions'],  'Incorrect URL')
       paramsSaved = exist(dat.expFilePath(ref1, 'parameters', 'master'), 'file');
       testCase.verifyTrue(paramsSaved == 2)
+      % Check that a base session was created, if one didn't exist already
+      actual = nBaseSessions(nowstr);
+      testCase.verifyEqual(actual, expected, 'Failed to create base session')
       
       [ref1, seq, url] = testCase.verifyWarning(newExp_fn, wrnID);
       ref2 = strjoin({datestr(now, 'yyyy-mm-dd'),'2',subject},'_');
-      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch');
-      testCase.verifyEqual(seq, 2, 'Experiment sequence mismatch');
-      testCase.verifyMatches(url, [ai.BaseURL '/sessions'], 'Incorrect URL');
+      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch')
+      testCase.verifyEqual(seq, 2, 'Experiment sequence mismatch')
+      testCase.verifyMatches(url, [ai.BaseURL '/sessions'], 'Incorrect URL')
+      % Check that the number of base sessions has not changed
+      actual = nBaseSessions(nowstr);
+      testCase.verifyEqual(actual, expected, 'Unexpected base session')
       
       % Test creating a new experiment with multiple repos
       p = dat.expPath(testCase.subjects{1}, now, 1, 'main2', 'master');
@@ -462,8 +479,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       [ref1, seq, url] = testCase.verifyWarning(newExp_fn, wrnID);
       ref2 = strjoin({datestr(now, 'yyyy-mm-dd'),'2',testCase.subjects{1}},'_');
       testCase.verifyEqual(seq, 2, 'Failed to iterate sequence')
-      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch');
-      testCase.verifyMatches(url, [ai.BaseURL '/sessions'], 'Incorrect URL');
+      testCase.verifyEqual(ref1, ref2, 'Experiment reference mismatch')
+      testCase.verifyMatches(url, [ai.BaseURL '/sessions'], 'Incorrect URL')
       % Check parameters were saved
       expected = dat.expParams(ref1);
       testCase.verifyTrue(isstruct(expected) && isequal(fieldnames(expected), fieldnames(params)))
@@ -488,6 +505,14 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.verifyFalse(any(expFolderCreated))
 
       % TODO test newExp when headless
+      
+      function n = nBaseSessions(dateStr)
+        % Queries the number of base sessions for the test subject.  We
+        % expect either 0 or 1 base sessions for a given subject per day.
+        [base, status] = ai.getData(['sessions?type=Base&subject=' subject]);
+        testCase.assertEqual(status, 200, 'Failed to query Base sessions')
+        n = sum(arrayfun(@(s)strcmp(s.start_time(1:10), dateStr), base));
+      end
     end
     
     function test_postData(testCase)

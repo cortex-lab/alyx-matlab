@@ -131,12 +131,12 @@ if ~strcmp(subject, 'default') && ~(obj.Headless && ~obj.IsLoggedIn) % Ignore fa
   expDate = obj.datestr(expDate); % date in Alyx format
   % Ensure user is logged in
   if ~obj.IsLoggedIn; obj = obj.login; end
-    % Get list of base sessions
+    % Get list of base sessions.  Sessions returned in descending date order
     [sessions, statusCode] = obj.getData(['sessions?type=Base&subject=' subject]);
     
-    %If the date of this latest base session is not the same date as
-    %today, then create a new base session for today
-    if statusCode ~= 000 && (isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), expDate(1:10)))
+    % If the date of this latest base session is not the same date as
+    % today, then create a new base session for today.
+    if statusCode ~= 000 && (isempty(sessions) || ~strcmp(sessions(1).start_time(1:10), expDate(1:10)))
       d = struct;
       d.subject = subject;
       d.procedures = {'Behavior training/tasks'};

@@ -211,8 +211,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       % Test user search
       sess = ai.getSessions('user', 'ines');
-      expected = {'2ea989cd5143', '8aec34753ad0', ...
-        '4d2628b52ec0', 'ab26823ec5a4', '910203f65589'};
+      expected = {'1a718679ceeb'};
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search

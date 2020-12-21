@@ -2,7 +2,11 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.4.0]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.5.0]
+
+- Fix for multiple base session creation; removed testDev database (`4d6f6bc`)
+
+## [2.4.0]
 
 - Patch fix for assertion bug in newExp (`827d8a9`)
 - Folders removed in newExp when mkdir fails (`173b6fc`)

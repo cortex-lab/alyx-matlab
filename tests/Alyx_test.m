@@ -144,6 +144,17 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       ai.BaseURL = 'https://test.alyx.internationalbrainlab.org/';
       base2 = ai.BaseURL;
       testCase.verifyEqual(base1, base2, 'BaseURL sanitizer test failed');
+      
+      % Test string input
+      expected = string([ai.BaseURL '/sessions']);
+      testCase.verifyEqual(expected, ai.makeEndpoint(expected), ...
+        'unexpected handle of full string input')
+      
+      in = "sessions";
+      testCase.verifyEqual(expected, ai.makeEndpoint(in), ...
+        'unexpected handle of partial endpoint as string')
+      
+      testCase.verifyError(@() ai.makeEndpoint(""), 'Alyx:makeEndpoint:invalidInput')
     end
     
     function test_login(testCase)
@@ -200,13 +211,18 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       % Test user search
       sess = ai.getSessions('user', 'ines');
-      expected = {'2ea989cd5143', '8aec34753ad0', ...
-        '4d2628b52ec0', 'ab26823ec5a4', '910203f65589'};
+      expected = {'1a718679ceeb'};
       testCase.verifyEqual(actual(sess), expected, 'Failed to filter by users')
       
       % Test dataset search
-      sess = ai.getSessions('data', {'spikes.clusters', 'channels.probe'});
+      datasets = {'spikes.clusters', 'channels.probe'};
+      sess = ai.getSessions('data', datasets);
       testCase.verifyEqual(actual(sess), {'89b82507028a'}, 'Failed to filter by dataset_type')
+      
+      % Test string input
+      sess = ai.getSessions('data', string(datasets));
+      testCase.verifyEqual(actual(sess), {'89b82507028a'}, ...
+        'Failed to filter by string input')
       
       % Test eid and search combo
       [sess, eid] = ai.getSessions(testCase.eids{1}, ...
@@ -311,8 +327,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       ai = testCase.alyx;
       % Test paths from dataset eid
       [fullPath, exists] = ai.getFile(testCase.dataset_id);
-      expected = ['http://ibl.flatironinstitute.org/cortexlab/Subjects/'...
-        'KS005/2019-04-11/001/alf/_ibl_trials.itiDuration.e84cfbc9-20f6-4e85-b221-aae3c18b2fd9.npy'];
+      expected = ['https://ibl.flatironinstitute.org/cortexlab/Subjects'...
+        '/KS005/2019-04-11/001/alf/_ibl_trials.itiDuration.e84cfbc9-20f6-4e85-b221-aae3c18b2fd9.npy'];
       testCase.verifyEqual(fullPath{1}, expected, 'Unexpected path returned')
       testCase.verifyEqual(exists, [true false false])
       testCase.verifyTrue(all(endsWith(fullPath(2:end), ...
@@ -330,8 +346,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       
       % Test file record
       [fullPath, exists] = ai.getFile(testCase.file_record_ids{1}, 'file');
-      expected = ['http://ibl.flatironinstitute.org/mainenlab/Subjects/'...
-        'clns0730/2018-08-24/1/clusters.probes.npy'];
+      expected = ['https://ibl.flatironinstitute.org/mainenlab/Subjects'...
+        '/clns0730/2018-08-24/1/clusters.probes.npy'];
       testCase.verifyEqual(fullPath, expected, 'Unexpected path returned')
       testCase.verifyEqual(numel(ensureCell(fullPath)), numel(exists));
       

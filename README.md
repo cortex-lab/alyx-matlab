@@ -1,6 +1,6 @@
 # Alyx-MATLAB
-![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fcoverage%2Falyx-matlab%2Fmaster)
-![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fstatus%2Falyx-matlab%2Fmaster)
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fcoverage%2Falyx-matlab%2Fmaster)
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fstatus%2Falyx-matlab%2Fmaster)
 
 This repository contains a MATLAB class called Alyx, that facilitates RESTful POST and GET requests to an instance of the [Alyx database](http://alyx.readthedocs.io/en/latest/). 
 

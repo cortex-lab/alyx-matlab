@@ -1,6 +1,6 @@
 function [expRef, expSeq, url] = newExp(obj, subject, expDate, expParams)
-%NEWEXP Create a new unique experiment in the database
-%   [ref, seq] = NEWEXP(subject, expDate, expParams)
+%ALYX.NEWEXP Create a new unique experiment in the database
+%   [ref, seq] = ALYX.NEWEXP(subject, expDate, expParams)
 %   Create a new experiment by creating the relevant folder tree in the
 %   local and main data repositories in the following format:
 %
@@ -42,7 +42,6 @@ end
 subjectExists = any(strcmp(dat.listSubjects, subject));
 errMsg = sprintf('subject "%s" does not exist', subject);
 assert(subjectExists, 'Alyx:newExp:subjectNotFound', errMsg);
-
 
 % retrieve list of experiments for subject
 [~, dateList, seqList] = dat.listExps(subject);

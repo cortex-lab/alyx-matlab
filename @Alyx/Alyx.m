@@ -49,7 +49,7 @@ classdef Alyx
   
   properties (Dependent)
     % A flag indicating whether the user is logged into the database
-    IsLoggedIn = false
+    IsLoggedIn
   end
   
   methods

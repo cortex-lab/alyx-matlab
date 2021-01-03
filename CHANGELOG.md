@@ -5,6 +5,10 @@
 ## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.5.0]
 
 - Fix for multiple base session creation; removed testDev database (`4d6f6bc`)
+- Improvements to madeEndpoint
+- Sessions returned in descending date order
+- Test for correct base session creation
+- Minor updates to documentation
 
 ## [2.4.0]
 

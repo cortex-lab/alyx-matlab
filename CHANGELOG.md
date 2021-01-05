@@ -2,7 +2,11 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.5.0]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.6.0]
+
+- Better handling of headless state on login
+
+## [2.5.0]
 
 - Fix for multiple base session creation; removed testDev database (`4d6f6bc`)
 - Improvements to madeEndpoint

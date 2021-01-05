@@ -22,7 +22,7 @@ if statusCode == 200
 elseif statusCode == 000
   % Alyx is down, set as headless
   obj.Headless = true;
-  return
+  error('Alyx:Login:FailedToConnect', responseBody)
 elseif statusCode == 400 && isempty(password)
   error('Alyx:Login:PasswordEmpty', 'Password may not be left blank')
 else

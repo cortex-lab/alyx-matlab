@@ -42,7 +42,7 @@ catch ex
       statusCode = 000;
     otherwise
       response = regexp(ex.message, '(?:the status )(?<status>\d{3}).*"(?<message>.+)"', 'names');
-      if len(response)
+      if ~isempty(response)
         statusCode = str2double(response.status);
         responseBody = response.message;
       else

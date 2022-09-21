@@ -7,6 +7,10 @@
 - Better handling of headless state on login
 - Save timeline ALF files as _timeline_DAQdata object
 
+## [2.5.1]
+
+- Handle certificate errors properly
+
 ## [2.5.0]
 
 - Fix for multiple base session creation; removed testDev database (`4d6f6bc`)

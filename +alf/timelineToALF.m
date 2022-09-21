@@ -1,4 +1,4 @@
-function timelineToALF(Timeline, b, destDir)
+function timelineToALF(Timeline, ~, destDir)
 % function timelineToALF(timeline, b, destDir)
 %
 % Converts a Timeline structure to alyx file format
@@ -11,23 +11,13 @@ function timelineToALF(Timeline, b, destDir)
 assert(exist('writeNPY', 'file') > 0,...
     'writeNPY not found; cannot proceed saving Timeline to ALF')
 
-% Save each recorded vector into the correct format in Timeline timebase
-% and optionally into universal timebase if conversion is provided
-inputs = {Timeline.hw.inputs.name};
-inputs = inputs([Timeline.hw.inputs.arrayColumn] > -1); % ignore inputs that were unused
+% Save raw timeline data
 nSamps = Timeline.rawDAQSampleCount;
 tlTimes = [0 Timeline.rawDAQTimestamps(1); nSamps-1 Timeline.rawDAQTimestamps(end)];
-for ii = 1:length(inputs)
-    
-    dat = Timeline.rawDAQData(:,ii);
-    
-    writeNPY(dat, fullfile(destDir, [inputs{ii} '.raw.npy']));
-    
-    writeNPY(tlTimes, fullfile(destDir, [inputs{ii} '.timestamps_Timeline.npy']));
-    
-    if ~isempty(b) && numel(b)==2
-        univTimes = [tlTimes(:,2) [1;1]]*b(:);
-        writeNPY(univTimes, fullfile(destDir, [inputs{ii} '.timestamps.npy']));
-    end
-    
-end
+writeNPY(tlTimes, fullfile(destDir, '_timeline_DAQdata.timestamps.npy'));
+writeNPY(Timeline.rawDAQData, fullfile(destDir, '_timeline_DAQdata.raw.npy'));
+
+%  write hardware info to a JSON file for compatibility with database
+fid = fopen(fullfile(destDir, '_timeline_DAQdata.meta.json'), 'w');
+fprintf(fid, '%s', jsonencode(Timeline.hw));
+fclose(fid);

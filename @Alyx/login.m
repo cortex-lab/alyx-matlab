@@ -51,6 +51,9 @@ while ~obj.IsLoggedIn
       % JSONlab not installed
       error(ex.identifier, 'JSONLab Toolbox required.  Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.',...
         'https://uk.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files')
+    elseif strcmp(ex.identifier, 'Alyx:Login:FailedToConnect')
+       obj.Headless = true;
+       break
     elseif contains(ex.message, 'credentials')||strcmpi(ex.message, 'Bad Request')
       if obj.Headless == true
         warning('Alyx:LoginFail:BadCredentials', 'Unable to log in with provided credentials.')

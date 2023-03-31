@@ -16,13 +16,20 @@ if nargin ~= 3 && obj.Headless % Don't prompt user if headless flag set
   return
 end
 
+noDisplay = usejava('jvm') && ~feature('ShowFigureWindows');
 while ~obj.IsLoggedIn
   if nargin < 2 || isempty(presetUsername) % no preset user
     prompt = {'Alyx username:'};
-    dlg_title = 'Alyx login';
-    num_lines = 1;
-    defaultans = {'',''};
-    answer = newid(prompt, dlg_title, num_lines, defaultans);
+    if noDisplay
+      % use text-based alternative
+      answer = strip(input([prompt{:} ' '], 's'));
+    else
+      % use GUI dialog
+      dlg_title = 'Alyx login';
+      num_lines = 1;
+      defaultans = {'',''};
+      answer = newid(prompt, dlg_title, num_lines, defaultans);
+    end
     
     if isempty(answer)
       % this happens if you click cancel
@@ -35,7 +42,14 @@ while ~obj.IsLoggedIn
   end
   
   if nargin < 3 || isempty(presetPassword)
-    pwd = passwordUI();
+    if noDisplay
+      diaryState = get(0, 'Diary');
+      diary('off'); % At minimum we can keep out of dairy log file
+      pwd = input('Alyx password <strong>**INSECURE**</strong>: ', 's');
+      diary(diaryState);
+    else
+      pwd = passwordUI();
+    end
   else
     pwd = presetPassword;
   end

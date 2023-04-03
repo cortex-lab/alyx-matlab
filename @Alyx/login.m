@@ -36,7 +36,11 @@ while ~obj.IsLoggedIn
       return;
     end
     
-    username = answer{1};
+    if iscell(answer) % true if using newid
+      username = answer{1};
+    else
+      username = answer;
+    end
   else
     username = presetUsername;
   end

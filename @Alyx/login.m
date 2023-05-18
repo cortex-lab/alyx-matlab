@@ -64,8 +64,8 @@ while ~obj.IsLoggedIn
     products = ver;
     toolboxes = matlab.addons.toolbox.installedToolboxes;
     % Check the correct toolboxes are installed
-    if ~any(contains({products.Name},'JSONlab'))&&...
-        ~any(contains({toolboxes.Name},'JSONlab'))&&contains(ex.message, 'loadjson')
+    if numel(toolboxes) == 0 && ~any(contains({products.Name},'JSONlab'))&&...
+        ~any(contains({toolboxes.Name},'JSONlab')) && contains(ex.message, 'loadjson')
       % JSONlab not installed
       error(ex.identifier, 'JSONLab Toolbox required.  Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.',...
         'https://uk.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files')

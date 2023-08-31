@@ -2,7 +2,13 @@
 
 **NB:** Versioning became consistent only after v2.1.0, before this many patches went unrecorded.
 
-## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.6.0]
+## [Latest](https://github.com/cortex-lab/alyx-matlab/commits/master) [2.7.0]
+
+- Informative error when no toolboxes installed
+- Support login without UI dialog when no display found
+- Save _timeline_softwareEvents.log.htsv in timeline2ALF
+
+## [2.6.0]
 
 - Better handling of headless state on login
 - Save timeline ALF files as _timeline_DAQdata object
